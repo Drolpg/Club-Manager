@@ -150,7 +150,7 @@ pelo admin. Ele não vê dados de gestão. O dashboard básico de verdade entra 
 | 16 | Ninguém desativa a si mesmo nem tira o próprio papel de admin. Assim sempre existe ao menos um admin ativo | RN-024 |
 | 17 | Todo diretor recém-cadastrado fica sem cargo e sem acesso aos dados de gestão | RF-013, RF-024 |
 | 18 | Trocar a senha pela recuperação encerra todas as sessões da conta | RF-010 |
-| 19 | Convite gerado, regenerado, revogado e usado; cadastro concluído; login pelo comando de admin; ativação e desativação; papel de admin dado e tirado; e senha redefinida geram registro de auditoria. Senhas e links nunca entram no registro | RF-026 |
+| 19 | Convite gerado, regenerado, revogado e usado; cadastro concluído; admin criado pelo comando; ativação e desativação; papel de admin dado e tirado; e senha redefinida geram registro de auditoria. Senhas e links nunca entram no registro | RF-026 |
 | 20 | O site e o aplicativo futuro usam o mesmo fluxo, pela mesma API | RNF-01 |
 
 Situações de uma conta:
