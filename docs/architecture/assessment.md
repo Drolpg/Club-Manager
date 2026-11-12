@@ -14,7 +14,7 @@ A recomendação se mantém. O que a descoberta mudou nos sinais:
 
 - **Regras e estados continuam altos**, e mudaram de lugar: o motor de aprovações ficou mais simples (um aprovador
   por solicitação, sem regras de vários setores), e o financeiro ficou mais rico (inadimplência, convocação, perdão,
-  renegociação, suspensão). O DDD tático no core segue justificado: 58 invariantes em 8 aggregates.
+  renegociação, suspensão). O DDD tático no core segue justificado: 56 invariantes em 8 aggregates.
 - **Os módulos candidatos mudaram de nome**: feed e documentos viraram `comunicacao`; o perfil é leitura composta em
   `relatorios`. A lista vigente é a de `docs/domain/strategic-design.md`.
 - **Nenhum gatilho de reavaliação disparou.** A integração entre contextos foi detalhada na ADR-003.

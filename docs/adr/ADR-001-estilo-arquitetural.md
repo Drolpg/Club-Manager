@@ -1,6 +1,6 @@
 # ADR 001: Estilo arquitetural e nível de investimento
 
-**Status:** Proposed <!-- Accepted no gate da arquitetura base -->  
+**Status:** Accepted  
 **Date:** 2026-11-11  
 **Deciders:** Leandro Nascimento  
 **Avaliação:** [docs/architecture/assessment.md](../architecture/assessment.md)  
@@ -132,6 +132,6 @@ Estas regras entram no `AGENTS.md` (seção "Regras de arquitetura"). Adotar qua
 
 ---
 
-**Last Updated:** 2026-11-11  
+**Last Updated:** 2026-11-12  
 **Decision Maker:** Leandro Nascimento (estilo, exclusões e gatilhos aceitos em 2026-11-11)  
-**Status:** Proposed
+**Status:** Accepted (gate da arquitetura base, 2026-11-12)

@@ -2,9 +2,9 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Draft |
+| Status | Approved |
 | Atualizado em | 2026-11-11 |
-| Aprovado por / em | — |
+| Aprovado por / em | Leandro Nascimento / 2026-11-12 |
 | Decisões | ADR-001 (estilo), ADR-003 (integração), ADR-004 (backend), ADR-005 (site), ADR-006 (filas), ADR-007 (repositório e CI) |
 
 As versões são as resolvidas em 2026-11-11; a fonte exata é `backend/uv.lock` e `frontend/package-lock.json`.

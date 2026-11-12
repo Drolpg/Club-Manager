@@ -1,6 +1,6 @@
 # ADR 007: Um repositório, CI por pasta e as mesmas imagens em todo lugar
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-11-11  
 **Deciders:** Leandro Nascimento  
 **Resolve em parte:** AD-013 (CI e imagens; o deploy na AWS fica para o M12)
@@ -14,7 +14,7 @@ Actions dentro do plano gratuito (RNF-04), só os ambientes local e produção (
 
 ## Considered Options
 
-### Option 1: Um repositório, com `backend/` e `frontend/`, e um workflow por pasta ✅ RECOMENDADA
+### Option 1: Um repositório, com `backend/` e `frontend/`, e um workflow por pasta ✅ SELECIONADA
 
 Um lugar só para specs, código e decisões. Cada workflow roda só quando a sua pasta muda.
 
@@ -28,7 +28,7 @@ Mais simples de ler, mas gasta minutos do plano gratuito rodando o backend quand
 
 ## Decision
 
-Recomenda-se a **Option 1**.
+Adotada a **Option 1**.
 
 | Decisão | Detalhe |
 | --- | --- |
@@ -59,6 +59,6 @@ rollback.
 
 ---
 
-**Last Updated:** 2026-11-11  
-**Decision Maker:** Leandro Nascimento (pendente)  
-**Status:** Proposed
+**Last Updated:** 2026-11-12  
+**Decision Maker:** Leandro Nascimento  
+**Status:** Accepted

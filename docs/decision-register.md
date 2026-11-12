@@ -84,7 +84,7 @@ adaptadores) não é ponto de partida.
 **Options:** as do catálogo de `sdd-method:choosing-architecture`, incluindo as três citadas no enunciado e o
 monólito modular (com ou sem DDD), que é o estilo de partida do tipo "sistema de domínio rico".
 
-**Follow-up:** ADR-001 (Proposed até o gate da arquitetura base); avaliação em `docs/architecture/assessment.md`.
+**Follow-up:** ADR-001 (Accepted em 2026-11-12, no gate da arquitetura base); avaliação em `docs/architecture/assessment.md`.
 
 ---
 
@@ -300,7 +300,7 @@ extensão para trocar de provedor (RNF-06, RNF-07).
 imagens em desenvolvimento e produção (RNF-03), imagens versionadas para rollback e backup do banco (RNF-05). O
 enunciado pede verificar se o conjunto cabe na máquina.
 
-**Nota (2026-11-11):** CI, estrutura do repositório e imagens estão na ADR-007 (Proposed). Memória medida com o
+**Nota (2026-11-11):** CI, estrutura do repositório e imagens estão na ADR-007 (Accepted em 2026-11-12). Memória medida com o
 esqueleto no ar: cerca de 330 MB em repouso. Continuam em aberto: registro de imagens, deploy na instância, HTTPS,
 backup, rollback e as regras do free tier para a conta do dono.
 
