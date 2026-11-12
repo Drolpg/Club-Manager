@@ -1,0 +1,52 @@
+name: backend
+
+# Roda só quando o backend muda, para caber no plano gratuito (RNF-04).
+on:
+  push:
+    branches: [main, dev]
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+  pull_request:
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: clubmanager
+          POSTGRES_USER: clubmanager
+          POSTGRES_PASSWORD: clubmanager
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U clubmanager"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      # Banco descartável do próprio job; não é segredo.
+      DATABASE_URL: postgres://clubmanager:clubmanager@localhost:5432/clubmanager
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Instalar dependências
+        run: uv sync --frozen
+      - name: Formato, lint, tipos, fronteiras, migrações e testes
+        run: uv run poe verify
+      - name: Vulnerabilidades nas dependências
+        run: uv run pip-audit
