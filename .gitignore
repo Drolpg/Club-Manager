@@ -216,3 +216,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Notas internas
+notas-internas/
+
+# Notas do metodo fora do git
+docs/_local/
+
+# Prototipo antigo: so consulta, removido no M12 (ADR-002)
+_prototipo/
