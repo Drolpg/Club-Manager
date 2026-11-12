@@ -45,6 +45,7 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | Features, `features/` (rito 6 em diante) | O fluxo SDD e as specs de cada marco |
 | [Registro de decisões](decision-register.md) | Decisões em aberto e resolvidas (AD-NNN) |
 | [RFCs](rfc/) | Propostas discutidas antes da implementação |
+| [Auditorias](audits/) | Onde documentos e código divergiam ao fim de cada marco, e o que foi feito |
 | [Dívida técnica](tech-debt/) | Desvios conhecidos, com motivo e encaminhamento |
 | [Definition of Ready e Done](requirements/definition-of-ready-done.md) | Quando uma feature pode começar e quando termina |
 | [Backlog](requirements/backlog.md) | Ideias deixadas fora do escopo atual, incluindo as etapas futuras |

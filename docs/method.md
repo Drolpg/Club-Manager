@@ -44,7 +44,7 @@
 | Specs, planos e tarefas por marco | `docs/features/<contexto>/<slug>/` |
 | Domínio (se o estilo pedir) | `docs/domain/` |
 | Decisões e débitos | `docs/decision-register.md`, `docs/adr/`, `docs/rfc/`, `docs/tech-debt/` |
-| Segurança | `docs/security/` |
+| Segurança | `docs/security/` (um relatório por marco) |
 | Auditorias de coerência | `docs/audits/` |
 | Testes | `backend/tests/`, `backend/<modulo>/tests/`, `frontend/src/**/*.test.ts(x)` |
 | Notas fora do git | `docs/_local/` |
@@ -60,8 +60,8 @@
 | 4 | Desenho estratégico | Sim, sistema inteiro | Concluído | 2026-11-11 | Leandro Nascimento | `docs/domain/strategic-design.md`, `context-map.md`, `ubiquitous-language.md`, `docs/adr/ADR-003-integracao-entre-contextos.md` |
 | 5 | Desenho tático | Sim, só `aprovacoes`, `financeiro` e `eventos` | Concluído | 2026-11-11 | Leandro Nascimento | `docs/domain/aggregates/`, `docs/domain/domain-events.md`, `docs/domain/domain-model.md` |
 | 6 | Especificação | Sim | Concluído (registro de requisitos; as specs de feature são escritas marco a marco, no rito 8) | 2026-11-11 | Leandro Nascimento | `docs/requirements/requirements.md`, `epics.md`, `definition-of-ready-done.md`, `backlog.md` |
-| 7 | Arquitetura base | Sim | Em andamento (esqueleto verde na máquina; falta o CI rodar no GitHub e a aprovação) | | | `backend/`, `frontend/`, `compose.yaml`, `.github/workflows/`, `docs/architecture/`, `docs/setup/`, ADR-004 a ADR-007 |
-| 8 | Entrega incremental | Contínuo | — | | | |
+| 7 | Arquitetura base | Sim | Concluído | 2026-11-12 | Leandro Nascimento | `backend/`, `frontend/`, `compose.yaml`, `.github/workflows/`, `docs/architecture/`, `docs/setup/`, ADR-004 a ADR-007; CI verde na `dev` (execuções `backend` e `frontend` de 2026-11-12) |
+| 8 | Entrega incremental | Contínuo | Próximo: M2 | | | |
 
 Status: `Pendente`, `Em andamento`, `Concluído`, `Não se aplica (estilo)`, `Simplificado (<motivo>)`,
 `Pulado (<motivo>)`.
@@ -70,7 +70,7 @@ Status: `Pendente`, `Em andamento`, `Concluído`, `Não se aplica (estilo)`, `Si
 
 | Fase | Enunciado | Entrega | Status | Auditoria |
 | --- | --- | --- | --- | --- |
-| 1 (etapa 1: diretores, no site) | `docs/challenge/phase-1.md` | Sem prazo fixo | Em andamento | — |
+| 1 (etapa 1: diretores, no site) | `docs/challenge/phase-1.md` | Sem prazo fixo | Em andamento | M1: `docs/audits/2026-11-12-coherence.md` |
 
 ## Marcos da fase 1
 
@@ -81,7 +81,7 @@ validação), com revisão de segurança e auditoria de coerência ao fim.
 | Marco | Entregável | Status | Concluído em | Aprovado por |
 | --- | --- | --- | --- | --- |
 | M0 Arquitetura | E1 | Concluído | 2026-11-11 | Leandro Nascimento |
-| M1 Fundação | E2 | Em andamento | | |
+| M1 Fundação | E2 | Critério de aceite atendido; aguardando a aprovação do dono e o merge na `main` | | |
 | M2 Identidade e acesso | E3 | Pendente | | |
 | M3 Permissões e auditoria | E4 | Pendente | | |
 | M4 Notificações | E5 | Pendente | | |
