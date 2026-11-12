@@ -180,6 +180,41 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 200
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
+
+def _mailer_from_url(url: str) -> dict[str, object]:
+    """`smtp://usuario:senha@host:porta` (STARTTLS) ou `smtps://…` (TLS direto)."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("smtp", "smtps"):
+        raise ImproperlyConfigured("EMAIL_URL precisa ser smtp://usuario:senha@host:porta ou smtps://…")
+    return {
+        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        "OPTIONS": {
+            "host": parsed.hostname or "",
+            "port": parsed.port or (465 if parsed.scheme == "smtps" else 587),
+            "username": unquote(parsed.username or ""),
+            "password": unquote(parsed.password or ""),
+            "use_ssl": parsed.scheme == "smtps",
+            "use_tls": parsed.scheme == "smtp",
+            "timeout": 10,
+        },
+    }
+
+
+# E-mail: SMTP genérico por variável de ambiente (AD-012). Sem EMAIL_URL, os e-mails saem no log.
+MAILERS = {
+    "default": _mailer_from_url(os.environ["EMAIL_URL"])
+    if os.environ.get("EMAIL_URL")
+    else {"BACKEND": "django.core.mail.backends.console.EmailBackend"}
+}
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Club Manager <nao-responda@localhost>")
+
+CELERY_BEAT_SCHEDULE = {
+    "acesso.descartar_cadastros_vencidos": {
+        "task": "acesso.descartar_cadastros_vencidos",
+        "schedule": 60 * 60,
+    },
+}
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

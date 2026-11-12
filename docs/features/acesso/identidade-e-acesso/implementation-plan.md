@@ -112,7 +112,12 @@ Preenchida a cada checkpoint.
 | CA-06 | `acesso/tests/test_convites.py::test_ca06_convite_revogado_usado_ou_inexistente_tem_a_mesma_resposta` |
 | CA-07 | `acesso/tests/test_convites.py::test_ca07_regenerar_invalida_o_link_antigo_e_cria_um_novo_de_24_horas`, `::test_ca07_convite_expirado_pode_ser_regenerado` |
 | CA-08 | `acesso/tests/test_convites.py::test_ca08_lista_mostra_situacao_quem_gerou_e_quando` |
+| CA-09 | `acesso/tests/test_cadastro.py::test_ca09_cadastro_valido_fica_aguardando_usa_o_convite_e_envia_o_link` |
 | CA-10 (login) | `acesso/tests/test_sessao.py::test_ca10_conta_aguardando_verificacao_e_recusada_com_aviso_proprio` |
+| CA-11 | `acesso/tests/test_cadastro.py::test_ca11_verificar_ativa_a_conta_sem_cargo_e_avisa_os_admins` |
+| CA-12 | `acesso/tests/test_cadastro.py::test_ca12_cadastro_nao_verificado_em_24_horas_nao_verifica_e_e_descartado`, `::test_cadastro_vencido_ainda_nao_descartado_nao_prende_o_nome_de_usuario` |
+| CA-13 | `acesso/tests/test_cadastro.py::test_ca13_dado_invalido_ou_em_uso_nao_cria_conta_e_nao_gasta_o_convite`, `::test_ca13_senha_fraca_aponta_o_campo` |
+| CA-14 (API) | `acesso/tests/test_cadastro.py::test_ca14_o_cadastro_nao_aceita_nem_guarda_cpf`; o aviso de privacidade é do site (checkpoint 10) |
 | CA-20 | `acesso/tests/test_sessao.py::test_ca20_entra_por_nome_de_usuario_ou_email_em_qualquer_caixa` |
 | CA-21 | `acesso/tests/test_sessao.py::test_ca21_conta_inexistente_e_senha_errada_tem_a_mesma_resposta` |
 | CA-22 | `acesso/tests/test_sessao.py::test_ca22_sexta_tentativa_e_recusada_mesmo_com_a_senha_certa` |
@@ -180,6 +185,17 @@ checkpoint 3 tinham sido vistos falhando e depois passando antes de o checkpoint
 
 Testes novos: `backend/tests/test_rate_limit.py`, `backend/acesso/tests/test_sessao.py`,
 `test_convite_domain.py`, `test_convites.py`.
+
+### Checkpoint 5 — Cadastro com senha, verificação e e-mails (2026-11-12)
+
+```text
+uv run poe verify
+154 passed; cobertura 95,48%; import-linter: 1 contrato mantido; nenhuma migração pendente
+```
+
+Testes novos: `backend/acesso/tests/test_cadastro.py` (27). Ajustes fora do previsto: a migração
+`0003_convite_usado_por_opcional` (o convite continua usado quando o cadastro que o usou é descartado), e um Argon2
+de custo mínimo só nos testes (`backend/tests/hashers.py`).
 
 ## Rollback ou recuperação
 

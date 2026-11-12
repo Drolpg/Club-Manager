@@ -41,6 +41,9 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
+# Argon2 como em produção, mas com custo mínimo.
+PASSWORD_HASHERS = ["tests.hashers.FastArgon2PasswordHasher"]
+
 # Contadores em memória: os testes não dependem do Redis.
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 

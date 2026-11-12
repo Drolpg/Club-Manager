@@ -57,3 +57,22 @@ class ConviteSerializer(serializers.Serializer[Any]):
 
 class ConviteGeradoSerializer(ConviteSerializer):
     link = serializers.CharField(help_text="Mostrado uma única vez. Envie ao convidado por fora.")
+
+
+class CadastroSerializer(serializers.Serializer[Any]):
+    """Dados do cadastro pelo convite. Campos fora desta lista são ignorados; o sistema não pede CPF."""
+
+    token = serializers.CharField(max_length=200)
+    nome = serializers.CharField(max_length=120)
+    nome_de_usuario = serializers.CharField(max_length=30)
+    telefone = serializers.CharField(max_length=30)
+    email = serializers.CharField(max_length=254)
+    senha = serializers.CharField(max_length=128, trim_whitespace=False)
+
+
+class SituacaoSerializer(serializers.Serializer[Any]):
+    situacao = serializers.CharField()
+
+
+class IdentificadorSerializer(serializers.Serializer[Any]):
+    identificador = serializers.CharField(max_length=254)

@@ -36,6 +36,8 @@ services:
       DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
       SITE_URL: ${SITE_URL:-http://localhost:8080}
+      EMAIL_URL: ${EMAIL_URL:-}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-Club Manager <nao-responda@localhost>}
       DATABASE_URL: postgres://${POSTGRES_USER:-clubmanager}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-clubmanager}
       REDIS_URL: redis://redis:6379/0
     command:

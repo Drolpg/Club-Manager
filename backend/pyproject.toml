@@ -51,6 +51,7 @@ testpaths = [
 ]
 python_files = ["test_*.py"]
 addopts = "--strict-markers --cov --cov-report=term-missing:skip-covered"
+markers = ["sem_atalho_de_commit: o teste confere o que é agendado para depois do commit"]
 
 [tool.coverage.run]
 branch = true
@@ -93,6 +94,11 @@ exclude = ["\\.venv", "migrations"]
 [[tool.mypy.overrides]]
 module = ["celery.*", "grimp.*"]
 ignore_missing_imports = true
+
+# O Celery não tem tipos: o decorador de tarefa deixa a função sem tipo.
+[[tool.mypy.overrides]]
+module = ["*.tasks"]
+disallow_untyped_decorators = false
 
 [tool.django-stubs]
 django_settings_module = "config.settings_test"

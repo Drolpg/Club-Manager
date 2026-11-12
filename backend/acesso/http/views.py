@@ -1,7 +1,10 @@
 import uuid
+from typing import Any
 
 from django.conf import settings
 from django.contrib.auth import login, logout
+from django.http import HttpRequest
+from django.http.response import HttpResponseBase
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from drf_spectacular.utils import extend_schema
@@ -9,19 +12,23 @@ from rest_framework.exceptions import NotAuthenticated
 from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
 from acesso.http.permissions import EhAdmin, limitar_por_ip
 from acesso.http.serializers import (
+    CadastroSerializer,
     ConviteGeradoSerializer,
     ConviteSerializer,
+    IdentificadorSerializer,
     LoginSerializer,
     SessaoSerializer,
+    SituacaoSerializer,
     TokenSerializer,
     UsuarioSerializer,
 )
 from acesso.models import Convite, Usuario
-from acesso.services import convites, sessao
+from acesso.services import cadastro, convites, sessao
 
 
 def _ator(request: Request) -> Usuario:
@@ -116,4 +123,53 @@ class ConsultarConviteView(APIView):
         entrada = TokenSerializer(data=request.data)
         entrada.is_valid(raise_exception=True)
         convites.consultar(token=entrada.validated_data["token"])
+        return Response(status=204)
+
+
+class RotaAbertaDeEscrita(APIView):
+    """Base das rotas que qualquer pessoa pode chamar: exigem o token CSRF e contam para o limite por IP."""
+
+    permission_classes = (AllowAny,)
+
+    @method_decorator(csrf_protect)
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        return super().dispatch(request, *args, **kwargs)
+
+    def validar(self, request: Request, serializer: type[Serializer[Any]]) -> dict[str, Any]:
+        limitar_por_ip(request)
+        entrada = serializer(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        return dict(entrada.validated_data)
+
+
+class CadastrosView(RotaAbertaDeEscrita):
+    @extend_schema(
+        summary="Cadastrar-se pelo convite",
+        request=CadastroSerializer,
+        responses={201: SituacaoSerializer},
+        auth=[],
+    )
+    def post(self, request: Request) -> Response:
+        usuario = cadastro.cadastrar(**self.validar(request, CadastroSerializer))
+        return Response({"situacao": usuario.situacao}, status=201)
+
+
+class VerificacoesView(RotaAbertaDeEscrita):
+    @extend_schema(summary="Verificar o e-mail", request=TokenSerializer, responses={204: None}, auth=[])
+    def post(self, request: Request) -> Response:
+        cadastro.verificar(token=self.validar(request, TokenSerializer)["token"])
+        return Response(status=204)
+
+
+class ReenviarVerificacaoView(RotaAbertaDeEscrita):
+    @extend_schema(
+        summary="Reenviar o link de verificação",
+        description="Responde sempre 204, exista a conta ou não.",
+        request=IdentificadorSerializer,
+        responses={204: None},
+        auth=[],
+    )
+    def post(self, request: Request) -> Response:
+        dados = self.validar(request, IdentificadorSerializer)
+        cadastro.reenviar_verificacao(identificador=dados["identificador"])
         return Response(status=204)

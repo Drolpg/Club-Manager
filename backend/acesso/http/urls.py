@@ -16,4 +16,11 @@ urlpatterns = [
         views.RevogarConviteView.as_view(),
         name="acesso-convite-revogar",
     ),
+    path("cadastros/", views.CadastrosView.as_view(), name="acesso-cadastros"),
+    path("verificacoes/", views.VerificacoesView.as_view(), name="acesso-verificacoes"),
+    path(
+        "verificacoes/reenviar/",
+        views.ReenviarVerificacaoView.as_view(),
+        name="acesso-verificacao-reenviar",
+    ),
 ]

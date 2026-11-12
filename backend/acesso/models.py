@@ -95,8 +95,10 @@ class Convite(models.Model):
     gerado_em = models.DateTimeField()
     expira_em = models.DateTimeField()
     usado_em = models.DateTimeField(null=True, blank=True)
+    # Fica nulo se o cadastro que usou o convite for descartado por falta de verificação; o convite
+    # continua usado.
     usado_por = models.ForeignKey(
-        Usuario, on_delete=models.PROTECT, null=True, blank=True, related_name="convites_usados"
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="convites_usados"
     )
     revogado_em = models.DateTimeField(null=True, blank=True)
     # O convite que este substituiu, quando nasceu de uma regeneração.
