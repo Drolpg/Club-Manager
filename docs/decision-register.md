@@ -41,9 +41,9 @@ agente só recomenda.
 | --- | --- | --- | --- | --- | --- |
 | AD-001 | Estilo de arquitetura e trilha de domínio | Resolved | Arquitetura compartilhada | Leandro | Ritos 3 a 7 |
 | AD-002 | Repositório novo ou reaproveitado, e destino do protótipo | Resolved | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
-| AD-003 | Framework do backend: Django ou FastAPI | Pending | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
-| AD-004 | Frontend web | Pending | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
-| AD-005 | Filas e tarefas agendadas | Pending | Arquitetura compartilhada | Leandro | M4 |
+| AD-003 | Framework do backend: Django ou FastAPI | Resolved | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
+| AD-004 | Frontend web | Resolved | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
+| AD-005 | Filas e tarefas agendadas | Resolved | Arquitetura compartilhada | Leandro | M4 |
 | AD-006 | Estratégia de autenticação e tokens para site e app | Pending | Arquitetura compartilhada | Leandro | M2 |
 | AD-007 | Modelagem das permissões (ação, recurso e escopo) | Pending | Arquitetura compartilhada | Leandro | M3 |
 | AD-008 | Modelagem do motor de aprovações e das versões de solicitação | Pending | Arquitetura compartilhada | Leandro | M5 |
@@ -117,7 +117,11 @@ Option B — Criar um repositório novo e manter este só como consulta.
 
 ### AD-003 — Django ou FastAPI no backend?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** Django com DRF, PostgreSQL 18 e Python 3.14.
+
+**Resolved on:** 2026-11-11, por Leandro Nascimento
 
 **Scope:** Arquitetura compartilhada
 
@@ -128,13 +132,17 @@ familiaridade) e FastAPI (se couber melhor). Flask está fora.
 
 **Options:** Option A — Django. Option B — FastAPI.
 
-**Follow-up:** proposta na avaliação do rito 2, decisão registrada em ADR antes do rito 7.
+**Follow-up:** ADR-004.
 
 ---
 
 ### AD-004 — Qual frontend web?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** React com Vite e TypeScript, como SPA servida por Caddy.
+
+**Resolved on:** 2026-11-11, por Leandro Nascimento
 
 **Scope:** Arquitetura compartilhada
 
@@ -145,13 +153,17 @@ futuro (AD-017) e o white-label com temas derivados (BRD-02).
 
 **Options:** a levantar na avaliação; React é a opção de referência.
 
-**Follow-up:** ADR antes do rito 7.
+**Follow-up:** ADR-005.
 
 ---
 
 ### AD-005 — Celery com Redis, ou algo mais leve, para filas e tarefas agendadas?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** Celery com Redis, um worker com o agendador embutido.
+
+**Resolved on:** 2026-11-11, por Leandro Nascimento
 
 **Scope:** Arquitetura compartilhada
 
@@ -162,7 +174,7 @@ workers cabem numa única instância do free tier (RNF-02).
 
 **Options:** Option A — Celery com Redis. Option B — alternativa mais leve, a levantar na avaliação.
 
-**Follow-up:** ADR antes do M4, com a medição de memória da AD-013.
+**Follow-up:** ADR-006.
 
 ---
 
@@ -288,7 +300,11 @@ extensão para trocar de provedor (RNF-06, RNF-07).
 imagens em desenvolvimento e produção (RNF-03), imagens versionadas para rollback e backup do banco (RNF-05). O
 enunciado pede verificar se o conjunto cabe na máquina.
 
-**Follow-up:** ADR no rito 7, revisada no M12.
+**Nota (2026-11-11):** CI, estrutura do repositório e imagens estão na ADR-007 (Proposed). Memória medida com o
+esqueleto no ar: cerca de 330 MB em repouso. Continuam em aberto: registro de imagens, deploy na instância, HTTPS,
+backup, rollback e as regras do free tier para a conta do dono.
+
+**Follow-up:** ADR-007 agora; ADR de deploy no M12.
 
 ---
 

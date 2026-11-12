@@ -225,3 +225,10 @@ docs/_local/
 
 # Prototipo antigo: so consulta, removido no M12 (ADR-002)
 _prototipo/
+
+# Club Manager
+.import_linter_cache/
+backend/staticfiles/
+node_modules/
+frontend/dist/
+frontend/coverage/

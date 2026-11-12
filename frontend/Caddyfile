@@ -1,0 +1,24 @@
+# Serve o site compilado e repassa /api para a API. Em produção, o HTTPS é configurado no M12.
+:80 {
+	encode gzip
+
+	# A API já envia os próprios cabeçalhos de segurança.
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle /static/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		header {
+			X-Content-Type-Options nosniff
+			X-Frame-Options DENY
+			Referrer-Policy strict-origin-when-cross-origin
+		}
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

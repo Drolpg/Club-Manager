@@ -12,9 +12,12 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | [Enunciado da fase 1](challenge/phase-1.md) | O que foi pedido, com entregáveis e restrições rastreáveis |
 | [Charter](project-charter.md) | Que problema o projeto resolve e como saberemos que deu certo |
 | [Avaliação de arquitetura](architecture/assessment.md) | Que estilo o problema pede, o que fica de fora e quando rever |
-| Visão geral da arquitetura, `architecture/overview.md` (rito 7) | Como o sistema é dividido e onde ele roda |
-| Domínio, `domain/` (ritos 3 a 5, se o estilo pedir) | Contextos, context map e linguagem ubíqua |
-| Requisitos, `requirements/requirements.md` (rito 6) | O que o sistema faz, com IDs rastreáveis |
+| [Visão geral da arquitetura](architecture/overview.md) | Como o sistema é dividido e onde ele roda |
+| [Estrutura do projeto](architecture/project-structure.md) | Onde fica cada coisa e quem pode importar quem |
+| [Perfil de stack](architecture/stack-profile.md) | Que ferramenta cuida de cada preocupação, com versão e comando |
+| [Domínio](domain/) | Descoberta, contextos, context map, glossário, aggregates e modelo |
+| [Requisitos](requirements/requirements.md) | O que o sistema faz, com IDs rastreáveis |
+| [Épicos](requirements/epics.md) | Como os requisitos se agrupam em marcos e do que cada um depende |
 | [Decisões arquiteturais](adr/) | Por que cada escolha estrutural foi feita |
 | Segurança, `security/` (M2 em diante) | Threat model, achados de segurança e o tratamento de cada um |
 
@@ -22,14 +25,15 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 
 | Documento | Tipo | Responde |
 | --- | --- | --- |
-| `setup/local.md` (M1) | Tutorial | Como subir o sistema localmente |
-| `setup/configuration.md` (M1) | Referência | Que variáveis existem e de onde vem cada valor |
+| [setup/local.md](setup/local.md) | Tutorial | Como subir o sistema localmente e rodar os testes |
+| [setup/configuration.md](setup/configuration.md) | Referência | Que variáveis existem e de onde vem cada valor |
 | `operations/` (M12) | Guia | Deploy, backup e rollback na instância única |
 
 ## Para consumir a API
 
 | Documento | Responde |
 | --- | --- |
+| `/api/v1/docs/` no sistema em execução | O contrato gerado pela aplicação, navegável |
 | `api/README.md` (M2) | Autenticação e recursos disponíveis |
 
 ## Para contribuir
@@ -42,7 +46,8 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | [Registro de decisões](decision-register.md) | Decisões em aberto e resolvidas (AD-NNN) |
 | [RFCs](rfc/) | Propostas discutidas antes da implementação |
 | [Dívida técnica](tech-debt/) | Desvios conhecidos, com motivo e encaminhamento |
-| Backlog, `requirements/backlog.md` (rito 6) | Ideias deixadas fora do escopo atual, incluindo as etapas futuras |
+| [Definition of Ready e Done](requirements/definition-of-ready-done.md) | Quando uma feature pode começar e quando termina |
+| [Backlog](requirements/backlog.md) | Ideias deixadas fora do escopo atual, incluindo as etapas futuras |
 
 ## Fora deste índice
 
