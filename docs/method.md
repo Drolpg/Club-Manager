@@ -81,8 +81,8 @@ validação), com revisão de segurança e auditoria de coerência ao fim.
 | Marco | Entregável | Status | Concluído em | Aprovado por |
 | --- | --- | --- | --- | --- |
 | M0 Arquitetura | E1 | Concluído | 2026-11-11 | Leandro Nascimento |
-| M1 Fundação | E2 | Critério de aceite atendido; aguardando a aprovação do dono e o merge na `main` | | |
-| M2 Identidade e acesso | E3 | Pendente | | |
+| M1 Fundação | E2 | Concluído (`v0.1.0`) | 2026-11-12 | Leandro Nascimento |
+| M2 Identidade e acesso | E3 | Em andamento (especificação) | | |
 | M3 Permissões e auditoria | E4 | Pendente | | |
 | M4 Notificações | E5 | Pendente | | |
 | M5 Motor de aprovações | E6 | Pendente | | |

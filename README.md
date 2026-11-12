@@ -12,8 +12,9 @@ A etapa 1 (diretores, no site) tem 13 marcos. O estado de cada um está em [docs
 | Marco | Situação |
 | --- | --- |
 | M0 Arquitetura | Concluído: domínio, requisitos e decisões registrados |
-| M1 Fundação | Esqueleto no ar: API, worker, banco, fila e site sobem com um comando |
-| M2 a M12 | Não iniciados |
+| M1 Fundação | Concluído (`v0.1.0`): API, worker, banco, fila e site sobem com um comando |
+| M2 Identidade e acesso | Em especificação |
+| M3 a M12 | Não iniciados |
 
 Hoje o sistema não tem nenhuma função de negócio: só a rota de saúde da API e uma página que a consulta.
 

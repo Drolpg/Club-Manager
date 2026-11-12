@@ -33,7 +33,7 @@ Só no desenvolvimento do site:
 ## Testes
 
 Os testes usam `config/settings_test.py`, que fixa a chave e a depuração e monta o `DATABASE_URL` com a senha do
-`.env`, apontando para `localhost:5433`. No CI, o `DATABASE_URL` vem do workflow.
+`.env`, apontando para `127.0.0.1:5433`. No CI, o `DATABASE_URL` vem do workflow.
 
 ## Onde cada valor é definido
 
