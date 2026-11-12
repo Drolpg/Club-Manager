@@ -135,6 +135,15 @@ Preenchida no checkpoint 11.
 
 ## Evidências de verificação
 
+### Checkpoint 1 — Auditoria (2026-11-12)
+
+```text
+uv run poe verify
+27 passed; cobertura 95,20%; import-linter: 1 contrato mantido; nenhuma migração pendente
+```
+
+Testes novos: `backend/auditoria/tests/test_registro.py` (8).
+
 ## Rollback ou recuperação
 
 Não há dado de produção. As migrações revertem com `python manage.py migrate <app> zero`; a versão anterior é a tag
