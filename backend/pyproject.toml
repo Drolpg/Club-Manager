@@ -1,0 +1,141 @@
+[project]
+name = "club-manager"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "celery>=5.7.0",
+    "django>=6.1.3",
+    "djangorestframework>=3.18.3",
+    "drf-spectacular>=0.30.0",
+    "gunicorn>=27.0.0",
+    "psycopg[binary]>=3.3.8",
+    "redis>=8.1.0",
+    "whitenoise>=6.12.0",
+]
+
+[dependency-groups]
+dev = [
+    "django-stubs>=6.1.2",
+    "djangorestframework-stubs>=3.18.2",
+    "import-linter>=2.16",
+    "mypy>=2.4.1",
+    "pip-audit>=2.10.1",
+    "poethepoet>=0.49.0",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "pytest-django>=4.14.0",
+    "ruff>=0.17.4",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings_test"
+pythonpath = ["."]
+testpaths = [
+    "tests",
+    "kernel",
+    "auditoria",
+    "acesso",
+    "permissoes",
+    "notificacoes",
+    "marca",
+    "aprovacoes",
+    "comunicacao",
+    "financeiro",
+    "eventos",
+    "relatorios",
+]
+python_files = ["test_*.py"]
+addopts = "--strict-markers --cov --cov-report=term-missing:skip-covered"
+
+[tool.coverage.run]
+branch = true
+source = ["."]
+omit = [
+    "tests/*",
+    "*/tests/*",
+    "*/migrations/*",
+    "manage.py",
+    "config/wsgi.py",
+    "config/settings_test.py",
+    ".venv/*",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+
+[tool.ruff]
+line-length = 110
+target-version = "py314"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "DJ", "C4", "SIM", "PT", "RUF"]
+# RUF001 a RUF003 reclamam de caracteres acentuados, que o projeto usa em português.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+"*/tests/*" = ["S101"]
+"config/settings_test.py" = ["F403", "F401", "F405", "E402", "S105"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+exclude = ["\\.venv", "migrations"]
+
+[[tool.mypy.overrides]]
+module = ["celery.*", "grimp.*"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings_test"
+
+[tool.importlinter]
+root_packages = [
+    "config",
+    "kernel",
+    "auditoria",
+    "acesso",
+    "permissoes",
+    "notificacoes",
+    "marca",
+    "aprovacoes",
+    "comunicacao",
+    "financeiro",
+    "eventos",
+    "relatorios",
+]
+
+# A ordem é a do context map (docs/domain/context-map.md): cada módulo só importa
+# os que estão abaixo dele. "|" separa módulos do mesmo nível, que não se importam.
+[[tool.importlinter.contracts]]
+name = "Um modulo so importa os que estao abaixo dele no context map"
+type = "layers"
+layers = [
+    "config",
+    "relatorios",
+    "eventos",
+    "financeiro",
+    "aprovacoes | comunicacao | marca",
+    "notificacoes",
+    "permissoes",
+    "acesso",
+    "auditoria",
+    "kernel",
+]
+
+[tool.poe.tasks]
+format = "ruff format ."
+format-check = "ruff format --check ."
+lint = "ruff check ."
+types = "mypy ."
+imports = "lint-imports"
+migrations-check = "python manage.py makemigrations --check --dry-run --settings=config.settings_test"
+test = "pytest"
+audit = "pip-audit"
+verify = ["format-check", "lint", "types", "imports", "migrations-check", "test"]

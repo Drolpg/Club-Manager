@@ -1,0 +1,16 @@
+# Aplicado automaticamente em desenvolvimento. Em produção, use só o compose.yaml:
+#   docker compose -f compose.yaml up -d
+#
+# Expõe o banco e o Redis na máquina, para rodar os testes do backend fora do contêiner.
+services:
+  db:
+    ports:
+      - "5433:5432"
+
+  redis:
+    ports:
+      - "6380:6379"
+
+  api:
+    ports:
+      - "8000:8000"
