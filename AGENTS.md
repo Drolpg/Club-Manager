@@ -22,8 +22,12 @@ arquitetura e o estado dos ritos e dos marcos ficam em `docs/method.md`.
   partida de arquitetura, e nada dele é copiado para o projeto novo.
 - Idioma da documentação: pt-BR. Nomes no código: domínio na língua do negócio (português, por exemplo `Cobranca`,
   `Solicitacao`, `Isencao`), infraestrutura em inglês (`repository`, `settings`, `tasks`).
-- <!-- STACK (rito 7): linguagem, framework, gerenciador de pacotes e como invocá-lo. Não adicione dependências fora
-  da stack sem perguntar. -->
+- Stack: Python 3.14, Django 6.1 e DRF no backend, com uv (`uv run …`, em `backend/`); React 19, Vite e TypeScript
+  no site, com npm (em `frontend/`); PostgreSQL, Celery e Redis. Perfil completo em
+  `docs/architecture/stack-profile.md`; estrutura de pastas em `docs/architecture/project-structure.md`. Não adicione
+  dependências fora da stack sem perguntar.
+- No Windows, rode os comandos do site num terminal aberto em `C:\…` com a letra maiúscula (ver
+  `docs/setup/local.md`).
 
 ## Regras de arquitetura
 
@@ -41,6 +45,12 @@ demais — decisão em `docs/adr/ADR-001-estilo-arquitetural.md`, avaliação em
 - Tarefas agendadas são idempotentes: rodar duas vezes não duplica cobrança nem notificação.
 - Ports só nas fronteiras reais: e-mail, armazenamento de anexos, identidade Google e canais de notificação. Use a
   abstração do framework quando ela existir.
+- De outro módulo, importe só `<modulo>.public`. As funções de decisão ficam em `<modulo>/domain/` e não importam
+  Django, DRF nem Celery.
+- Views e serializers do DRF só validam a entrada, chamam um serviço e formatam a saída. Não use `ModelViewSet` nem
+  `ModelSerializer` que gravem direto no modelo; declare os campos de saída (ADR-004).
+- Uma tarefa do Celery só chama um serviço do módulo dono (ADR-006).
+- Toda rota é negada por padrão; a que for aberta declara a permissão explicitamente.
 
 **Não adicionar** (decidido contra; adicionar qualquer um exige nova decisão):
 
@@ -111,14 +121,15 @@ Sempre:
 - Fakes só em fronteiras reais; banco real nos testes de integração; sem rede real em testes unitários.
 - Os fluxos críticos (aprovação, validação, permissões, recorrência) têm cobertura reforçada, porque não há ambiente
   de homologação.
-- Rode o teste alvo, depois a suíte completa e os linters antes de dizer que uma tarefa terminou:
-  <!-- STACK (rito 7): comandos -->
+- Rode o teste alvo, depois a verificação completa antes de dizer que uma tarefa terminou:
+  `uv run poe verify` em `backend/` e `npm run verify` em `frontend/`. O banco dos testes é o PostgreSQL do compose
+  (`docker compose up -d db redis`).
 - Meta de cobertura: 80%. Não reduza a cobertura do código alterado.
 
 ## Dados persistidos
 
-- Migrações versionadas e reversíveis são o único mecanismo de schema. <!-- STACK (rito 7): ferramenta, pasta,
-  nomes. -->
+- Migrações versionadas e reversíveis são o único mecanismo de schema: migrações do Django, em
+  `<modulo>/migrations/`, com `--name` descritivo. `uv run poe migrations-check` falha se faltar uma.
 - A produção nunca deixa o ORM criar ou atualizar o schema.
 - Backup do banco antes de qualquer mudança com dados em produção.
 - Seeds: dados de demonstração só atrás de uma flag explícita de desenvolvimento; os testes usam as próprias
@@ -143,7 +154,7 @@ Sempre:
 - Funções pequenas e coesas, nomes explícitos, validação cedo em vez de condicionais aninhados.
 - Comentários explicam decisões não óbvias, não o que o código diz.
 - Sem abstrações especulativas, interfaces sem uso ou pacotes genéricos de utilitários.
-- <!-- STACK (rito 7): formatador, linter, verificador de tipos, tamanho de linha. -->
+- Backend: Ruff para formato e lint, mypy em modo estrito, linhas de até 110 colunas. Site: oxlint e `tsc`.
 
 ## Git
 

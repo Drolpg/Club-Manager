@@ -15,9 +15,9 @@
 | Situações | solo, com tracker (GitHub Issues), com board (Miro, a conectar), em fases |
 | Idioma da documentação | pt-BR |
 | Idioma dos nomes no código | Domínio na língua do negócio (português), infraestrutura em inglês |
-| Stack | Definida no rito 7 — preferências do enunciado registradas como AD-003 a AD-006 e AD-011 a AD-013 |
-| Comando de verificação completa | Definido no rito 7 |
-| Meta de cobertura | 80% (padrão do método; confirmar no rito 7) |
+| Stack | Python 3.14, Django 6.1, DRF, PostgreSQL 18, Celery e Redis; React 19, Vite, TypeScript — `docs/architecture/stack-profile.md` |
+| Comando de verificação completa | `uv run poe verify` em `backend/` e `npm run verify` em `frontend/` |
+| Meta de cobertura | 80%, no backend e no site |
 | Git | `CONTRIBUTING.md` — modelo `main` + `dev`, sem trailer de IA |
 | Board / tracker | Issues criadas marco a marco, na especificação de cada um, e não todas de uma vez. Miro: conector autorizado em 2026-11-11, ferramentas ainda não disponíveis na sessão; URL a registrar. Tracker: <https://github.com/Drolpg/Club-Manager/issues> |
 | Prazo | Sem prazo fixo |
@@ -38,14 +38,15 @@
 | Enunciados e entregáveis | `docs/challenge/` |
 | Charter | `docs/project-charter.md` |
 | Índice da documentação | `docs/README.md` |
-| Avaliação e decisão de arquitetura | `docs/adr/` (ADR de estilo, rito 2) e `docs/architecture/` |
+| Avaliação e decisão de arquitetura | `docs/adr/` e `docs/architecture/` (avaliação, visão geral, estrutura, perfil de stack) |
+| Guias de setup | `docs/setup/` |
 | Requisitos | `docs/requirements/` |
 | Specs, planos e tarefas por marco | `docs/features/<contexto>/<slug>/` |
 | Domínio (se o estilo pedir) | `docs/domain/` |
 | Decisões e débitos | `docs/decision-register.md`, `docs/adr/`, `docs/rfc/`, `docs/tech-debt/` |
 | Segurança | `docs/security/` |
 | Auditorias de coerência | `docs/audits/` |
-| Testes | Definido no rito 7 |
+| Testes | `backend/tests/`, `backend/<modulo>/tests/`, `frontend/src/**/*.test.ts(x)` |
 | Notas fora do git | `docs/_local/` |
 
 ## Estado dos ritos
@@ -59,7 +60,7 @@
 | 4 | Desenho estratégico | Sim, sistema inteiro | Concluído | 2026-11-11 | Leandro Nascimento | `docs/domain/strategic-design.md`, `context-map.md`, `ubiquitous-language.md`, `docs/adr/ADR-003-integracao-entre-contextos.md` |
 | 5 | Desenho tático | Sim, só `aprovacoes`, `financeiro` e `eventos` | Concluído | 2026-11-11 | Leandro Nascimento | `docs/domain/aggregates/`, `docs/domain/domain-events.md`, `docs/domain/domain-model.md` |
 | 6 | Especificação | Sim | Concluído (registro de requisitos; as specs de feature são escritas marco a marco, no rito 8) | 2026-11-11 | Leandro Nascimento | `docs/requirements/requirements.md`, `epics.md`, `definition-of-ready-done.md`, `backlog.md` |
-| 7 | Arquitetura base | Sim | Em andamento | | | |
+| 7 | Arquitetura base | Sim | Em andamento (esqueleto verde na máquina; falta o CI rodar no GitHub e a aprovação) | | | `backend/`, `frontend/`, `compose.yaml`, `.github/workflows/`, `docs/architecture/`, `docs/setup/`, ADR-004 a ADR-007 |
 | 8 | Entrega incremental | Contínuo | — | | | |
 
 Status: `Pendente`, `Em andamento`, `Concluído`, `Não se aplica (estilo)`, `Simplificado (<motivo>)`,
@@ -79,8 +80,8 @@ validação), com revisão de segurança e auditoria de coerência ao fim.
 
 | Marco | Entregável | Status | Concluído em | Aprovado por |
 | --- | --- | --- | --- | --- |
-| M0 Arquitetura | E1 | Em andamento | | |
-| M1 Fundação | E2 | Pendente | | |
+| M0 Arquitetura | E1 | Concluído | 2026-11-11 | Leandro Nascimento |
+| M1 Fundação | E2 | Em andamento | | |
 | M2 Identidade e acesso | E3 | Pendente | | |
 | M3 Permissões e auditoria | E4 | Pendente | | |
 | M4 Notificações | E5 | Pendente | | |
