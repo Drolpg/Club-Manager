@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `acesso/identidade-e-acesso` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-12 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-12 |
 | Requisitos | RF-001 a RF-014, RF-116, RF-117; RN-001 a RN-004, RN-024, RN-025; RNF-07 |
 | Referências | Marco M2; canvas "Identidade e Permissões" em `docs/domain/strategic-design.md`; AD-006, AD-012, AD-015, AD-019; TD-001 |
 
@@ -287,7 +287,7 @@ Diretor sem cargo e transversais:
 | 3 | O primeiro admin é criado por um comando no servidor | Leandro Nascimento | 2026-11-12 |
 | 4 | Pode haver vários admins; o sistema garante que sempre haja um | Leandro Nascimento | 2026-11-12 |
 
-Propostas do agente, que passam a valer com a aprovação desta spec:
+Propostas do agente, aprovadas pelo dono junto com esta spec, em 2026-11-12:
 
 | # | Proposta | Motivo |
 | --- | --- | --- |

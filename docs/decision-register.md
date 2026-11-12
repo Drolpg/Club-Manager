@@ -57,7 +57,7 @@ agente só recomenda.
 | AD-016 | Itens do protótipo que o enunciado não cobre | Resolved | Escopo de entrega | Leandro | Rito 6 |
 | AD-017 | Tecnologia do aplicativo mobile | Deferred | Arquitetura compartilhada | Leandro | Nada na etapa 1 |
 | AD-018 | Multi-cliente: deploy por cliente ou SaaS com contas | Deferred | Arquitetura compartilhada | Leandro | Nada na etapa 1 |
-| AD-019 | Criação segura do primeiro admin | Pending | Dono do marco M2 | Leandro | M2 |
+| AD-019 | Criação segura do primeiro admin | Resolved | Dono do marco M2 | Leandro | M2 |
 
 As entradas abaixo trazem o problema e as opções que o enunciado já cita. Vantagens, desvantagens e a recomendação
 entram no rito indicado, quando a avaliação for feita.
@@ -399,7 +399,11 @@ portas.
 
 ### AD-019 — Como criar o primeiro admin de forma segura?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** comando no servidor (`criar_admin`), que pede os dados na hora; pode haver vários admins.
+
+**Resolved on:** 2026-11-12, por Leandro Nascimento, na aprovação da spec funcional `acesso/identidade-e-acesso`
 
 **Scope:** Dono do marco M2
 
@@ -409,6 +413,5 @@ portas.
 precisa de outro caminho, sem senha padrão (seção 16 do enunciado).
 
 **Nota (2026-11-12):** o dono escolheu um comando no servidor, que pede os dados na hora; pode haver vários admins.
-A decisão passa a Resolved quando a spec funcional `acesso/identidade-e-acesso` for aprovada.
 
 **Follow-up:** especificação do M2.
