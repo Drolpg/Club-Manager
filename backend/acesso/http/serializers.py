@@ -11,7 +11,7 @@ class LoginSerializer(serializers.Serializer[Any]):
     senha = serializers.CharField(max_length=128, trim_whitespace=False)
 
 
-class UsuarioSerializer(serializers.Serializer[Usuario]):
+class UsuarioSerializer(serializers.Serializer[Any]):
     """O que a API mostra de um usuário. Os campos são declarados um a um; o modelo nunca sai como está."""
 
     id = serializers.UUIDField()
@@ -76,3 +76,12 @@ class SituacaoSerializer(serializers.Serializer[Any]):
 
 class IdentificadorSerializer(serializers.Serializer[Any]):
     identificador = serializers.CharField(max_length=254)
+
+
+class EmailSerializer(serializers.Serializer[Any]):
+    email = serializers.CharField(max_length=254)
+
+
+class RedefinirSenhaSerializer(serializers.Serializer[Any]):
+    token = serializers.CharField(max_length=300)
+    senha = serializers.CharField(max_length=128, trim_whitespace=False)

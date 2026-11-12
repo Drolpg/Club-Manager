@@ -20,15 +20,17 @@ from acesso.http.serializers import (
     CadastroSerializer,
     ConviteGeradoSerializer,
     ConviteSerializer,
+    EmailSerializer,
     IdentificadorSerializer,
     LoginSerializer,
+    RedefinirSenhaSerializer,
     SessaoSerializer,
     SituacaoSerializer,
     TokenSerializer,
     UsuarioSerializer,
 )
 from acesso.models import Convite, Usuario
-from acesso.services import cadastro, convites, sessao
+from acesso.services import cadastro, convites, senha, sessao, usuarios
 
 
 def _ator(request: Request) -> Usuario:
@@ -173,3 +175,53 @@ class ReenviarVerificacaoView(RotaAbertaDeEscrita):
         dados = self.validar(request, IdentificadorSerializer)
         cadastro.reenviar_verificacao(identificador=dados["identificador"])
         return Response(status=204)
+
+
+class RecuperarSenhaView(RotaAbertaDeEscrita):
+    @extend_schema(
+        summary="Pedir a recuperação de senha",
+        description="Responde sempre 204, exista a conta ou não.",
+        request=EmailSerializer,
+        responses={204: None},
+        auth=[],
+    )
+    def post(self, request: Request) -> Response:
+        senha.pedir_recuperacao(email=self.validar(request, EmailSerializer)["email"])
+        return Response(status=204)
+
+
+class RedefinirSenhaView(RotaAbertaDeEscrita):
+    @extend_schema(
+        summary="Redefinir a senha", request=RedefinirSenhaSerializer, responses={204: None}, auth=[]
+    )
+    def post(self, request: Request) -> Response:
+        senha.redefinir(**self.validar(request, RedefinirSenhaSerializer))
+        return Response(status=204)
+
+
+class UsuariosView(APIView):
+    permission_classes = (EhAdmin,)
+
+    @extend_schema(summary="Listar usuários", responses=UsuarioSerializer(many=True))
+    def get(self, request: Request) -> Response:
+        return Response(UsuarioSerializer(usuarios.listar(ator=_ator(request)), many=True).data)
+
+
+_ACOES_DE_USUARIO = {
+    "desativar": usuarios.desativar,
+    "reativar": usuarios.reativar,
+    "tornar-admin": usuarios.tornar_admin,
+    "remover-admin": usuarios.remover_admin,
+}
+
+
+class AcaoDeUsuarioView(APIView):
+    """Desativar, reativar, dar e tirar o papel de admin. A ação vem da rota (`acao`)."""
+
+    permission_classes = (EhAdmin,)
+    acao = ""
+
+    @extend_schema(request=None, responses=UsuarioSerializer)
+    def post(self, request: Request, usuario_id: uuid.UUID) -> Response:
+        usuario = _ACOES_DE_USUARIO[self.acao](ator=_ator(request), usuario_id=usuario_id)
+        return Response(UsuarioSerializer(usuario).data)

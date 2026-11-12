@@ -1,5 +1,7 @@
 """Criação e administração de usuários."""
 
+import uuid
+
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -13,6 +15,7 @@ from acesso.domain.identificacao import (
     telefone_valido,
 )
 from acesso.models import Situacao, Usuario
+from acesso.services.autorizacao import exigir_admin
 from auditoria import public as auditoria
 from kernel.errors import BusinessError
 
@@ -110,3 +113,82 @@ def criar_admin(*, nome: str, nome_de_usuario: str, email: str, telefone: str, s
         ator_id=None, acao="ADMIN_CRIADO_POR_COMANDO", item_tipo="usuario", item_id=usuario.id
     )
     return usuario
+
+
+def listar(*, ator: Usuario) -> list[Usuario]:
+    exigir_admin(ator)
+    return list(Usuario.objects.all())
+
+
+def _alvo(usuario_id: uuid.UUID) -> Usuario:
+    usuario = Usuario.objects.select_for_update().filter(pk=usuario_id).first()
+    if usuario is None:
+        raise BusinessError("NOT_FOUND", "Usuário não encontrado.", status=404)
+    return usuario
+
+
+def _impedir_em_si_mesmo(ator: Usuario, alvo: Usuario) -> None:
+    # Com isto, sempre existe ao menos um admin ativo (RN-024, ACE-R04).
+    if ator.id == alvo.id:
+        raise BusinessError("NAO_PODE_ALTERAR_A_SI_MESMO", "Esta ação precisa ser feita por outro admin.")
+
+
+def _exigir_situacao(alvo: Usuario, situacao: Situacao, codigo: str, mensagem: str) -> None:
+    if alvo.situacao != situacao:
+        raise BusinessError(codigo, mensagem)
+
+
+def _auditar(ator: Usuario, alvo: Usuario, acao: str) -> None:
+    auditoria.registrar(ator_id=ator.id, acao=acao, item_tipo="usuario", item_id=alvo.id)
+
+
+@transaction.atomic
+def desativar(*, ator: Usuario, usuario_id: uuid.UUID) -> Usuario:
+    """Tira o acesso na hora: a sessão é conferida a cada requisição e só usuário ativo é reconhecido."""
+    exigir_admin(ator)
+    alvo = _alvo(usuario_id)
+    _impedir_em_si_mesmo(ator, alvo)
+    _exigir_situacao(alvo, Situacao.ATIVO, "USUARIO_NAO_ESTA_ATIVO", "Só usuário ativo pode ser desativado.")
+    alvo.desativar()
+    alvo.save(update_fields=["situacao"])
+    _auditar(ator, alvo, "USUARIO_DESATIVADO")
+    return alvo
+
+
+@transaction.atomic
+def reativar(*, ator: Usuario, usuario_id: uuid.UUID) -> Usuario:
+    exigir_admin(ator)
+    alvo = _alvo(usuario_id)
+    _exigir_situacao(
+        alvo, Situacao.INATIVO, "USUARIO_NAO_ESTA_INATIVO", "Só usuário inativo pode ser reativado."
+    )
+    alvo.reativar()
+    alvo.save(update_fields=["situacao"])
+    _auditar(ator, alvo, "USUARIO_REATIVADO")
+    return alvo
+
+
+@transaction.atomic
+def tornar_admin(*, ator: Usuario, usuario_id: uuid.UUID) -> Usuario:
+    exigir_admin(ator)
+    alvo = _alvo(usuario_id)
+    _exigir_situacao(alvo, Situacao.ATIVO, "USUARIO_NAO_ESTA_ATIVO", "Só usuário ativo pode virar admin.")
+    if alvo.admin:
+        raise BusinessError("USUARIO_JA_E_ADMIN", "Este usuário já é admin.")
+    alvo.tornar_admin()
+    alvo.save(update_fields=["admin"])
+    _auditar(ator, alvo, "PAPEL_DE_ADMIN_DADO")
+    return alvo
+
+
+@transaction.atomic
+def remover_admin(*, ator: Usuario, usuario_id: uuid.UUID) -> Usuario:
+    exigir_admin(ator)
+    alvo = _alvo(usuario_id)
+    _impedir_em_si_mesmo(ator, alvo)
+    if not alvo.admin:
+        raise BusinessError("USUARIO_NAO_E_ADMIN", "Este usuário não é admin.")
+    alvo.remover_admin()
+    alvo.save(update_fields=["admin"])
+    _auditar(ator, alvo, "PAPEL_DE_ADMIN_REMOVIDO")
+    return alvo

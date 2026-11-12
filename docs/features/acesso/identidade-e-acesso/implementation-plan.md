@@ -122,6 +122,15 @@ Preenchida a cada checkpoint.
 | CA-21 | `acesso/tests/test_sessao.py::test_ca21_conta_inexistente_e_senha_errada_tem_a_mesma_resposta` |
 | CA-22 | `acesso/tests/test_sessao.py::test_ca22_sexta_tentativa_e_recusada_mesmo_com_a_senha_certa` |
 | CA-23 | `acesso/tests/test_sessao.py::test_ca23_sair_encerra_a_sessao` |
+| CA-24 | `acesso/tests/test_senha.py::test_ca24_resposta_e_igual_com_e_sem_conta_e_so_a_conta_ativa_recebe_email` |
+| CA-25 | `acesso/tests/test_senha.py::test_ca25_link_dentro_do_prazo_troca_a_senha_e_encerra_as_sessoes`, `::test_ca25_o_mesmo_link_nao_funciona_de_novo` |
+| CA-26 | `acesso/tests/test_senha.py::test_ca26_link_com_mais_de_uma_hora_e_recusado` |
+| CA-27 | `acesso/tests/test_usuarios_admin.py::test_ca27_lista_mostra_situacao_papel_e_cargo` |
+| CA-28 (senha) | `acesso/tests/test_usuarios_admin.py::test_ca28_desativar_encerra_a_sessao_na_hora_e_barra_o_login`; o login pelo Google entra no checkpoint 8 |
+| CA-29 | `acesso/tests/test_usuarios_admin.py::test_ca29_reativar_devolve_o_acesso_com_o_mesmo_historico` |
+| CA-30 | `acesso/tests/test_usuarios_admin.py::test_ca30_ninguem_desativa_a_si_mesmo_nem_tira_o_proprio_papel` |
+| CA-31 | `acesso/tests/test_usuarios_admin.py::test_ca31_diretor_tornado_admin_passa_a_gerar_convites` |
+| CA-32 | `acesso/tests/test_usuarios_admin.py::test_ca32_quem_nao_e_admin_nao_administra_usuarios`, `::test_ca32_quem_nao_e_admin_nao_lista_usuarios` |
 | CA-36 | `acesso/tests/test_sessao.py::test_ca36_rota_protegida_sem_sessao_e_negada`; `tests/test_errors.py::test_rota_sem_permissao_explicita_e_negada_por_padrao` |
 
 ## Revisão de segurança
@@ -196,6 +205,17 @@ uv run poe verify
 Testes novos: `backend/acesso/tests/test_cadastro.py` (27). Ajustes fora do previsto: a migração
 `0003_convite_usado_por_opcional` (o convite continua usado quando o cadastro que o usou é descartado), e um Argon2
 de custo mínimo só nos testes (`backend/tests/hashers.py`).
+
+### Checkpoints 6 e 7 — Recuperação de senha e administração de usuários (2026-11-12)
+
+```text
+uv run poe verify
+190 passed; cobertura 96,18%; import-linter: 1 contrato mantido; nenhuma migração pendente
+```
+
+Testes novos: `backend/acesso/tests/test_senha.py` (14) e `test_usuarios_admin.py` (22). Desvio do ciclo: nestes dois
+checkpoints os testes foram escritos antes do código, mas não foram executados antes dele (a máquina estava lenta);
+passaram na primeira execução depois do código. Um commit para os dois, pelo mesmo motivo dos checkpoints 3 e 4.
 
 ## Rollback ou recuperação
 

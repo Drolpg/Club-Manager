@@ -23,4 +23,15 @@ urlpatterns = [
         views.ReenviarVerificacaoView.as_view(),
         name="acesso-verificacao-reenviar",
     ),
+    path("senhas/recuperar/", views.RecuperarSenhaView.as_view(), name="acesso-senha-recuperar"),
+    path("senhas/redefinir/", views.RedefinirSenhaView.as_view(), name="acesso-senha-redefinir"),
+    path("usuarios/", views.UsuariosView.as_view(), name="acesso-usuarios"),
+    *(
+        path(
+            f"usuarios/<uuid:usuario_id>/{acao}/",
+            views.AcaoDeUsuarioView.as_view(acao=acao),
+            name=f"acesso-usuario-{acao}",
+        )
+        for acao in ("desativar", "reativar", "tornar-admin", "remover-admin")
+    ),
 ]

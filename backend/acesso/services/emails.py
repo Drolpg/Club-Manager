@@ -49,3 +49,24 @@ def avisar_admins_de_diretor_a_classificar(usuario_id: uuid.UUID) -> None:
         from_email=None,
         recipient_list=admins,
     )
+
+
+def enviar_recuperacao(usuario_id: uuid.UUID) -> None:
+    from acesso.services.senha import gerar_token_de_recuperacao
+
+    usuario = Usuario.objects.filter(pk=usuario_id, situacao=Situacao.ATIVO).first()
+    if usuario is None:
+        return
+    link = f"{settings.SITE_URL}/redefinir-senha/{gerar_token_de_recuperacao(usuario)}"
+    send_mail(
+        subject="Redefinição de senha no Club Manager",
+        message=(
+            f"Olá, {usuario.nome}.\n\n"
+            "Recebemos um pedido para redefinir a sua senha no Club Manager. Abra o link abaixo para "
+            "escolher uma nova. Ele vale por 1 hora e só funciona uma vez.\n\n"
+            f"{link}\n\n"
+            "Se não foi você, ignore esta mensagem: a sua senha continua a mesma."
+        ),
+        from_email=None,
+        recipient_list=[usuario.email],
+    )

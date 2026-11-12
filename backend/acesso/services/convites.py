@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from acesso.domain.convite import VALIDADE, SituacaoDoConvite
 from acesso.models import Convite, Usuario
+from acesso.services.autorizacao import exigir_admin
 from auditoria import public as auditoria
 from kernel.errors import BusinessError
 
@@ -20,12 +21,6 @@ def hash_do_token(token: str) -> str:
 def convite_invalido() -> BusinessError:
     # Uma resposta só para usado, expirado, revogado e inexistente (RN-025).
     return BusinessError("CONVITE_INVALIDO", "Convite inválido ou expirado.", status=404)
-
-
-def exigir_admin(ator: Usuario) -> None:
-    """Na etapa 1, só o admin administra convites e usuários (ACE-R05)."""
-    if not (ator.is_active and ator.admin):
-        raise BusinessError("PERMISSION_DENIED", "Só o admin pode fazer isso.", status=403)
 
 
 def _novo(*, ator: Usuario, substitui: Convite | None = None) -> tuple[Convite, str]:

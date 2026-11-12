@@ -22,6 +22,13 @@ def avisar_admins_de_diretor_a_classificar(usuario_id: str) -> None:
     emails.avisar_admins_de_diretor_a_classificar(uuid.UUID(usuario_id))
 
 
+@shared_task(name="acesso.enviar_email_de_recuperacao")
+def enviar_email_de_recuperacao(usuario_id: str) -> None:
+    from acesso.services import emails
+
+    emails.enviar_recuperacao(uuid.UUID(usuario_id))
+
+
 @shared_task(name="acesso.descartar_cadastros_vencidos")
 def descartar_cadastros_vencidos() -> int:
     """Agendada de hora em hora. Idempotente: rodar de novo não encontra nada para descartar."""
