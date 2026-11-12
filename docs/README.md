@@ -42,7 +42,7 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | --- | --- |
 | [AGENTS.md](../AGENTS.md) | Regras do projeto: arquitetura, SDD, testes, segurança, Git |
 | [Método](method.md) | Nível, estado dos ritos e dos marcos, mapa de artefatos |
-| Features, `features/` (rito 6 em diante) | O fluxo SDD e as specs de cada marco |
+| [Features](features/README.md) | O fluxo SDD e as specs de cada marco |
 | [Registro de decisões](decision-register.md) | Decisões em aberto e resolvidas (AD-NNN) |
 | [RFCs](rfc/) | Propostas discutidas antes da implementação |
 | [Auditorias](audits/) | Onde documentos e código divergiam ao fim de cada marco, e o que foi feito |

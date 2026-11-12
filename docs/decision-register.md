@@ -408,4 +408,7 @@ portas.
 **Problem:** o novo sistema começa vazio e o acesso é só por convite gerado pelo admin, então o primeiro admin
 precisa de outro caminho, sem senha padrão (seção 16 do enunciado).
 
+**Nota (2026-11-12):** o dono escolheu um comando no servidor, que pede os dados na hora; pode haver vários admins.
+A decisão passa a Resolved quando a spec funcional `acesso/identidade-e-acesso` for aprovada.
+
 **Follow-up:** especificação do M2.

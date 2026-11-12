@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Status | Approved |
-| Atualizado em | 2026-11-11 |
+| Atualizado em | 2026-11-12 |
 | Aprovado por / em | Leandro Nascimento / 2026-11-11 |
 | Fontes | `docs/challenge/`, `docs/domain/` |
 
@@ -57,6 +57,8 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-012 | O admin desativa e reativa um usuário; o desativado não entra | ACE-10 | Aprovado | — |
 | RF-013 | O sistema avisa o admin quando um diretor conclui o cadastro | ACE-07 | Aprovado | — |
 | RF-014 | O primeiro admin é criado por um procedimento seguro, sem senha padrão | Seção 16, AD-019 | Aprovado | — |
+| RF-116 | O admin dá e tira o papel de admin de outro usuário | Spec `acesso/identidade-e-acesso` **(novo)** | Proposto | — |
+| RF-117 | O admin consulta os convites e os usuários, com a situação de cada um | Spec `acesso/identidade-e-acesso` **(novo)** | Proposto | — |
 
 ### Identidade e Permissões — permissões; Auditoria (M3)
 
@@ -231,6 +233,8 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RN-021 | O calendário mostra só eventos publicados; o histórico mostra todos | Eventos | EVT-04, EVT-06 |
 | RN-022 | Um relatório só mostra o que o usuário que o gerou pode ver | Relatórios | REL-03 |
 | RN-023 | Os valores são escriturais: o sistema registra, e o dinheiro se move por fora | Financeiro | Seção 1 |
+| RN-024 | Ninguém desativa a si mesmo nem tira o próprio papel de admin; sempre existe ao menos um admin ativo | Identidade e Permissões | Spec `acesso/identidade-e-acesso` **(novo, proposto)** |
+| RN-025 | As respostas de login, de recuperação de senha e de convite inválido não revelam se uma conta, um e-mail ou um convite existe | Identidade e Permissões | Spec `acesso/identidade-e-acesso` **(novo, proposto)** |
 
 ## Requisitos não funcionais
 
