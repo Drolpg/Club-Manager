@@ -41,6 +41,11 @@ if not SECRET_KEY:
 
 ALLOWED_HOSTS = _env_list("DJANGO_ALLOWED_HOSTS")
 
+# Endereço público do site, usado nos links de convite e nos e-mails.
+SITE_URL = os.environ.get("SITE_URL", "").rstrip("/")
+if not SITE_URL:
+    raise ImproperlyConfigured("Defina SITE_URL com o endereço público do site.")
+
 if "DATABASE_URL" not in os.environ:
     raise ImproperlyConfigured("Defina DATABASE_URL.")
 DATABASES = {"default": _database_from_url(os.environ["DATABASE_URL"])}
@@ -143,16 +148,17 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
 REST_FRAMEWORK = {
-    # Autenticação entra no M2 (AD-006). Até lá não há usuário, e a permissão padrão nega tudo:
-    # cada rota aberta precisa declarar isso explicitamente.
-    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    # Sessão no servidor (ADR-008). A permissão padrão nega tudo: cada rota aberta declara isso
+    # explicitamente.
+    "DEFAULT_AUTHENTICATION_CLASSES": ["kernel.http.SessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
-    "UNAUTHENTICATED_USER": None,
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "kernel.errors.exception_handler",
     "COERCE_DECIMAL_TO_STRING": True,
+    # A API só fala JSON; o cliente de teste do DRF segue o mesmo padrão.
+    "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
 SPECTACULAR_SETTINGS = {

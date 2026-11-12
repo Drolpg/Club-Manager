@@ -106,6 +106,18 @@ Preenchida a cada checkpoint.
 | --- | --- |
 | CA-01 | `acesso/tests/test_criar_admin.py::test_ca01_comando_cria_um_admin_ativo_com_email_verificado` |
 | CA-02 | `acesso/tests/test_criar_admin.py::test_ca02_senha_fraca_nao_cria_usuario_e_mostra_o_motivo`, `::test_ca02_nome_de_usuario_ja_usado_nao_cria_outro` |
+| CA-03 | `acesso/tests/test_convites.py::test_ca03_admin_gera_um_convite_e_recebe_o_link` |
+| CA-04 | `acesso/tests/test_convites.py::test_ca04_quem_nao_e_admin_nao_mexe_em_convites` |
+| CA-05 | `acesso/tests/test_convites.py::test_ca05_convite_com_mais_de_24_horas_e_invalido`; `acesso/tests/test_convite_domain.py` |
+| CA-06 | `acesso/tests/test_convites.py::test_ca06_convite_revogado_usado_ou_inexistente_tem_a_mesma_resposta` |
+| CA-07 | `acesso/tests/test_convites.py::test_ca07_regenerar_invalida_o_link_antigo_e_cria_um_novo_de_24_horas`, `::test_ca07_convite_expirado_pode_ser_regenerado` |
+| CA-08 | `acesso/tests/test_convites.py::test_ca08_lista_mostra_situacao_quem_gerou_e_quando` |
+| CA-10 (login) | `acesso/tests/test_sessao.py::test_ca10_conta_aguardando_verificacao_e_recusada_com_aviso_proprio` |
+| CA-20 | `acesso/tests/test_sessao.py::test_ca20_entra_por_nome_de_usuario_ou_email_em_qualquer_caixa` |
+| CA-21 | `acesso/tests/test_sessao.py::test_ca21_conta_inexistente_e_senha_errada_tem_a_mesma_resposta` |
+| CA-22 | `acesso/tests/test_sessao.py::test_ca22_sexta_tentativa_e_recusada_mesmo_com_a_senha_certa` |
+| CA-23 | `acesso/tests/test_sessao.py::test_ca23_sair_encerra_a_sessao` |
+| CA-36 | `acesso/tests/test_sessao.py::test_ca36_rota_protegida_sem_sessao_e_negada`; `tests/test_errors.py::test_rota_sem_permissao_explicita_e_negada_por_padrao` |
 
 ## Revisão de segurança
 
@@ -154,6 +166,20 @@ uv run poe verify
 ```
 
 Testes novos: `backend/acesso/tests/test_identificacao.py`, `test_usuario.py`, `test_criar_admin.py`.
+
+### Checkpoints 3 e 4 — Sessão e convites (2026-11-12)
+
+```text
+uv run poe verify
+127 passed; cobertura 95,44%; import-linter: 1 contrato mantido; nenhuma migração pendente
+```
+
+Os dois checkpoints passaram por uma única verificação completa e foram para um commit só, porque as rotas dos dois
+ficam nos mesmos arquivos e a máquina estava com a CPU tomada por um contêiner de outro projeto. Os testes do
+checkpoint 3 tinham sido vistos falhando e depois passando antes de o checkpoint 4 começar.
+
+Testes novos: `backend/tests/test_rate_limit.py`, `backend/acesso/tests/test_sessao.py`,
+`test_convite_domain.py`, `test_convites.py`.
 
 ## Rollback ou recuperação
 

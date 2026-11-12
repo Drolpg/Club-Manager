@@ -6,6 +6,8 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.db.models.functions import Lower
 
+from acesso.domain.convite import SituacaoDoConvite, situacao_do_convite
+
 
 class Situacao(models.TextChoices):
     AGUARDANDO_VERIFICACAO = "AGUARDANDO_VERIFICACAO", "Aguardando verificação"
@@ -78,3 +80,42 @@ class Usuario(AbstractBaseUser):
 
     def remover_admin(self) -> None:
         self.admin = False
+
+
+class Convite(models.Model):
+    """Link de uso único, válido por 24 horas, pelo qual um diretor se cadastra.
+
+    Não carrega cargo, setor nem e-mail. Só o hash do token é guardado: o token em claro existe apenas na
+    resposta de gerar ou regenerar.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid7, editable=False)
+    token_hash = models.CharField(max_length=64, unique=True)
+    gerado_por = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name="convites_gerados")
+    gerado_em = models.DateTimeField()
+    expira_em = models.DateTimeField()
+    usado_em = models.DateTimeField(null=True, blank=True)
+    usado_por = models.ForeignKey(
+        Usuario, on_delete=models.PROTECT, null=True, blank=True, related_name="convites_usados"
+    )
+    revogado_em = models.DateTimeField(null=True, blank=True)
+    # O convite que este substituiu, quando nasceu de uma regeneração.
+    substitui = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
+
+    class Meta:
+        ordering = ("-gerado_em", "-id")
+
+    def __str__(self) -> str:
+        return f"Convite {self.id}"
+
+    def situacao(self, agora: datetime) -> SituacaoDoConvite:
+        return situacao_do_convite(
+            agora=agora, expira_em=self.expira_em, usado_em=self.usado_em, revogado_em=self.revogado_em
+        )
+
+    def marcar_usado(self, *, usuario: Usuario, agora: datetime) -> None:
+        self.usado_em = agora
+        self.usado_por = usuario
+
+    def revogar(self, agora: datetime) -> None:
+        self.revogado_em = agora

@@ -29,6 +29,7 @@ os.environ.setdefault("REDIS_URL", "redis://127.0.0.1:6380/0")
 os.environ["DJANGO_SECRET_KEY"] = "so-para-testes"
 os.environ["DJANGO_DEBUG"] = "0"
 os.environ["DJANGO_ALLOWED_HOSTS"] = "testserver,localhost"
+os.environ["SITE_URL"] = "https://clube.exemplo"
 
 from config.settings import *
 
