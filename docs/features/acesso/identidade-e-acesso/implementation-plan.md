@@ -104,6 +104,8 @@ Preenchida a cada checkpoint.
 
 | Critério | Teste |
 | --- | --- |
+| CA-01 | `acesso/tests/test_criar_admin.py::test_ca01_comando_cria_um_admin_ativo_com_email_verificado` |
+| CA-02 | `acesso/tests/test_criar_admin.py::test_ca02_senha_fraca_nao_cria_usuario_e_mostra_o_motivo`, `::test_ca02_nome_de_usuario_ja_usado_nao_cria_outro` |
 
 ## Revisão de segurança
 
@@ -143,6 +145,15 @@ uv run poe verify
 ```
 
 Testes novos: `backend/auditoria/tests/test_registro.py` (8).
+
+### Checkpoint 2 — Usuário e comando `criar_admin` (2026-11-12)
+
+```text
+uv run poe verify
+71 passed; cobertura 93,32%; import-linter: 1 contrato mantido; nenhuma migração pendente
+```
+
+Testes novos: `backend/acesso/tests/test_identificacao.py`, `test_usuario.py`, `test_criar_admin.py`.
 
 ## Rollback ou recuperação
 

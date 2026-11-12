@@ -40,5 +40,8 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
+# Contadores em memória: os testes não dependem do Redis.
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
 # Os testes não servem arquivos estáticos.
 MIDDLEWARE = [item for item in MIDDLEWARE if "whitenoise" not in item]
