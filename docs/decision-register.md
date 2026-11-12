@@ -54,7 +54,7 @@ agente só recomenda.
 | AD-013 | CI/CD, deploy e dimensionamento da instância única | Pending | Arquitetura compartilhada | Leandro | M1 (CI) e M12 (deploy) |
 | AD-014 | O que o painel do admin cria sozinho e o que exige programação | Pending | Dono do marco M3 | Leandro | M3 |
 | AD-015 | Adequação à LGPD | Pending | Arquitetura compartilhada | Leandro | M2 |
-| AD-016 | Itens do protótipo que o enunciado não cobre | Pending | Escopo de entrega | Leandro | Rito 6 |
+| AD-016 | Itens do protótipo que o enunciado não cobre | Resolved | Escopo de entrega | Leandro | Rito 6 |
 | AD-017 | Tecnologia do aplicativo mobile | Deferred | Arquitetura compartilhada | Leandro | Nada na etapa 1 |
 | AD-018 | Multi-cliente: deploy por cliente ou SaaS com contas | Deferred | Arquitetura compartilhada | Leandro | Nada na etapa 1 |
 | AD-019 | Criação segura do primeiro admin | Pending | Dono do marco M2 | Leandro | M2 |
@@ -324,7 +324,12 @@ apagado (AUD-04), o que precisa ser conciliado com os direitos do titular.
 
 ### AD-016 — Quais itens do protótipo, não cobertos pelo enunciado, entram na etapa 1?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** todos os itens entram na etapa 1: chave Pix, Pix copia e cola e QR Code, recibo, cobranças em lote,
+fluxo de caixa previsto e realizado, atas de reunião e postagem fixada.
+
+**Resolved on:** 2026-11-11, por Leandro Nascimento
 
 **Scope:** Escopo de entrega
 
@@ -341,7 +346,8 @@ apagado (AUD-04), o que precisa ser conciliado com os direitos do titular.
 admin), o Pix copia e cola e o QR Code com valor, e o recibo em PDF ao pagador. Continuam sem resposta: cobranças em
 lote, fluxo de caixa previsto e realizado, atas de reunião e postagem fixada.
 
-**Follow-up:** perguntar ao dono no rito 6; cada item confirmado vira requisito, cada descartado vai para o backlog.
+**Follow-up:** RF-047, RF-049, RF-052, RF-059, RF-096, RF-099 e RF-110 em `docs/requirements/requirements.md`
+(CB-01).
 
 ---
 

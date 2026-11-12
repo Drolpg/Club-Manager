@@ -6,14 +6,14 @@ Todo hotspot termina com um destino. Hotspot sem destino bloqueia o gate da desc
 
 | ID | Hotspot | Etapa | Tipo | Destino | Dono | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| H11 | Limite de tempo de inadimplência, convocação, perdão, renegociação em parcelas e suspensão não estão no enunciado | Storytelling, história 4 | Risco (escopo) | Registro de requisitos (rito 6), como mudança do plano | Leandro | Encaminhado |
-| H23 | "Cada solicitação tem um só validador; evento com custo gera duas solicitações" contradiz APR-03, APR-04 e EVT-02 do enunciado (uma solicitação aprovada por vários setores) | Storytelling, história 8 | Conflito | Registro de requisitos (rito 6), como mudança do plano; AD-008 | Leandro | Encaminhado |
-| H25 | Notificar todos os diretores quando um evento é aprovado e quando é cancelado não está em NOT-06 | Storytelling, história 9 | Risco (escopo) | Registro de requisitos (rito 6), como requisito novo | Leandro | Encaminhado |
-| H26 | O aprovador que decidiria o próprio pedido pode indicar qualquer diretor para aprová-lo (H19). Risco de governança: a indicação pode ser usada para escolher um aprovador conveniente. O enunciado já pede que a aprovação própria apareça de forma explícita no histórico (APR-02) | Linha do tempo | Risco | Caso de borda no rito 6: propor ao dono que a indicação fique explícita no histórico e gere aviso ao admin | Leandro | Encaminhado |
+| H11 | Limite de tempo de inadimplência, convocação, perdão, renegociação em parcelas e suspensão não estão no enunciado | Storytelling, história 4 | Risco (escopo) | Registro de requisitos (rito 6), como mudança do plano | Leandro | Resolvido (RF-048, RF-064, RF-066 a RF-070) |
+| H23 | "Cada solicitação tem um só validador; evento com custo gera duas solicitações" contradiz APR-03, APR-04 e EVT-02 do enunciado (uma solicitação aprovada por vários setores) | Storytelling, história 8 | Conflito | Registro de requisitos (rito 6), como mudança do plano; AD-008 | Leandro | Resolvido (RN-010, RN-020, CB-03) |
+| H25 | Notificar todos os diretores quando um evento é aprovado e quando é cancelado não está em NOT-06 | Storytelling, história 9 | Risco (escopo) | Registro de requisitos (rito 6), como requisito novo | Leandro | Resolvido (RF-087, RF-093) |
+| H26 | O aprovador que decidiria o próprio pedido pode indicar qualquer diretor para aprová-lo (H19). Risco de governança: a indicação pode ser usada para escolher um aprovador conveniente. O enunciado já pede que a aprovação própria apareça de forma explícita no histórico (APR-02) | Linha do tempo | Risco | Caso de borda no rito 6: propor ao dono que a indicação fique explícita no histórico e gere aviso ao admin | Leandro | Resolvido (RF-035, CB-02) |
 | H27 | Evento sem custo precisa sempre da aprovação do responsável de eventos? (pendência do M8 no enunciado) | Linha do tempo | Dúvida | Refinamento do M8 | Leandro | Encaminhado |
 | H28 | Orçamento negado em definitivo deixa o evento parado, fora do calendário. Quem o cancela, e há prazo? | Linha do tempo | Dúvida | Refinamento do M8 | Leandro | Encaminhado |
 | H29 | As demais pendências e hipóteses da seção 15 do enunciado que as histórias não tocaram (lembrete antes do vencimento, cobranças de diretor desativado, prazo da prestação de contas, quem valida entradas sem usuário) | — | Dúvida | Refinamento do marco correspondente (M2 a M10) | Leandro | Encaminhado |
-| H30 | Itens do protótipo ainda sem resposta: cobranças em lote, fluxo de caixa previsto e realizado, atas de reunião, postagem fixada | — | Dúvida | AD-016, perguntar no rito 6 | Leandro | Encaminhado |
+| H30 | Itens do protótipo ainda sem resposta: cobranças em lote, fluxo de caixa previsto e realizado, atas de reunião, postagem fixada | — | Dúvida | AD-016, perguntar no rito 6 | Leandro | Resolvido (CB-01) |
 
 ## Resolvidos
 

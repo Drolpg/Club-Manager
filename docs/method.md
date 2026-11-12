@@ -19,7 +19,7 @@
 | Comando de verificação completa | Definido no rito 7 |
 | Meta de cobertura | 80% (padrão do método; confirmar no rito 7) |
 | Git | `CONTRIBUTING.md` — modelo `main` + `dev`, sem trailer de IA |
-| Board / tracker | Miro: conector autorizado em 2026-11-11, ferramentas ainda não disponíveis na sessão; URL a registrar. Tracker: <https://github.com/Drolpg/Club-Manager/issues> |
+| Board / tracker | Issues criadas marco a marco, na especificação de cada um, e não todas de uma vez. Miro: conector autorizado em 2026-11-11, ferramentas ainda não disponíveis na sessão; URL a registrar. Tracker: <https://github.com/Drolpg/Club-Manager/issues> |
 | Prazo | Sem prazo fixo |
 | IDs de requisitos | `RF-NN` (funcional), `RNF-NN` (não funcional) e `RN-NN` (regra de negócio), atribuídos no rito 6; cada um cita o ID de origem do enunciado (ex.: FIN-05) |
 | Aprovado por / em | Leandro Nascimento / 2026-11-11 |
@@ -54,12 +54,12 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 | Fundação | Sim | Concluído | 2026-11-11 | Leandro Nascimento | `docs/method.md`, `docs/challenge/phase-1.md`, `docs/project-charter.md`, `docs/README.md`, `docs/decision-register.md`, `AGENTS.md`, `CLAUDE.md` |
 | 1 | Git e colaboração | Sim | Concluído | 2026-11-11 | Leandro Nascimento | `CONTRIBUTING.md`, `.github/pull_request_template.md` |
-| 2 | Avaliação de arquitetura | Sim | Concluído (preliminar; a confirmação acontece ao fechar o rito 6) | 2026-11-11 | Leandro Nascimento | `docs/architecture/assessment.md`, `docs/adr/ADR-001-estilo-arquitetural.md` |
+| 2 | Avaliação de arquitetura | Sim | Concluído (preliminar e confirmação) | 2026-11-11 | Leandro Nascimento | `docs/architecture/assessment.md`, `docs/adr/ADR-001-estilo-arquitetural.md` |
 | 3 | Descoberta do domínio | Sim, só o core | Concluído — Simplificado (entrevista guiada) | 2026-11-11 | Leandro Nascimento | `docs/domain/discovery/domain-storytelling.md`, `event-storming.md`, `hotspots.md` |
 | 4 | Desenho estratégico | Sim, sistema inteiro | Concluído | 2026-11-11 | Leandro Nascimento | `docs/domain/strategic-design.md`, `context-map.md`, `ubiquitous-language.md`, `docs/adr/ADR-003-integracao-entre-contextos.md` |
 | 5 | Desenho tático | Sim, só `aprovacoes`, `financeiro` e `eventos` | Concluído | 2026-11-11 | Leandro Nascimento | `docs/domain/aggregates/`, `docs/domain/domain-events.md`, `docs/domain/domain-model.md` |
-| 6 | Especificação | Sim | Em andamento | | | |
-| 7 | Arquitetura base | Sim | Pendente | | | |
+| 6 | Especificação | Sim | Concluído (registro de requisitos; as specs de feature são escritas marco a marco, no rito 8) | 2026-11-11 | Leandro Nascimento | `docs/requirements/requirements.md`, `epics.md`, `definition-of-ready-done.md`, `backlog.md` |
+| 7 | Arquitetura base | Sim | Em andamento | | | |
 | 8 | Entrega incremental | Contínuo | — | | | |
 
 Status: `Pendente`, `Em andamento`, `Concluído`, `Não se aplica (estilo)`, `Simplificado (<motivo>)`,

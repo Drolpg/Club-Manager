@@ -2,11 +2,23 @@
 
 | Campo | Valor |
 | --- | --- |
-| Fase | Preliminar (a partir do enunciado); a confirmação acontece ao fechar a especificação |
+| Fase | Preliminar (a partir do enunciado) em 2026-11-11; confirmada ao fechar a especificação, na mesma data |
 | Data | 2026-11-11 |
 | Tipo de projeto | Sistema de domínio rico |
 | Responsável | Leandro Nascimento |
 | Decisão | [ADR-001](../adr/ADR-001-estilo-arquitetural.md) (Proposed) |
+
+## Confirmação (2026-11-11, depois da descoberta e do registro de requisitos)
+
+A recomendação se mantém. O que a descoberta mudou nos sinais:
+
+- **Regras e estados continuam altos**, e mudaram de lugar: o motor de aprovações ficou mais simples (um aprovador
+  por solicitação, sem regras de vários setores), e o financeiro ficou mais rico (inadimplência, convocação, perdão,
+  renegociação, suspensão). O DDD tático no core segue justificado: 58 invariantes em 8 aggregates.
+- **Os módulos candidatos mudaram de nome**: feed e documentos viraram `comunicacao`; o perfil é leitura composta em
+  `relatorios`. A lista vigente é a de `docs/domain/strategic-design.md`.
+- **Nenhum gatilho de reavaliação disparou.** A integração entre contextos foi detalhada na ADR-003.
+- **Fronteira nova:** nenhuma. O Pix copia e cola é gerado localmente, sem sistema externo.
 
 ## Sinais
 
