@@ -1,6 +1,6 @@
 # ADR 008: Sessão no servidor para o site, token de identidade para o Google
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-11-12  
 **Deciders:** Leandro Nascimento  
 **Resolve:** AD-006
@@ -15,7 +15,7 @@ abertas (RF-010). O protótipo usava JWT.
 
 ## Considered Options
 
-### Option 1: Sessão guardada no servidor, em cookie ✅ RECOMENDADA
+### Option 1: Sessão guardada no servidor, em cookie ✅ SELECIONADA
 
 O Django guarda a sessão no banco e o navegador só leva um identificador num cookie `HttpOnly`. A sessão é conferida
 a cada requisição.
@@ -33,7 +33,7 @@ modelos próprios.
 
 ## Decision
 
-Recomenda-se a **Option 1**, com o Google pelo token de identidade.
+Adotada a **Option 1**, com o Google pelo token de identidade.
 
 | Decisão | Motivo |
 | --- | --- |
@@ -69,5 +69,5 @@ Recomenda-se a **Option 1**, com o Google pelo token de identidade.
 ---
 
 **Last Updated:** 2026-11-12  
-**Decision Maker:** Leandro Nascimento (pendente)  
-**Status:** Proposed
+**Decision Maker:** Leandro Nascimento  
+**Status:** Accepted

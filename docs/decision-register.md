@@ -44,7 +44,7 @@ agente só recomenda.
 | AD-003 | Framework do backend: Django ou FastAPI | Resolved | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
 | AD-004 | Frontend web | Resolved | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
 | AD-005 | Filas e tarefas agendadas | Resolved | Arquitetura compartilhada | Leandro | M4 |
-| AD-006 | Estratégia de autenticação e tokens para site e app | Pending | Arquitetura compartilhada | Leandro | M2 |
+| AD-006 | Estratégia de autenticação e tokens para site e app | Resolved | Arquitetura compartilhada | Leandro | M2 |
 | AD-007 | Modelagem das permissões (ação, recurso e escopo) | Pending | Arquitetura compartilhada | Leandro | M3 |
 | AD-008 | Modelagem do motor de aprovações e das versões de solicitação | Pending | Arquitetura compartilhada | Leandro | M5 |
 | AD-009 | Modelagem da trilha de auditoria | Pending | Arquitetura compartilhada | Leandro | M3 |
@@ -180,7 +180,12 @@ workers cabem numa única instância do free tier (RNF-02).
 
 ### AD-006 — Como autenticar com Google e com usuário e senha, e que tokens servem site e app?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** sessão no servidor em cookie para o site; Google por token de identidade; token opaco para o
+aplicativo futuro.
+
+**Resolved on:** 2026-11-12, por Leandro Nascimento
 
 **Scope:** Arquitetura compartilhada
 
@@ -191,10 +196,10 @@ workers cabem numa única instância do free tier (RNF-02).
 
 **Options:** a levantar na especificação do M2 (sessão por cookie, JWT, tokens opacos).
 
-**Nota (2026-11-12):** proposta na ADR-008 (Proposed): sessão no servidor em cookie para o site, token de identidade
+**Nota (2026-11-12):** decidida na ADR-008 (Accepted): sessão no servidor em cookie para o site, token de identidade
 para o Google, token opaco para o aplicativo futuro.
 
-**Follow-up:** ADR na especificação do M2.
+**Follow-up:** ADR-008.
 
 ---
 

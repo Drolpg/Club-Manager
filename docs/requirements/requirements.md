@@ -43,22 +43,22 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Origem | Status | Feature |
 | --- | --- | --- | --- | --- |
-| RF-001 | O admin, ou quem tem a permissão de convidar, gera um convite de uso único, válido por 24 horas, sem cargo nem setor | ACE-05 | Aprovado | — |
-| RF-002 | Quem tem a permissão regenera ou revoga um convite | ACE-05 | Aprovado | — |
-| RF-003 | O sistema expira o convite depois de 24 horas | ACE-05, NOT-07 | Aprovado | — |
-| RF-004 | O convidado se cadastra pelo convite informando nome, nome de usuário único, telefone, e-mail e senha | ACE-06, ACE-09 | Aprovado | — |
-| RF-005 | O sistema envia um link de verificação e só libera o acesso depois de o e-mail ser verificado | ACE-04 | Aprovado | — |
-| RF-006 | O usuário entra com nome de usuário e senha | ACE-02 | Aprovado | — |
-| RF-007 | O usuário entra com o Google, na mesma conta do seu e-mail | ACE-01, ACE-02 | Aprovado | — |
-| RF-008 | O convidado aceita o convite pelo Google e completa o cadastro com nome de usuário e senha, sem link de verificação | ACE-03 | Aprovado | — |
-| RF-009 | O sistema recusa o login pelo Google de quem não foi convidado | ACE-12 | Aprovado | — |
-| RF-010 | O usuário recupera a senha pelo e-mail verificado | ACE-11 | Aprovado | — |
-| RF-011 | O usuário encerra a própria sessão | ACE-13 (derivado) | Aprovado | — |
-| RF-012 | O admin desativa e reativa um usuário; o desativado não entra | ACE-10 | Aprovado | — |
-| RF-013 | O sistema avisa o admin quando um diretor conclui o cadastro | ACE-07 | Aprovado | — |
-| RF-014 | O primeiro admin é criado por um procedimento seguro, sem senha padrão | Seção 16, AD-019 | Aprovado | — |
-| RF-116 | O admin dá e tira o papel de admin de outro usuário | Spec `acesso/identidade-e-acesso` **(novo)** | Aprovado | — |
-| RF-117 | O admin consulta os convites e os usuários, com a situação de cada um | Spec `acesso/identidade-e-acesso` **(novo)** | Aprovado | — |
+| RF-001 | O admin, ou quem tem a permissão de convidar, gera um convite de uso único, válido por 24 horas, sem cargo nem setor | ACE-05 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-002 | Quem tem a permissão regenera ou revoga um convite | ACE-05 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-003 | O sistema expira o convite depois de 24 horas | ACE-05, NOT-07 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-004 | O convidado se cadastra pelo convite informando nome, nome de usuário único, telefone, e-mail e senha | ACE-06, ACE-09 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-005 | O sistema envia um link de verificação e só libera o acesso depois de o e-mail ser verificado | ACE-04 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-006 | O usuário entra com nome de usuário e senha | ACE-02 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-007 | O usuário entra com o Google, na mesma conta do seu e-mail | ACE-01, ACE-02 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-008 | O convidado aceita o convite pelo Google e completa o cadastro com nome de usuário e senha, sem link de verificação | ACE-03 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-009 | O sistema recusa o login pelo Google de quem não foi convidado | ACE-12 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-010 | O usuário recupera a senha pelo e-mail verificado | ACE-11 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-011 | O usuário encerra a própria sessão | ACE-13 (derivado) | Em implementação | `acesso/identidade-e-acesso` |
+| RF-012 | O admin desativa e reativa um usuário; o desativado não entra | ACE-10 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-013 | O sistema avisa o admin quando um diretor conclui o cadastro | ACE-07 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-014 | O primeiro admin é criado por um procedimento seguro, sem senha padrão | Seção 16, AD-019 | Em implementação | `acesso/identidade-e-acesso` |
+| RF-116 | O admin dá e tira o papel de admin de outro usuário | Spec `acesso/identidade-e-acesso` **(novo)** | Em implementação | `acesso/identidade-e-acesso` |
+| RF-117 | O admin consulta os convites e os usuários, com a situação de cada um | Spec `acesso/identidade-e-acesso` **(novo)** | Em implementação | `acesso/identidade-e-acesso` |
 
 ### Identidade e Permissões — permissões; Auditoria (M3)
 

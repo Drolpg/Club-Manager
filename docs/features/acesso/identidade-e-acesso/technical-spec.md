@@ -3,13 +3,13 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `acesso/identidade-e-acesso` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-12 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-12 |
 | Especificação funcional | `./functional-spec.md` (aprovada em 2026-11-12) |
-| Decisões aplicadas | ADR-001, ADR-003, ADR-004, ADR-005, ADR-006; ADR-008 (proposta nesta spec); AD-006, AD-009, AD-012, AD-015; TD-001 |
+| Decisões aplicadas | ADR-001, ADR-003, ADR-004, ADR-005, ADR-006; ADR-008; AD-006, AD-009, AD-012, AD-015; TD-001 |
 
 ## Contexto e desenho
 
@@ -244,7 +244,7 @@ Configuração nova (entra em `docs/setup/configuration.md` e no `.env.example`)
 O dono precisa criar o ID de cliente no Google Cloud Console (gratuito) para usar o login com Google; o passo a passo
 entra em `docs/setup/`.
 
-Dependências novas, para aprovação com esta spec:
+Dependências novas, aprovadas com esta spec:
 
 | Dependência | Onde | Para quê |
 | --- | --- | --- |
