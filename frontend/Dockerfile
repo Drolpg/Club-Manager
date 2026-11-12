@@ -9,6 +9,9 @@ RUN npm run build
 
 FROM caddy:2-alpine
 
+# Roda sem privilégios: usuário próprio e porta alta.
+RUN adduser -D -u 10001 web && chown -R web /config /data
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /app/dist /srv
-EXPOSE 80
+USER web
+EXPOSE 8080

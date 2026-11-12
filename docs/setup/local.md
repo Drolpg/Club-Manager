@@ -78,7 +78,7 @@ Com o sistema no ar (passo 2), em `frontend/`:
 npm run dev
 ```
 
-O Vite abre em <http://localhost:5173> e repassa `/api` para a API em `localhost:8000`.
+O Vite abre em <http://localhost:5173> e repassa `/api` para a API em `127.0.0.1:8000`.
 
 ## Problemas conhecidos
 
@@ -88,4 +88,5 @@ O Vite abre em <http://localhost:5173> e repassa `/api` para a API em `localhost
 | `VIRTUAL_ENV … does not match the project environment` ao usar o uv | Há outro ambiente virtual ativo no terminal | É só um aviso; o uv usa o `.venv` do `backend/`. Para sumir, desative o outro ambiente |
 | `failed to connect to the docker API` | O Docker Desktop não está aberto | Abra o Docker Desktop, ou rode `docker desktop start` |
 | Testes do backend falham com erro de senha do banco | O volume do banco foi criado com outra senha | `docker compose down --volumes` e suba de novo |
+| Os testes do backend ficam parados, sem terminar | Algo aponta para `localhost`, que no Windows tenta IPv6 primeiro; as portas de desenvolvimento só atendem em `127.0.0.1` | Use `127.0.0.1` no `DATABASE_URL` e no `REDIS_URL` |
 | O editor marca linhas com mais de 79 colunas | O linter padrão do editor não lê a configuração do projeto | O limite do projeto é 110 (Ruff, em `backend/pyproject.toml`); use a extensão do Ruff no editor |

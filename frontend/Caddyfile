@@ -1,5 +1,5 @@
 # Serve o site compilado e repassa /api para a API. Em produção, o HTTPS é configurado no M12.
-:80 {
+:8080 {
 	encode gzip
 
 	# A API já envia os próprios cabeçalhos de segurança.

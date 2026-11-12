@@ -28,7 +28,7 @@ Só no desenvolvimento do site:
 
 | Variável | Padrão | O que é |
 | --- | --- | --- |
-| `API_PROXY_TARGET` | `http://localhost:8000` | Para onde o Vite repassa `/api` |
+| `API_PROXY_TARGET` | `http://127.0.0.1:8000` | Para onde o Vite repassa `/api` |
 
 ## Testes
 

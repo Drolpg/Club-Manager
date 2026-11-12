@@ -17,14 +17,14 @@ def _dotenv() -> dict[str, str]:
 
 
 _env = _dotenv()
-_db_url = "postgres://{user}:{password}@localhost:5433/{name}".format(
+_db_url = "postgres://{user}:{password}@127.0.0.1:5433/{name}".format(
     user=_env.get("POSTGRES_USER", "clubmanager"),
     password=_env.get("POSTGRES_PASSWORD", "clubmanager"),
     name=_env.get("POSTGRES_DB", "clubmanager"),
 )
 
 os.environ.setdefault("DATABASE_URL", _db_url)
-os.environ.setdefault("REDIS_URL", "redis://localhost:6380/0")
+os.environ.setdefault("REDIS_URL", "redis://127.0.0.1:6380/0")
 # Fixos de propósito: os testes não usam os segredos do .env.
 os.environ["DJANGO_SECRET_KEY"] = "so-para-testes"
 os.environ["DJANGO_DEBUG"] = "0"

@@ -65,7 +65,7 @@ services:
     build: ./frontend
     image: club-manager-web:${IMAGE_TAG:-dev}
     ports:
-      - "${WEB_PORT:-8080}:80"
+      - "${WEB_PORT:-8080}:8080"
     depends_on:
       api:
         condition: service_healthy

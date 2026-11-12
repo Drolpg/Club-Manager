@@ -19,7 +19,7 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | [Requisitos](requirements/requirements.md) | O que o sistema faz, com IDs rastreáveis |
 | [Épicos](requirements/epics.md) | Como os requisitos se agrupam em marcos e do que cada um depende |
 | [Decisões arquiteturais](adr/) | Por que cada escolha estrutural foi feita |
-| Segurança, `security/` (M2 em diante) | Threat model, achados de segurança e o tratamento de cada um |
+| [Segurança](security/) | Relatório de cada marco: achados de segurança e o tratamento de cada um; threat model no M2 |
 
 ## Para rodar o sistema
 
