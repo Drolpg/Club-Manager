@@ -17,6 +17,7 @@ from permissoes.http.serializers import (
     ConcessaoEntradaSerializer,
     ConcessaoSerializer,
     DetalheDoUsuarioSerializer,
+    HistoricoSerializer,
     NomeSerializer,
 )
 from permissoes.models import Cargo, Setor
@@ -74,6 +75,18 @@ class AcaoDeItemView(APIView):
         else:
             item = cargos_e_setores.reativar(self.modelo, ator_id=ator_id, item_id=item_id)
         return Response(CargoOuSetorSerializer(item).data)
+
+
+class HistoricoDeItemView(APIView):
+    """O histórico de um cargo ou setor; `modelo` vem da rota."""
+
+    permission_classes = (EhAdmin,)
+    modelo: ClassVar[type[Cargo] | type[Setor]] = Cargo
+
+    @extend_schema(summary="Histórico de um cargo ou setor", responses=HistoricoSerializer(many=True))
+    def get(self, request: Request, item_id: uuid.UUID) -> Response:
+        registros = cargos_e_setores.historico(self.modelo, ator_id=_ator_id(request), item_id=item_id)
+        return Response(HistoricoSerializer(registros, many=True).data)
 
 
 class CatalogoView(APIView):

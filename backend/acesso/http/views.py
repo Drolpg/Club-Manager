@@ -15,7 +15,8 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
-from acesso.http.permissions import EhAdmin, limitar_por_ip
+from acesso import portas
+from acesso.http.permissions import EhAdmin, PodeGerenciarConvites, limitar_por_ip
 from acesso.http.serializers import (
     CadastroGoogleSerializer,
     CadastroSerializer,
@@ -24,6 +25,7 @@ from acesso.http.serializers import (
     ConviteSerializer,
     CredencialGoogleSerializer,
     EmailSerializer,
+    HistoricoSerializer,
     IdentificadorSerializer,
     LoginSerializer,
     RedefinirSenhaSerializer,
@@ -33,7 +35,7 @@ from acesso.http.serializers import (
     UsuarioSerializer,
 )
 from acesso.models import Convite, Usuario
-from acesso.services import cadastro, convites, senha, sessao, usuarios
+from acesso.services import cadastro, convites, historico, senha, sessao, usuarios
 from acesso.services import google as servico_google
 
 
@@ -87,7 +89,7 @@ def _convite_gerado(convite: Convite, token: str) -> dict[str, object]:
 
 
 class ConvitesView(APIView):
-    permission_classes = (EhAdmin,)
+    permission_classes = (PodeGerenciarConvites,)
 
     @extend_schema(summary="Listar convites", responses=ConviteSerializer(many=True))
     def get(self, request: Request) -> Response:
@@ -100,7 +102,7 @@ class ConvitesView(APIView):
 
 
 class RegenerarConviteView(APIView):
-    permission_classes = (EhAdmin,)
+    permission_classes = (PodeGerenciarConvites,)
 
     @extend_schema(summary="Regenerar convite", request=None, responses={201: ConviteGeradoSerializer})
     def post(self, request: Request, convite_id: uuid.UUID) -> Response:
@@ -109,7 +111,7 @@ class RegenerarConviteView(APIView):
 
 
 class RevogarConviteView(APIView):
-    permission_classes = (EhAdmin,)
+    permission_classes = (PodeGerenciarConvites,)
 
     @extend_schema(summary="Revogar convite", request=None, responses=ConviteSerializer)
     def post(self, request: Request, convite_id: uuid.UUID) -> Response:
@@ -208,7 +210,10 @@ class UsuariosView(APIView):
 
     @extend_schema(summary="Listar usuários", responses=UsuarioSerializer(many=True))
     def get(self, request: Request) -> Response:
-        return Response(UsuarioSerializer(usuarios.listar(ator=_ator(request)), many=True).data)
+        lista = usuarios.listar(ator=_ator(request))
+        # Uma consulta à porta para a lista inteira, e não uma por usuário.
+        com_cargo = portas.usuarios_com_cargo([u.id for u in lista])
+        return Response(UsuarioSerializer(lista, many=True, context={"com_cargo": com_cargo}).data)
 
 
 _ACOES_DE_USUARIO = {
@@ -263,3 +268,21 @@ class ConfiguracaoView(APIView):
     @extend_schema(summary="Configuração pública do acesso", responses=ConfiguracaoSerializer, auth=[])
     def get(self, request: Request) -> Response:
         return Response({"google_client_id": settings.GOOGLE_CLIENT_ID or None})
+
+
+class HistoricoDoUsuarioView(APIView):
+    permission_classes = (EhAdmin,)
+
+    @extend_schema(summary="Histórico de um usuário", responses=HistoricoSerializer(many=True))
+    def get(self, request: Request, usuario_id: uuid.UUID) -> Response:
+        registros = historico.do_usuario(ator=_ator(request), usuario_id=usuario_id)
+        return Response(HistoricoSerializer(registros, many=True).data)
+
+
+class HistoricoDoConviteView(APIView):
+    permission_classes = (PodeGerenciarConvites,)
+
+    @extend_schema(summary="Histórico de um convite", responses=HistoricoSerializer(many=True))
+    def get(self, request: Request, convite_id: uuid.UUID) -> Response:
+        registros = historico.do_convite(ator=_ator(request), convite_id=convite_id)
+        return Response(HistoricoSerializer(registros, many=True).data)

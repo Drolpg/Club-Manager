@@ -103,3 +103,11 @@ def reativar(modelo: Modelo, *, ator_id: uuid.UUID, item_id: uuid.UUID) -> Item:
     item.save(update_fields=["ativo"])
     _auditar(ator_id, item, "REATIVADO")
     return item
+
+
+def historico(modelo: Modelo, *, ator_id: uuid.UUID, item_id: uuid.UUID) -> list[acesso.RegistroDoHistorico]:
+    """O histórico de um cargo ou setor, do mais recente para o mais antigo. Só o admin vê (P8)."""
+    exigir_admin(ator_id)
+    if not modelo.objects.filter(pk=item_id).exists():
+        raise BusinessError("NOT_FOUND", "Item não encontrado.", status=404)
+    return acesso.historico_com_nomes(_tipo(modelo), item_id)

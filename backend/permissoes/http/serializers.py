@@ -66,3 +66,17 @@ class DetalheDoUsuarioSerializer(serializers.Serializer[Any]):
     cargo = CargoOuSetorSerializer(allow_null=True)
     setores = CargoOuSetorSerializer(many=True)
     permissoes = _PermissaoDoUsuarioSerializer(many=True)
+
+
+class _AtorSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    nome = serializers.CharField()
+
+
+class HistoricoSerializer(serializers.Serializer[Any]):
+    """Uma ação do histórico de um item. `ator` é nulo para ações do sistema."""
+
+    acao = serializers.CharField()
+    ator = _AtorSerializer(allow_null=True)
+    justificativa = serializers.CharField(allow_blank=True)
+    criado_em = serializers.DateTimeField()

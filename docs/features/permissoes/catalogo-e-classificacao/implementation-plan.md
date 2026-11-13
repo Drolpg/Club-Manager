@@ -145,7 +145,7 @@ tela com o caminho feliz e um erro. No Windows, rode o `npm` num terminal aberto
 | CA-04 | `permissoes/tests/test_cargos_e_setores.py::test_ca04_item_sem_uso_e_desativado_e_pode_ser_reativado` |
 | CA-05 | `permissoes/tests/test_cargos_e_setores.py::test_ca05_item_que_um_usuario_ativo_tem_nao_e_desativado` |
 | CA-06 | `permissoes/tests/test_cargos_e_setores.py::test_ca06_quem_nao_e_admin_nao_altera`, `::test_ca06_diretor_com_cargo_lista_e_diretor_sem_cargo_nao` |
-| CA-07 | `permissoes/tests/test_classificacao.py::test_ca07_diretor_sem_cargo_recebe_cargo_e_dois_setores` |
+| CA-07 | `permissoes/tests/test_classificacao.py::test_ca07_diretor_sem_cargo_recebe_cargo_e_dois_setores`, `permissoes/tests/test_portas.py::test_ca07_lista_e_sessao_mostram_com_cargo_depois_de_classificar` |
 | CA-08 | `permissoes/tests/test_classificacao.py::test_ca08_reclassificar_vale_na_requisicao_seguinte_do_diretor` |
 | CA-09 | `permissoes/tests/test_classificacao.py::test_ca09_tirar_o_cargo_remove_cargo_e_setores_e_audita` |
 | CA-10 | `permissoes/tests/test_classificacao.py::test_ca10_usuario_que_nao_esta_ativo_nao_e_classificado` |
@@ -166,6 +166,11 @@ tela com o caminho feliz e um erro. No Windows, rode o `npm` num terminal aberto
 | CA-25 | `permissoes/tests/test_consulta.py::test_ca25_admin_ve_cada_permissao_com_todas_as_origens`, `permissoes/tests/test_consulta.py::test_ca25_detalhe_de_outro_usuario_e_so_do_admin` |
 | CA-26 | `permissoes/tests/test_consulta.py::test_ca26_diretor_ve_o_proprio_cargo_setores_e_permissoes_e_nao_os_de_outro` (API) |
 | CA-28 | `permissoes/tests/test_consulta.py::test_ca28_le_gestao_so_com_cargo_e_ativo` |
+| CA-27 | `permissoes/tests/test_portas.py::test_ca27_diretor_com_a_permissao_gera_lista_regenera_e_revoga_convites`, `permissoes/tests/test_portas.py::test_ca27_sem_a_permissao_o_sistema_nega_as_quatro_rotas`, `permissoes/tests/test_portas.py::test_ca27_perder_a_permissao_vale_na_requisicao_seguinte` |
+| CA-29 | `permissoes/tests/test_historico.py::test_ca29_toda_acao_da_regra_17_gera_registro_com_quem_o_que_quando_e_o_item` (e os testes de auditoria de cada serviço) |
+| CA-30 | `acesso/tests/test_historico.py::test_ca30_historico_do_usuario_vem_do_mais_recente_com_o_nome_do_ator`, `acesso/tests/test_historico.py::test_ca30_historico_do_convite_mostra_gerado_e_revogado_com_o_nome_de_quem_agiu`, `permissoes/tests/test_historico.py::test_ca30_historico_do_item_vem_do_mais_recente_com_o_nome_do_ator` (cargo e setor) |
+| CA-31 | `acesso/tests/test_historico.py::test_ca31_quem_nao_e_admin_nao_ve_o_historico_do_usuario`, `acesso/tests/test_historico.py::test_ca31_quem_nao_gerencia_convites_nao_ve_o_historico_do_convite`, `permissoes/tests/test_historico.py::test_ca31_quem_nao_e_admin_nao_ve_o_historico` |
+| CA-32 | `permissoes/tests/test_historico.py::test_ca32_nenhuma_rota_de_permissoes_aceita_delete`, `permissoes/tests/test_historico.py::test_ca32_apagar_cargo_setor_ou_concessao_nao_e_possivel` |
 
 ## Revisão de segurança
 
@@ -219,6 +224,18 @@ uv run poe verify → saída 0; 349 passed; cobertura 96,91%
 Testes novos (70): `test_classificacao.py` (19), `test_concessoes.py` (26) e `test_consulta.py` (25), vistos
 falhando antes do código (os módulos de serviço ainda não existiam). CA-07 (coluna "com cargo" da lista de
 usuários) e CA-26 (tela) completam-se nos checkpoints 4 e 5.
+
+### Checkpoint 4 — Portas em `acesso` e histórico (2026-11-13)
+
+```text
+uv run poe verify → saída 0; 386 passed; cobertura 97,13%
+```
+
+Testes novos (37): `acesso/tests/test_portas.py` (5), `acesso/tests/test_historico.py` (8),
+`permissoes/tests/test_portas.py` (10) e `permissoes/tests/test_historico.py` (14), vistos falhando antes do
+código. O teste de arquitetura segue verde: `acesso` não importa `permissoes`, e os testes de `permissoes` usam só
+`acesso.public`. Os testes de `acesso` que exigem o comportamento padrão trocam o estado das portas por uma cópia
+(`monkeypatch`), que o pytest desfaz no fim; os de `permissoes` restauram o padrão e chamam o `ready` de novo.
 
 ## Rollback ou recuperação
 

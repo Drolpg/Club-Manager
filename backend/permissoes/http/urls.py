@@ -15,6 +15,11 @@ def _de_itens(rota: str, modelo: type[Cargo] | type[Setor]) -> list[URLPattern]:
             )
             for acao in ("renomear", "desativar", "reativar")
         ),
+        path(
+            f"{rota}/<uuid:item_id>/historico/",
+            views.HistoricoDeItemView.as_view(modelo=modelo),
+            name=f"permissoes-{rota}-historico",
+        ),
     ]
 
 
