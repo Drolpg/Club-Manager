@@ -19,9 +19,9 @@ vez, na ordem de dependência. Cada épico é quebrado em features pequenas na h
 | M3 — Permissões e auditoria | Cargos, setores, concessões, painel do admin, trilha de auditoria | RF-015 a RF-027, RF-118 | Identidade e Permissões (`permissoes`), Auditoria | Leandro |
 | M4 — Notificações | Registro, e-mail, caixa de entrada, preferências, agendador | RF-028 a RF-032, RF-119, RNF-10 | Notificações | Leandro |
 | M5 — Motor de aprovações | Solicitação com versões, decisões, motivos, fila | RF-033 a RF-045, RF-120 a RF-122 | Aprovações: Solicitação | Leandro |
-| M6 — Financeiro: cobrança e recebimento | Cobranças, recorrência, Pix, validação, inadimplência, entradas | RF-046 a RF-072 | Financeiro: Cobrança, Recorrência, Suspensão, Renegociação, Entrada | Leandro |
-| M7 — Financeiro: gasto e prestação de contas | Solicitação de gasto, envio, prestação, devolução, liquidação, estorno | RF-073 a RF-083 | Financeiro: Saída, Entrada (devolução) | Leandro |
-| M8 — Eventos | Proposta, orçamento, calendário, realização, cancelamento | RF-084 a RF-093 | Eventos: Evento | Leandro |
+| M6 — Financeiro: cobrança e recebimento | Cobranças, recorrência, Pix, validação, inadimplência, entradas | RF-046 a RF-072, RF-123 a RF-125 | Financeiro: Cobrança, Recorrência, Suspensão, Renegociação, Entrada | Leandro |
+| M7 — Financeiro: gasto e prestação de contas | Solicitação de gasto, envio, prestação, devolução, liquidação, estorno | RF-073 a RF-083, RF-126 a RF-128 | Financeiro: Saída, Entrada (devolução) | Leandro |
+| M8 — Eventos | Proposta, orçamento, calendário, realização, cancelamento | RF-084 a RF-093, RF-129 a RF-131 | Eventos: Evento | Leandro |
 | M9 — Comunicação e perfil | Feed, documentos, atas, perfil | RF-094 a RF-101 | Comunicação; Relatórios (perfil) | Leandro |
 | M10 — Dashboard e relatórios | Dashboards, lista de transações, relatórios em PDF e CSV | RF-102 a RF-111 | Relatórios | Leandro |
 | M11 — Personalização | Escudo, cores, temas, ícones | RF-112 a RF-115 | Marca | Leandro |
