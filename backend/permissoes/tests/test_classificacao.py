@@ -94,6 +94,8 @@ def test_ca09_tirar_o_cargo_remove_cargo_e_setores_e_audita(
     assert not Classificacao.objects.filter(usuario_id=diretor.id).exists()
     acoes = [r.acao for r in auditoria.historico_do_item("usuario", diretor.id)]
     assert acoes == ["USUARIO_CLASSIFICADO", "CLASSIFICACAO_REMOVIDA"]
+    removida = auditoria.historico_do_item("usuario", diretor.id)[-1]
+    assert removida.dados == {"cargo_id": str(_cargo().id), "setor_ids": [str(_setor().id)]}
 
 
 def test_tirar_o_cargo_de_quem_nao_tem_e_inofensivo_e_nao_audita(

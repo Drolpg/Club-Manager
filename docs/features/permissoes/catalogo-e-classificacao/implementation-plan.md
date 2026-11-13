@@ -296,6 +296,10 @@ Não validado: o site no navegador por uma pessoa; o acesso total pelo roteiro (
    existente confere a última chamada do login com Google); a rota `/admin/convites` consulta para qualquer
    não-admin. Por isso quem tem a permissão por concessão individual e **sem cargo** abre os convites pelo endereço,
    mas não vê o atalho na página inicial.
+3. `docs(metodo)`: regra de escrita no `AGENTS.md` reescrita (e a linha equivalente do `stack-profile.md`).
+4. `feat(permissoes)`: `CLASSIFICACAO_REMOVIDA` leva `cargo_id` e `setor_ids` que a pessoa tinha. `uv run poe verify`
+   → saída 0; 390 passed; cobertura 97,14%. `test_ca09_...` ganhou só a conferência dos `dados`; o que ele já
+   conferia não mudou (vista falhando antes do código).
 
 ## Rollback ou recuperação
 

@@ -61,10 +61,20 @@ def classificar(
     if cargo_id is None:
         if setor_ids:
             raise _invalido("setor_ids", "Informe o cargo antes de informar setores.")
-        removidas, _ = Classificacao.objects.filter(usuario_id=usuario_id).delete()
-        if removidas:
+        atual = Classificacao.objects.filter(usuario_id=usuario_id).first()
+        if atual is not None:
+            # O que a pessoa tinha fica na auditoria, já que a classificação some.
+            tinha = {
+                "cargo_id": str(atual.cargo_id),
+                "setor_ids": sorted(str(s) for s in atual.setores.values_list("id", flat=True)),
+            }
+            atual.delete()
             auditoria.registrar(
-                ator_id=ator_id, acao="CLASSIFICACAO_REMOVIDA", item_tipo="usuario", item_id=usuario_id
+                ator_id=ator_id,
+                acao="CLASSIFICACAO_REMOVIDA",
+                item_tipo="usuario",
+                item_id=usuario_id,
+                dados=tinha,
             )
         return None
 
