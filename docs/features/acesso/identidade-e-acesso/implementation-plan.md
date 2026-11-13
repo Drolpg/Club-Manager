@@ -3,9 +3,9 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `acesso/identidade-e-acesso` |
-| Status | In Progress |
+| Status | Implemented |
 | Responsável | Leandro Nascimento |
-| Atualizado em | 2026-11-12 |
+| Atualizado em | 2026-11-13 |
 | Especificação técnica | `./technical-spec.md` (aprovada em 2026-11-12) |
 
 ## Objetivo
@@ -175,8 +175,8 @@ duas etapas (backlog).
 - [x] Migrations reversíveis; nenhum seed.
 - [x] Contrato, `docs/api/` e guia de teste manual atualizados.
 - [x] Registro de requisitos, decisões e riscos atualizados.
-- [ ] Critérios de aceite validados e aprovados pelo dono.
-- [ ] CI verde no GitHub (roda ao integrar na `dev`).
+- [x] Critérios de aceite validados e aprovados pelo dono (Leandro Nascimento, 2026-11-13).
+- [x] CI verde no GitHub (PR #1, workflows `backend` e `frontend`, 2026-11-13).
 
 ## Evidências de verificação
 

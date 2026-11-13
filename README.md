@@ -13,8 +13,9 @@ A etapa 1 (diretores, no site) tem 13 marcos. O estado de cada um está em [docs
 | --- | --- |
 | M0 Arquitetura | Concluído: domínio, requisitos e decisões registrados |
 | M1 Fundação | Concluído (`v0.1.0`): API, worker, banco, fila e site sobem com um comando |
-| M2 Identidade e acesso | Implementado, aguardando aprovação: convite, cadastro, login por senha e Google, administração de usuários |
-| M3 a M12 | Não iniciados |
+| M2 Identidade e acesso | Concluído (`v0.2.0`): convite, cadastro, login por senha e Google, administração de usuários |
+| M3 Permissões e auditoria | Em especificação |
+| M4 a M12 | Não iniciados |
 
 Hoje o sistema cuida só do acesso: um admin criado por comando convida diretores, que se cadastram e entram. As
 funções financeiras e de eventos ainda não existem.

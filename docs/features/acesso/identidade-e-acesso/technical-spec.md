@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `acesso/identidade-e-acesso` |
-| Status | Approved |
+| Status | Implemented |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-12 |
 | Aprovado por | Leandro Nascimento |
@@ -287,4 +287,19 @@ Cada critério de aceite CA-01 a CA-36 tem ao menos um teste, e a matriz CA → 
 
 ## Adendos
 
-Nenhum.
+### Adendo 1 — Detalhes que a implementação acrescentou
+
+Motivo: a auditoria de coerência de 2026-11-13 comparou esta spec com o código. Nada abaixo muda o comportamento
+aprovado.
+
+- **Migrações:** em vez de uma `acesso/0001_usuario_e_convite`, são três: `0001_usuario`, `0002_convite` e
+  `0003_convite_usado_por_opcional`. A terceira troca a referência do convite a quem o usou para opcional, porque o
+  cadastro não verificado é descartado e o convite continua usado.
+- **Serviços:** além dos cinco arquivos listados, `acesso/services/` tem `autorizacao.py` (conferência de admin),
+  `tokens.py` (verificação de e-mail), `emails.py` (os três e-mails) e `google.py` (casos de uso do Google).
+- **Códigos de erro a mais:** `CSRF_FAILED` (403); e, com 422, `CONVITE_NAO_ESTA_ATIVO`,
+  `CONVITE_NAO_PODE_SER_REGENERADO`, `USUARIO_NAO_ESTA_ATIVO`, `USUARIO_NAO_ESTA_INATIVO`, `USUARIO_JA_E_ADMIN` e
+  `USUARIO_NAO_E_ADMIN`. A lista completa está em `docs/api/README.md`.
+- **Testes:** um Argon2 de custo mínimo só nos testes (`backend/tests/hashers.py`).
+
+Aprovado por / em: Leandro Nascimento / 2026-11-13.

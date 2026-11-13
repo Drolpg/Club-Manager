@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Status | Approved |
-| Atualizado em | 2026-11-12 |
+| Atualizado em | 2026-11-13 |
 | Aprovado por / em | Leandro Nascimento / 2026-11-11 |
 | Fontes | `docs/challenge/`, `docs/domain/` |
 
@@ -43,22 +43,22 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Origem | Status | Feature |
 | --- | --- | --- | --- | --- |
-| RF-001 | O admin, ou quem tem a permissão de convidar, gera um convite de uso único, válido por 24 horas, sem cargo nem setor | ACE-05 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-002 | Quem tem a permissão regenera ou revoga um convite | ACE-05 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-003 | O sistema expira o convite depois de 24 horas | ACE-05, NOT-07 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-004 | O convidado se cadastra pelo convite informando nome, nome de usuário único, telefone, e-mail e senha | ACE-06, ACE-09 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-005 | O sistema envia um link de verificação e só libera o acesso depois de o e-mail ser verificado | ACE-04 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-006 | O usuário entra com nome de usuário e senha | ACE-02 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-007 | O usuário entra com o Google, na mesma conta do seu e-mail | ACE-01, ACE-02 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-008 | O convidado aceita o convite pelo Google e completa o cadastro com nome de usuário e senha, sem link de verificação | ACE-03 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-009 | O sistema recusa o login pelo Google de quem não foi convidado | ACE-12 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-010 | O usuário recupera a senha pelo e-mail verificado | ACE-11 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-011 | O usuário encerra a própria sessão | ACE-13 (derivado) | Em implementação | `acesso/identidade-e-acesso` |
-| RF-012 | O admin desativa e reativa um usuário; o desativado não entra | ACE-10 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-013 | O sistema avisa o admin quando um diretor conclui o cadastro | ACE-07 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-014 | O primeiro admin é criado por um procedimento seguro, sem senha padrão | Seção 16, AD-019 | Em implementação | `acesso/identidade-e-acesso` |
-| RF-116 | O admin dá e tira o papel de admin de outro usuário | Spec `acesso/identidade-e-acesso` **(novo)** | Em implementação | `acesso/identidade-e-acesso` |
-| RF-117 | O admin consulta os convites e os usuários, com a situação de cada um | Spec `acesso/identidade-e-acesso` **(novo)** | Em implementação | `acesso/identidade-e-acesso` |
+| RF-001 | O admin, ou quem tem a permissão de convidar, gera um convite de uso único, válido por 24 horas, sem cargo nem setor | ACE-05 | Implementado | `acesso/identidade-e-acesso` |
+| RF-002 | Quem tem a permissão regenera ou revoga um convite | ACE-05 | Implementado | `acesso/identidade-e-acesso` |
+| RF-003 | O sistema expira o convite depois de 24 horas | ACE-05, NOT-07 | Implementado | `acesso/identidade-e-acesso` |
+| RF-004 | O convidado se cadastra pelo convite informando nome, nome de usuário único, telefone, e-mail e senha | ACE-06, ACE-09 | Implementado | `acesso/identidade-e-acesso` |
+| RF-005 | O sistema envia um link de verificação e só libera o acesso depois de o e-mail ser verificado | ACE-04 | Implementado | `acesso/identidade-e-acesso` |
+| RF-006 | O usuário entra com nome de usuário e senha | ACE-02 | Implementado | `acesso/identidade-e-acesso` |
+| RF-007 | O usuário entra com o Google, na mesma conta do seu e-mail | ACE-01, ACE-02 | Implementado | `acesso/identidade-e-acesso` |
+| RF-008 | O convidado aceita o convite pelo Google e completa o cadastro com nome de usuário e senha, sem link de verificação | ACE-03 | Implementado | `acesso/identidade-e-acesso` |
+| RF-009 | O sistema recusa o login pelo Google de quem não foi convidado | ACE-12 | Implementado | `acesso/identidade-e-acesso` |
+| RF-010 | O usuário recupera a senha pelo e-mail verificado | ACE-11 | Implementado | `acesso/identidade-e-acesso` |
+| RF-011 | O usuário encerra a própria sessão | ACE-13 (derivado) | Implementado | `acesso/identidade-e-acesso` |
+| RF-012 | O admin desativa e reativa um usuário; o desativado não entra | ACE-10 | Implementado | `acesso/identidade-e-acesso` |
+| RF-013 | O sistema avisa o admin quando um diretor conclui o cadastro | ACE-07 | Implementado | `acesso/identidade-e-acesso` |
+| RF-014 | O primeiro admin é criado por um procedimento seguro, sem senha padrão | Seção 16, AD-019 | Implementado | `acesso/identidade-e-acesso` |
+| RF-116 | O admin dá e tira o papel de admin de outro usuário | Spec `acesso/identidade-e-acesso` **(novo)** | Implementado | `acesso/identidade-e-acesso` |
+| RF-117 | O admin consulta os convites e os usuários, com a situação de cada um | Spec `acesso/identidade-e-acesso` **(novo)** | Implementado | `acesso/identidade-e-acesso` |
 
 ### Identidade e Permissões — permissões; Auditoria (M3)
 
@@ -303,3 +303,4 @@ mesma regra de imutabilidade; "questionada" deixou de ser estado da cobrança.
 | 7 | E-mails caem em spam ou o provedor gratuito limita o envio | Pendente de análise | AD-012 |
 | 8 | "Nada é apagado" entra em conflito com direitos do titular na LGPD | Pendente de análise | AD-015; avaliar no M2 |
 | 9 | O escopo do M6 cresceu com inadimplência, renegociação, suspensão e Pix | Mitigado (dividir o marco em features menores) | `epics.md` |
+| 10 | Em desenvolvimento, os links dos e-mails saem no log quebrados pela codificação, o que atrapalha o teste manual | Mitigado (documentado; avaliar um servidor de e-mail de desenvolvimento no M4) | `docs/setup/local.md` |

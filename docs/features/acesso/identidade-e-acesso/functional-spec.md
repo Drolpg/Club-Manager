@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `acesso/identidade-e-acesso` |
-| Status | Approved |
+| Status | Implemented |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-12 |
 | Aprovado por | Leandro Nascimento |
