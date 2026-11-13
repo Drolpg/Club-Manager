@@ -87,6 +87,15 @@ Preenchida no checkpoint 6.
 
 ## Evidências de verificação
 
+### Checkpoint 1 — Catálogo e resolução de permissões (2026-11-13)
+
+```text
+uv run poe verify → saída 0; 239 passed; cobertura 96,68%
+```
+
+Testes novos: `backend/permissoes/tests/test_resolucao.py` (14) e `test_catalogo.py` (8), vistos falhando antes do
+código.
+
 ## Rollback ou recuperação
 
 As migrações revertem com `python manage.py migrate permissoes zero`; a versão anterior é a tag `v0.2.0`.
