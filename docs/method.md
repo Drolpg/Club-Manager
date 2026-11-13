@@ -12,14 +12,14 @@
 | Nível de processo | 2 — Padrão, com um elemento do nível 3 (ver "Desvios do método") |
 | Estilo de arquitetura | Monólito modular, DDD tático no core (`aprovacoes`, `financeiro`, `eventos`), camadas no resto — `docs/adr/ADR-001-estilo-arquitetural.md` |
 | Trilha de domínio | DDD completo restrito ao core, com o rito 3 simplificado |
-| Situações | solo, com tracker (GitHub Issues), com board (Miro, a conectar), em fases |
+| Situações | solo, com tracker (GitHub Issues), com board (Miro), em fases |
 | Idioma da documentação | pt-BR |
 | Idioma dos nomes no código | Domínio na língua do negócio (português), infraestrutura em inglês |
 | Stack | Python 3.14, Django 6.1, DRF, PostgreSQL 18, Celery e Redis; React 19, Vite, TypeScript — `docs/architecture/stack-profile.md` |
 | Comando de verificação completa | `uv run poe verify` em `backend/` e `npm run verify` em `frontend/` |
 | Meta de cobertura | 80%, no backend e no site |
 | Git | `CONTRIBUTING.md` — modelo `main` + `dev`, sem trailer de IA |
-| Board / tracker | Issues criadas marco a marco, na especificação de cada um, e não todas de uma vez. Miro: conector autorizado em 2026-11-11, ferramentas ainda não disponíveis na sessão; URL a registrar. Tracker: <https://github.com/Drolpg/Club-Manager/issues> |
+| Board / tracker | Issues criadas marco a marco, na especificação de cada um, e não todas de uma vez. Miro: board "Club Manager — Etapa 1", criado em 2026-11-13, <https://miro.com/app/board/uXjVEOVNIIY=/>. Tracker: <https://github.com/Drolpg/Club-Manager/issues> |
 | Prazo | Sem prazo fixo |
 | IDs de requisitos | `RF-NN` (funcional), `RNF-NN` (não funcional) e `RN-NN` (regra de negócio), atribuídos no rito 6; cada um cita o ID de origem do enunciado (ex.: FIN-05) |
 | Aprovado por / em | Leandro Nascimento / 2026-11-11 |
@@ -61,7 +61,7 @@
 | 5 | Desenho tático | Sim, só `aprovacoes`, `financeiro` e `eventos` | Concluído | 2026-11-11 | Leandro Nascimento | `docs/domain/aggregates/`, `docs/domain/domain-events.md`, `docs/domain/domain-model.md` |
 | 6 | Especificação | Sim | Concluído (registro de requisitos; as specs de feature são escritas marco a marco, no rito 8) | 2026-11-11 | Leandro Nascimento | `docs/requirements/requirements.md`, `epics.md`, `definition-of-ready-done.md`, `backlog.md` |
 | 7 | Arquitetura base | Sim | Concluído | 2026-11-12 | Leandro Nascimento | `backend/`, `frontend/`, `compose.yaml`, `.github/workflows/`, `docs/architecture/`, `docs/setup/`, ADR-004 a ADR-007; CI verde na `dev` (execuções `backend` e `frontend` de 2026-11-12) |
-| 8 | Entrega incremental | Contínuo | Próximo: M2 | | | |
+| 8 | Entrega incremental | Contínuo | Em andamento: M0 a M4 concluídos; próximo: M5 | | | |
 
 Status: `Pendente`, `Em andamento`, `Concluído`, `Não se aplica (estilo)`, `Simplificado (<motivo>)`,
 `Pulado (<motivo>)`.
@@ -98,10 +98,19 @@ validação), com revisão de segurança e auditoria de coerência ao fim.
 
 Links para o board seguem sempre `<URL do board>/?moveToWidget=<ID>`; trocar de board é um único replace.
 
-Board ainda não criado: o layout de frames será proposto quando o Miro estiver acessível na sessão.
+Board: <https://miro.com/app/board/uXjVEOVNIIY=/>, criado em 2026-11-13 por uma sessão dedicada, a partir dos documentos abaixo. O board
+espelha a documentação e não a substitui: se os dois divergirem, vale o documento. Os frames resumem as
+fontes (o que ficou de fora está no relato da criação, em `docs/_local/`), e ainda não foram conferidos
+visualmente pela sessão revisora.
 
 | Frame | ID | Espelha | Tipo |
 | --- | --- | --- | --- |
+| 1. Visão e marcos | 3458764690412436060 | `docs/project-charter.md`; tabela de marcos deste arquivo | Resumo |
+| 2. Histórias do domínio | 3458764690412519473 | `docs/domain/discovery/domain-storytelling.md` | Domain Storytelling |
+| 3. Event Storming e hotspots | 3458764690412682501 | `docs/domain/discovery/event-storming.md`, `hotspots.md` | Event Storming |
+| 4. Mapa de contextos | 3458764690412828359 | `docs/domain/strategic-design.md`, `context-map.md`, ADR-003 | Context map |
+| 5. Modelo de domínio | 3458764690412945454 | `docs/domain/aggregates/` (solicitação, cobrança, saída, evento), `domain-model.md` | Aggregates e estados |
+| 6. Arquitetura | 3458764690413033149 | `docs/architecture/overview.md`; ADR-001, 004, 005, 006, 008 | Contêineres e implantação |
 
 ## Desvios do método
 

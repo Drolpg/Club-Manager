@@ -57,7 +57,7 @@ Para o desenho ficar legível, três relações que valem para todos não foram 
 | Google | Identidade e Permissões | ACL | Validação do login social; o modelo do Google não entra no domínio | AD-006 |
 | Auditoria | Todos | OHS → Conformist | API em processo: registrar ação; consultar histórico de um item | ADR-003, AD-009 |
 | Identidade e Permissões | Todos | OHS → Conformist | API em processo: "pode fazer?", "quem pode fazer?", dados básicos do usuário | ADR-003, AD-007 |
-| Identidade e Permissões | Notificações | PL (evento em processo) | Evento "cadastro concluído", para avisar o admin | ADR-003 |
+| Identidade e Permissões | Notificações | PL (evento em processo) | Eventos "cadastro concluído", "papel de admin alterado", "classificação alterada" e "concessão individual alterada", para avisar o admin ou o próprio usuário | ADR-003 |
 | Notificações | Aprovações, Financeiro, Eventos, Comunicação | OHS | API em processo: notificar usuários sobre um item | ADR-003 |
 | Notificações | Provedor de e-mail | ACL | Port de e-mail | AD-012 |
 | Aprovações | Financeiro, Eventos | OHS/PL → Customer/Supplier | API em processo: abrir solicitação de um tipo registrado. Eventos em processo: solicitação aprovada, contestada, recusada, cancelada | ADR-003, AD-008 |

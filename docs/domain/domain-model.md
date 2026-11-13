@@ -26,6 +26,7 @@ classDiagram
       +aprovar()
       +contestar()
       +recusar()
+      +retirar()
       +reenviar()
       +reabrir()
       +editar()
@@ -59,6 +60,7 @@ classDiagram
     class EstadoDaSolicitacao {
       <<enumeration>>
       EM_ANALISE
+      RETIRADA
       CONTESTADA
       RECUSADA
       APROVADA
