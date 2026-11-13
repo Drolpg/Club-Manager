@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router'
 import { CadastroPorConvite, Entrar, RecuperarSenha, RedefinirSenha, VerificarEmail } from './paginas/Acesso'
 import { Convites, Usuarios } from './paginas/Admin'
 import { Inicio } from './paginas/Inicio'
+import { CargosESetores, Permissoes, UsuarioDetalhe } from './paginas/Permissoes'
 import { ProvedorDeSessao, useSessao } from './sessao'
 
 // O site só decide o que mostrar. Quem pode o quê é sempre conferido pela API (RNF-01).
@@ -44,6 +45,38 @@ function App() {
           element={
             <Protegida soAdmin>
               <Usuarios />
+            </Protegida>
+          }
+        />
+        <Route
+          path="/admin/usuarios/:id"
+          element={
+            <Protegida soAdmin>
+              <UsuarioDetalhe />
+            </Protegida>
+          }
+        />
+        <Route
+          path="/admin/cargos"
+          element={
+            <Protegida soAdmin>
+              <CargosESetores tipo="cargos" />
+            </Protegida>
+          }
+        />
+        <Route
+          path="/admin/setores"
+          element={
+            <Protegida soAdmin>
+              <CargosESetores tipo="setores" />
+            </Protegida>
+          }
+        />
+        <Route
+          path="/admin/permissoes"
+          element={
+            <Protegida soAdmin>
+              <Permissoes />
             </Protegida>
           }
         />

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type InputHTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
 
 export function Pagina({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
@@ -35,6 +35,23 @@ export function Campo({ rotulo, erros, aoMudar, ...resto }: CampoProps) {
           {erro}
         </p>
       ))}
+    </div>
+  )
+}
+
+interface SelecaoProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
+  rotulo: string
+  aoMudar: (valor: string) => void
+}
+
+export function Selecao({ rotulo, aoMudar, children, ...resto }: SelecaoProps) {
+  const id = useId()
+  return (
+    <div className="campo">
+      <label htmlFor={id}>{rotulo}</label>
+      <select id={id} onChange={(evento) => aoMudar(evento.target.value)} {...resto}>
+        {children}
+      </select>
     </div>
   )
 }

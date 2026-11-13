@@ -164,13 +164,17 @@ tela com o caminho feliz e um erro. No Windows, rode o `npm` num terminal aberto
 | CA-23 | `permissoes/tests/test_concessoes.py::test_ca23_conceder_duas_vezes_ao_mesmo_alvo_deixa_uma_concessao_so` |
 | CA-24 | `permissoes/tests/test_concessoes.py::test_ca24_quem_nao_e_admin_nao_concede_nem_revoga`, `permissoes/tests/test_concessoes.py::test_ca24_os_servicos_tambem_recusam_quem_nao_e_admin` |
 | CA-25 | `permissoes/tests/test_consulta.py::test_ca25_admin_ve_cada_permissao_com_todas_as_origens`, `permissoes/tests/test_consulta.py::test_ca25_detalhe_de_outro_usuario_e_so_do_admin` |
-| CA-26 | `permissoes/tests/test_consulta.py::test_ca26_diretor_ve_o_proprio_cargo_setores_e_permissoes_e_nao_os_de_outro` (API) |
+| CA-26 | `permissoes/tests/test_consulta.py::test_ca26_diretor_ve_o_proprio_cargo_setores_e_permissoes_e_nao_os_de_outro` (API), `frontend/src/permissoes.test.tsx::menu do admin e página inicial (CA-26) > o diretor com cargo vê o próprio cargo, setores e permissões` (tela) |
 | CA-28 | `permissoes/tests/test_consulta.py::test_ca28_le_gestao_so_com_cargo_e_ativo` |
 | CA-27 | `permissoes/tests/test_portas.py::test_ca27_diretor_com_a_permissao_gera_lista_regenera_e_revoga_convites`, `permissoes/tests/test_portas.py::test_ca27_sem_a_permissao_o_sistema_nega_as_quatro_rotas`, `permissoes/tests/test_portas.py::test_ca27_perder_a_permissao_vale_na_requisicao_seguinte` |
 | CA-29 | `permissoes/tests/test_historico.py::test_ca29_toda_acao_da_regra_17_gera_registro_com_quem_o_que_quando_e_o_item` (e os testes de auditoria de cada serviço) |
 | CA-30 | `acesso/tests/test_historico.py::test_ca30_historico_do_usuario_vem_do_mais_recente_com_o_nome_do_ator`, `acesso/tests/test_historico.py::test_ca30_historico_do_convite_mostra_gerado_e_revogado_com_o_nome_de_quem_agiu`, `permissoes/tests/test_historico.py::test_ca30_historico_do_item_vem_do_mais_recente_com_o_nome_do_ator` (cargo e setor) |
 | CA-31 | `acesso/tests/test_historico.py::test_ca31_quem_nao_e_admin_nao_ve_o_historico_do_usuario`, `acesso/tests/test_historico.py::test_ca31_quem_nao_gerencia_convites_nao_ve_o_historico_do_convite`, `permissoes/tests/test_historico.py::test_ca31_quem_nao_e_admin_nao_ve_o_historico` |
 | CA-32 | `permissoes/tests/test_historico.py::test_ca32_nenhuma_rota_de_permissoes_aceita_delete`, `permissoes/tests/test_historico.py::test_ca32_apagar_cargo_setor_ou_concessao_nao_e_possivel` |
+| CA-26 (tela) | `frontend/src/permissoes.test.tsx::menu do admin e página inicial (CA-26) > o diretor com cargo vê o próprio cargo, setores e permissões`, `... > o diretor sem cargo continua aguardando a classificação e não consulta as permissões` |
+| Telas de cargos e setores (CA-02 a CA-05 pela tela) | `frontend/src/permissoes.test.tsx::cargos > ...` e `setores > ...` (lista, criar, nome repetido, renomear, cancelar, desativar, CA-05 com a quantidade, reativar) |
+| Tela de permissões (CA-13, CA-23, CA-24) | `frontend/src/permissoes.test.tsx::permissões > ...` (catálogo com descrição, conceder a cargo, setor e pessoa, concessão repetida, acesso total para cargo, revogar, revogada) |
+| Tela do usuário (CA-07, CA-09, CA-10, CA-21, CA-25, CA-30) | `frontend/src/permissoes.test.tsx::usuário > ...` (origens, classificar, tirar o cargo, cargo inativo, usuário inativo, acesso total, histórico, usuário inexistente) |
 
 ## Revisão de segurança
 
@@ -236,6 +240,18 @@ Testes novos (37): `acesso/tests/test_portas.py` (5), `acesso/tests/test_histori
 código. O teste de arquitetura segue verde: `acesso` não importa `permissoes`, e os testes de `permissoes` usam só
 `acesso.public`. Os testes de `acesso` que exigem o comportamento padrão trocam o estado das portas por uma cópia
 (`monkeypatch`), que o pytest desfaz no fim; os de `permissoes` restauram o padrão e chamam o `ready` de novo.
+
+### Checkpoint 5 — Site (2026-11-13)
+
+```text
+npm run verify (terminal aberto em C:, na pasta frontend) → saída 0; 75 testes; cobertura de linhas 92,61%
+```
+
+Testes novos (45): `frontend/src/permissoes.test.tsx`. Neste checkpoint o código das telas foi escrito antes dos
+testes; o vermelho foi provado depois, guardando as telas com `git stash`: 40 dos 45 testes falharam (os 5 que passam
+são os que já valiam, como o redirecionamento do diretor e o diretor sem cargo). Dois ajustes vieram dos testes: as
+telas de permissões só mostram o formulário depois de carregar as opções, e a lista de usuários passou a levar ao
+detalhe. `useLista` e `dataEHora` saíram de `Admin.tsx` para arquivos próprios, compartilhados.
 
 ## Rollback ou recuperação
 
