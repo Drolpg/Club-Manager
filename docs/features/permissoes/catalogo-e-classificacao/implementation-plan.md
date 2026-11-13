@@ -63,6 +63,12 @@ Cada checkpoint segue `sdd-method:driving-with-tests`: testes escritos e vistos 
 
 | Critério | Teste |
 | --- | --- |
+| CA-01 | `permissoes/tests/test_cargos_e_setores.py::test_ca01_sistema_nasce_com_quatro_setores_e_cinco_cargos_sem_permissao` |
+| CA-02 | `permissoes/tests/test_cargos_e_setores.py::test_ca02_admin_cria_e_o_item_aparece_ativo_na_lista` |
+| CA-03 | `permissoes/tests/test_cargos_e_setores.py::test_ca03_nome_repetido_em_qualquer_caixa_e_recusado_ao_criar_e_ao_renomear` |
+| CA-04 | `permissoes/tests/test_cargos_e_setores.py::test_ca04_item_sem_uso_e_desativado_e_pode_ser_reativado` |
+| CA-05 | `permissoes/tests/test_cargos_e_setores.py::test_ca05_item_que_um_usuario_ativo_tem_nao_e_desativado` |
+| CA-06 | `permissoes/tests/test_cargos_e_setores.py::test_ca06_quem_nao_e_admin_nao_altera`, `::test_ca06_diretor_com_cargo_lista_e_diretor_sem_cargo_nao` |
 
 ## Revisão de segurança
 
@@ -95,6 +101,17 @@ uv run poe verify → saída 0; 239 passed; cobertura 96,68%
 
 Testes novos: `backend/permissoes/tests/test_resolucao.py` (14) e `test_catalogo.py` (8), vistos falhando antes do
 código.
+
+### Checkpoint 2 — Cargos e setores (2026-11-13)
+
+```text
+uv run poe verify → saída 0; 279 passed; cobertura 96,38%
+```
+
+Testes novos: `backend/permissoes/tests/test_cargos_e_setores.py` (40, a maioria rodando para cargo e para setor),
+vistos falhando antes do código. O teste de arquitetura barrou uma primeira versão em que os testes de `permissoes`
+importavam `acesso.models`; os testes passaram a usar `backend/tests/apoio.py`, e as fixtures comuns foram para
+`backend/conftest.py`.
 
 ## Rollback ou recuperação
 

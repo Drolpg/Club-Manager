@@ -5,6 +5,7 @@
 """
 
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 from acesso.models import Situacao, Usuario
@@ -40,3 +41,10 @@ def usuario_por_id(usuario_id: uuid.UUID) -> UsuarioInfo | None:
 
 def admins_ativos() -> list[UsuarioInfo]:
     return [_info(u) for u in Usuario.objects.filter(admin=True, situacao=Situacao.ATIVO)]
+
+
+def ids_ativos(usuario_ids: Iterable[uuid.UUID]) -> set[uuid.UUID]:
+    """Dos IDs recebidos, os que são de usuários ativos."""
+    return set(
+        Usuario.objects.filter(pk__in=list(usuario_ids), situacao=Situacao.ATIVO).values_list("id", flat=True)
+    )
