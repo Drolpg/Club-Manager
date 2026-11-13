@@ -267,7 +267,8 @@ Variação — cancelamento:
   quando ele entra no calendário? → H20
 - Sugerir um teto de gasto é o mesmo ato que contestar para ajustes (história 6), com um valor sugerido? → H21
 - O orçamento é feito pelo responsável por eventos, e não por quem propôs: o proponente e o solicitante do orçamento
-  são pessoas diferentes? → H22
+  são pessoas diferentes? → H22 (que registra quem confirma a realização; quem monta o orçamento ficou
+  decidido na regra 4 da spec `eventos/eventos-e-calendario`: um aprovador de eventos)
 - Mudança de data de um evento aprovado: precisa de nova aprovação? Todos são notificados? → H24
 - "Todos recebem uma notificação" do evento aprovado e do cancelamento: o enunciado (NOT-06) não lista esses avisos;
   entram como requisito novo → H25

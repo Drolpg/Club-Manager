@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Atualizado em | 2026-11-11 |
-| Decisões | ADR-001 (estilo), ADR-003 (integração), ADR-004 (backend), ADR-005 (site), ADR-006 (filas), ADR-007 (repositório e CI) |
+| Decisões | ADR-001 (estilo), ADR-003 (integração), ADR-004 (backend), ADR-005 (site), ADR-006 (filas), ADR-007 (repositório e CI), ADR-008 (sessão e autenticação) |
 
 ## 1. Contexto (C4 nível 1)
 
@@ -126,3 +126,4 @@ Memória medida em repouso, com o esqueleto vazio (2026-11-11): `api` 117 MB, `w
 | [ADR-005](../adr/ADR-005-frontend-react-vite-spa.md) | React, Vite, TypeScript, SPA |
 | [ADR-006](../adr/ADR-006-filas-celery-redis.md) | Celery com Redis, um worker com agendador |
 | [ADR-007](../adr/ADR-007-repositorio-ci-e-imagens.md) | Um repositório, CI por pasta, as mesmas imagens |
+| [ADR-008](../adr/ADR-008-sessao-e-autenticacao.md) | Sessão no servidor, cookie e CSRF; Google por ID token |

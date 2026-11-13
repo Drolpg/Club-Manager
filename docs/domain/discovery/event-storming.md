@@ -134,8 +134,9 @@ Os termos vencedores são provisórios: a linguagem ubíqua é fechada no rito 4
 
 ## 3. Hotspots
 
-Ver `hotspots.md`. Resumo: 30 hotspots, todos com destino definido; 22 resolvidos na entrevista e 8 encaminhados
-(requisitos novos, refinamento de marco ou decisão).
+Ver `hotspots.md`. Resumo: 30 hotspots, todos com destino definido. Na entrevista, 22 foram resolvidos e 8
+encaminhados (requisitos novos, refinamento de marco ou decisão); a contagem atual, com os que o refinamento
+dos marcos resolveu depois, é a de `hotspots.md`.
 
 ## 4. Eventos pivotais e raias
 

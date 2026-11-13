@@ -79,7 +79,7 @@ Fonte: `docs/domain/strategic-design.md`, `docs/domain/context-map.md` e `docs/a
 | --- | --- | --- | --- |
 | Auditoria | Generic | `auditoria` | — |
 | Identidade e Permissões | Supporting | `acesso`, `permissoes` | `auditoria` |
-| Notificações | Generic | `notificacoes` | `acesso`, `auditoria` |
+| Notificações | Generic | `notificacoes` | `permissoes`, `acesso`, `auditoria` |
 | Marca | Generic | `marca` | `permissoes`, `auditoria` |
 | Aprovações | Core | `aprovacoes` | `permissoes`, `notificacoes`, `auditoria` |
 | Financeiro | Core | `financeiro` | `aprovacoes` e os de cima |
@@ -88,7 +88,7 @@ Fonte: `docs/domain/strategic-design.md`, `docs/domain/context-map.md` e `docs/a
 | Relatórios | Supporting | `relatorios` | todos, só para leitura |
 
 - Para um contexto de cima na tabela: chamada direta à API pública. Para um de baixo: evento de integração em
-  processo, síncrono e na mesma transação. Hoje só existem dois: decisão de solicitação e cadastro concluído.
+  processo, síncrono e na mesma transação. Os que existem estão em `docs/domain/domain-events.md`.
 - E-mail e trabalho pesado são enfileirados depois do commit.
 - `relatorios` nunca altera dados de outro contexto.
 
