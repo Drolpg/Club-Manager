@@ -8,6 +8,7 @@ dependencies = [
     "django>=6.1.3",
     "djangorestframework>=3.18.3",
     "drf-spectacular>=0.30.0",
+    "google-auth[requests]>=2.62.2",
     "gunicorn>=27.0.0",
     "packaging>=26.3",
     "psycopg[binary]>=3.3.8",
@@ -92,7 +93,7 @@ plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
 exclude = ["\\.venv", "migrations"]
 
 [[tool.mypy.overrides]]
-module = ["celery.*", "grimp.*"]
+module = ["celery.*", "grimp.*", "google.*"]
 ignore_missing_imports = true
 
 # O Celery não tem tipos: o decorador de tarefa deixa a função sem tipo.

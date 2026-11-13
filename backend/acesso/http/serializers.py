@@ -85,3 +85,22 @@ class EmailSerializer(serializers.Serializer[Any]):
 class RedefinirSenhaSerializer(serializers.Serializer[Any]):
     token = serializers.CharField(max_length=300)
     senha = serializers.CharField(max_length=128, trim_whitespace=False)
+
+
+class CredencialGoogleSerializer(serializers.Serializer[Any]):
+    credencial = serializers.CharField(max_length=4096)
+
+
+class CadastroGoogleSerializer(serializers.Serializer[Any]):
+    """Cadastro pelo convite com o Google. O e-mail não é pedido: é sempre o que o Google confirmou."""
+
+    token = serializers.CharField(max_length=200)
+    credencial = serializers.CharField(max_length=4096)
+    nome = serializers.CharField(max_length=120)
+    nome_de_usuario = serializers.CharField(max_length=30)
+    telefone = serializers.CharField(max_length=30)
+    senha = serializers.CharField(max_length=128, trim_whitespace=False)
+
+
+class ConfiguracaoSerializer(serializers.Serializer[Any]):
+    google_client_id = serializers.CharField(allow_null=True)

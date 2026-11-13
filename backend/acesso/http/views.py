@@ -17,9 +17,12 @@ from rest_framework.views import APIView
 
 from acesso.http.permissions import EhAdmin, limitar_por_ip
 from acesso.http.serializers import (
+    CadastroGoogleSerializer,
     CadastroSerializer,
+    ConfiguracaoSerializer,
     ConviteGeradoSerializer,
     ConviteSerializer,
+    CredencialGoogleSerializer,
     EmailSerializer,
     IdentificadorSerializer,
     LoginSerializer,
@@ -31,6 +34,7 @@ from acesso.http.serializers import (
 )
 from acesso.models import Convite, Usuario
 from acesso.services import cadastro, convites, senha, sessao, usuarios
+from acesso.services import google as servico_google
 
 
 def _ator(request: Request) -> Usuario:
@@ -225,3 +229,37 @@ class AcaoDeUsuarioView(APIView):
     def post(self, request: Request, usuario_id: uuid.UUID) -> Response:
         usuario = _ACOES_DE_USUARIO[self.acao](ator=_ator(request), usuario_id=usuario_id)
         return Response(UsuarioSerializer(usuario).data)
+
+
+class SessaoGoogleView(RotaAbertaDeEscrita):
+    @extend_schema(
+        summary="Entrar com o Google", request=CredencialGoogleSerializer, responses=SessaoSerializer, auth=[]
+    )
+    def post(self, request: Request) -> Response:
+        dados = self.validar(request, CredencialGoogleSerializer)
+        usuario = servico_google.entrar(credencial=dados["credencial"])
+        login(request._request, usuario)
+        return Response(_sessao(usuario))
+
+
+class CadastroGoogleView(RotaAbertaDeEscrita):
+    @extend_schema(
+        summary="Cadastrar-se pelo convite com o Google",
+        request=CadastroGoogleSerializer,
+        responses={201: SessaoSerializer},
+        auth=[],
+    )
+    def post(self, request: Request) -> Response:
+        usuario = servico_google.cadastrar(**self.validar(request, CadastroGoogleSerializer))
+        login(request._request, usuario)
+        return Response(_sessao(usuario), status=201)
+
+
+class ConfiguracaoView(APIView):
+    """O que o site precisa saber antes do login. Não traz nada sensível."""
+
+    permission_classes = (AllowAny,)
+
+    @extend_schema(summary="Configuração pública do acesso", responses=ConfiguracaoSerializer, auth=[])
+    def get(self, request: Request) -> Response:
+        return Response({"google_client_id": settings.GOOGLE_CLIENT_ID or None})

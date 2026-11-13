@@ -118,6 +118,11 @@ Preenchida a cada checkpoint.
 | CA-12 | `acesso/tests/test_cadastro.py::test_ca12_cadastro_nao_verificado_em_24_horas_nao_verifica_e_e_descartado`, `::test_cadastro_vencido_ainda_nao_descartado_nao_prende_o_nome_de_usuario` |
 | CA-13 | `acesso/tests/test_cadastro.py::test_ca13_dado_invalido_ou_em_uso_nao_cria_conta_e_nao_gasta_o_convite`, `::test_ca13_senha_fraca_aponta_o_campo` |
 | CA-14 (API) | `acesso/tests/test_cadastro.py::test_ca14_o_cadastro_nao_aceita_nem_guarda_cpf`; o aviso de privacidade é do site (checkpoint 10) |
+| CA-15 | `acesso/tests/test_google.py::test_ca15_cadastro_pelo_google_ativa_a_conta_sem_link_de_verificacao` |
+| CA-16 | `acesso/tests/test_google.py::test_ca16_email_do_google_que_ja_tem_conta_nao_cria_outra_e_nao_gasta_o_convite` |
+| CA-17 | `acesso/tests/test_google.py::test_ca17_conta_criada_com_senha_entra_pelo_google_com_o_mesmo_email` |
+| CA-18 | `acesso/tests/test_google.py::test_ca18_conta_criada_pelo_google_entra_com_usuario_e_senha` |
+| CA-19 | `acesso/tests/test_google.py::test_ca19_quem_nao_tem_conta_nao_entra_pelo_google` |
 | CA-20 | `acesso/tests/test_sessao.py::test_ca20_entra_por_nome_de_usuario_ou_email_em_qualquer_caixa` |
 | CA-21 | `acesso/tests/test_sessao.py::test_ca21_conta_inexistente_e_senha_errada_tem_a_mesma_resposta` |
 | CA-22 | `acesso/tests/test_sessao.py::test_ca22_sexta_tentativa_e_recusada_mesmo_com_a_senha_certa` |
@@ -127,6 +132,7 @@ Preenchida a cada checkpoint.
 | CA-26 | `acesso/tests/test_senha.py::test_ca26_link_com_mais_de_uma_hora_e_recusado` |
 | CA-27 | `acesso/tests/test_usuarios_admin.py::test_ca27_lista_mostra_situacao_papel_e_cargo` |
 | CA-28 (senha) | `acesso/tests/test_usuarios_admin.py::test_ca28_desativar_encerra_a_sessao_na_hora_e_barra_o_login`; o login pelo Google entra no checkpoint 8 |
+| CA-28 (Google) | `acesso/tests/test_google.py::test_ca28_usuario_desativado_nao_entra_pelo_google` |
 | CA-29 | `acesso/tests/test_usuarios_admin.py::test_ca29_reativar_devolve_o_acesso_com_o_mesmo_historico` |
 | CA-30 | `acesso/tests/test_usuarios_admin.py::test_ca30_ninguem_desativa_a_si_mesmo_nem_tira_o_proprio_papel` |
 | CA-31 | `acesso/tests/test_usuarios_admin.py::test_ca31_diretor_tornado_admin_passa_a_gerar_convites` |
@@ -216,6 +222,17 @@ uv run poe verify
 Testes novos: `backend/acesso/tests/test_senha.py` (14) e `test_usuarios_admin.py` (22). Desvio do ciclo: nestes dois
 checkpoints os testes foram escritos antes do código, mas não foram executados antes dele (a máquina estava lenta);
 passaram na primeira execução depois do código. Um commit para os dois, pelo mesmo motivo dos checkpoints 3 e 4.
+
+### Checkpoint 8 — Google: cadastro e login (2026-11-12)
+
+```text
+uv run poe verify
+210 passed; cobertura 96,41%; import-linter: 1 contrato mantido; nenhuma migração pendente
+```
+
+Testes novos: `backend/acesso/tests/test_google.py` (20), com o verificador falso em `acesso/tests/fakes.py`. O
+adapter real é testado sem rede. O login com uma conta Google de verdade só pode ser conferido quando o dono criar o
+ID de cliente.
 
 ## Rollback ou recuperação
 

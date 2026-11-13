@@ -129,6 +129,9 @@ SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+# Login com o Google: sem o ID de cliente, as rotas do Google recusam tudo e o site esconde o botão.
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_VERIFIER = "acesso.google.VerificadorGoogleReal"
 # Link de recuperação de senha: 1 hora.
 PASSWORD_RESET_TIMEOUT = 60 * 60
 

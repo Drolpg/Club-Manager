@@ -3,7 +3,9 @@ from django.urls import path
 from acesso.http import views
 
 urlpatterns = [
+    path("configuracao/", views.ConfiguracaoView.as_view(), name="acesso-configuracao"),
     path("sessao/", views.SessaoView.as_view(), name="acesso-sessao"),
+    path("sessao/google/", views.SessaoGoogleView.as_view(), name="acesso-sessao-google"),
     path("convites/", views.ConvitesView.as_view(), name="acesso-convites"),
     path("convites/consultar/", views.ConsultarConviteView.as_view(), name="acesso-convite-consultar"),
     path(
@@ -17,6 +19,7 @@ urlpatterns = [
         name="acesso-convite-revogar",
     ),
     path("cadastros/", views.CadastrosView.as_view(), name="acesso-cadastros"),
+    path("cadastros/google/", views.CadastroGoogleView.as_view(), name="acesso-cadastro-google"),
     path("verificacoes/", views.VerificacoesView.as_view(), name="acesso-verificacoes"),
     path(
         "verificacoes/reenviar/",
