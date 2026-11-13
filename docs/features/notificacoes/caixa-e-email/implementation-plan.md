@@ -302,7 +302,7 @@ Não coberto por esta revisão: DAST (o perfil de stack deixa para o M12) e o re
 
 ### Checkpoint 6 — Site (2026-11-13)
 
-- `npm run verify` em `frontend/`: saída 0 (oxlint, `tsc`, 123 testes, cobertura 92,6% das linhas, build). Os
+- `npm run verify` em `frontend/`: saída 0 (oxlint, `tsc`, 123 testes, cobertura de 92,6% das instruções e 94,97% das linhas, build). Os
   83 testes do ponto de partida continuam, e 40 são novos (`frontend/src/notificacoes.test.tsx`). Os testes
   novos foram escritos e vistos falhar (nenhum elemento existia) antes das telas.
 - Estrutura: `Moldura.tsx` é uma rota de layout que envolve todas as rotas protegidas (cabeçalho com "Olá, nome",
@@ -328,7 +328,7 @@ Não coberto por esta revisão: DAST (o perfil de stack deixa para o M12) e o re
 ### Checkpoint 7 — Mailpit e validação final (2026-11-13)
 
 - `uv run poe verify` em `backend/`: saída 0, 576 testes (563 + 13 novos de `EMAIL_URL`), cobertura 97,85%, contratos
-  do import-linter 1 mantido, 0 quebrados. `npm run verify` em `frontend/`: saída 0, 123 testes, cobertura 92,6%,
+  do import-linter 1 mantido, 0 quebrados. `npm run verify` em `frontend/`: saída 0, 123 testes, cobertura de 92,6% das instruções,
   build. Rodados um depois do outro.
 - Mailpit: imagem `axllent/mailpit:v1.33.1` (a versão atual em 2026-11-13: publicada em 2026-11-07; a tag existe
   no Docker Hub), só no `compose.override.yaml`, página em `127.0.0.1:8025`, SMTP só na rede interna. A `api` e o
@@ -361,6 +361,22 @@ Não coberto por esta revisão: DAST (o perfil de stack deixa para o M12) e o re
   técnica, as ADRs nem os status de aprovação, de implementação e a Definition of Done.
 - Não validado: a falha real de um servidor SMTP (só o fake nos testes); o N9; o aviso flutuante no navegador; a
   espera real entre as tentativas de e-mail; o CI (ver o pull request).
+
+### Ajuste da revisão do PR #3: dados atuais depois de abrir uma notificação (2026-11-13)
+
+- Problema: o diretor recém-classificado abria "Sua classificação mudou", caía na página inicial e continuava vendo
+  "aguarda a classificação" (ou o cargo antigo) até recarregar. Era a observação "não corrigida" do checkpoint 7.
+- Correção só no site, sem mudar a API: a sessão (`sessao.tsx`) expõe `recarregar()` e uma `versao`; abrir uma
+  notificação com sucesso chama `recarregar()` (`Sino.tsx`); `useMinhas` refaz `permissoes/minhas/` quando a `versao`
+  muda e esvazia o `detalhe` quando o usuário fica sem cargo (`useMinhas.ts`, `Moldura.tsx`). A página inicial e o
+  menu da moldura refletem a mudança sem recarregar. Se a sessão não puder ser recarregada, nada quebra.
+- Testes novos (`frontend/src/notificacoes.test.tsx` > "dados atuais depois de abrir uma notificação"), escritos antes
+  do código e vistos falhar (5 de 6; o de erro da sessão já passava e guarda o caminho de falha): diretor sem cargo
+  passa a ver cargo e setores; diretor que perdeu o cargo deixa de vê-los; reclassificado com cargo vê o cargo novo;
+  o atalho Convites some quando a permissão é revogada; quem ganhou o papel de admin vê os atalhos de administração;
+  falha ao recarregar a sessão.
+- `npm run verify` em `frontend/`: saída 0, 129 testes (123 + 6), cobertura de 92,56% das instruções e
+  95,06% das linhas, build. Nenhum teste existente alterado; o backend não mudou.
 
 ## Rollback ou recuperação
 

@@ -713,3 +713,126 @@ describe('tela de preferências (CA-16, CA-17, CA-19)', () => {
     expect(await screen.findByRole('heading', { name: 'Preferências de alerta' })).toBeInTheDocument()
   })
 })
+
+describe('dados atuais depois de abrir uma notificação', () => {
+  const TESOUREIRO = { id: 'ca-1', nome: 'Tesoureiro', ativo: true }
+  const DIRETORIA = { id: 'ca-2', nome: 'Diretor', ativo: true }
+  const FINANCEIRO = { id: 's-1', nome: 'Financeiro', ativo: true }
+  const COM_CONVITES = [{ codigo: 'convites.gerenciar', nome: 'Gerenciar convites', origens: [] }]
+  const NA_CAIXA = {
+    'GET /notificacoes/resumo/': resumo(1, 'n-1'),
+    'GET /notificacoes/?limite=20': { itens: [notificacao(1, { caminho: '/' })], tem_mais: false },
+    'POST /notificacoes/n-1/ler/': notificacao(1, { caminho: '/', lida_em: '2026-11-13T12:00:00-03:00' }),
+  }
+
+  async function abrirANotificacao() {
+    await userEvent.click(await screen.findByRole('button', { name: 'Notificações, 1 não lidas' }))
+    await userEvent.click(await screen.findByRole('button', { name: /Título 1/ }))
+  }
+
+  it('o diretor sem cargo que abre a notificação de classificação passa a ver o cargo e os setores', async () => {
+    simularApi({
+      ...SEM_GOOGLE,
+      ...NA_CAIXA,
+      'GET /acesso/sessao/': sequencia<unknown>({ usuario: DIRETOR }, { usuario: { ...DIRETOR, tem_cargo: true } }),
+      'GET /permissoes/minhas/': { cargo: TESOUREIRO, setores: [FINANCEIRO], permissoes: [] },
+    })
+    abrir('/')
+    expect(await screen.findByText(/aguarda a classificação/i)).toBeInTheDocument()
+
+    await abrirANotificacao()
+
+    expect(await screen.findByText('Cargo: Tesoureiro')).toBeInTheDocument()
+    expect(screen.getByText('Setores: Financeiro')).toBeInTheDocument()
+    expect(screen.queryByText(/aguarda a classificação/i)).not.toBeInTheDocument()
+  })
+
+  it('o diretor que perdeu o cargo deixa de ver o cargo e os setores', async () => {
+    simularApi({
+      ...SEM_GOOGLE,
+      ...NA_CAIXA,
+      'GET /acesso/sessao/': sequencia<unknown>(
+        { usuario: { ...DIRETOR, tem_cargo: true } },
+        { usuario: { ...DIRETOR, tem_cargo: false } },
+      ),
+      'GET /permissoes/minhas/': { cargo: TESOUREIRO, setores: [FINANCEIRO], permissoes: [] },
+    })
+    abrir('/')
+    expect(await screen.findByText('Cargo: Tesoureiro')).toBeInTheDocument()
+
+    await abrirANotificacao()
+
+    expect(await screen.findByText(/aguarda a classificação/i)).toBeInTheDocument()
+    expect(screen.queryByText('Cargo: Tesoureiro')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Setores:/)).not.toBeInTheDocument()
+  })
+
+  it('o diretor reclassificado, que continua com cargo, passa a ver o cargo novo', async () => {
+    simularApi({
+      ...SEM_GOOGLE,
+      ...NA_CAIXA,
+      'GET /acesso/sessao/': { usuario: { ...DIRETOR, tem_cargo: true } },
+      'GET /permissoes/minhas/': sequencia<unknown>(
+        { cargo: TESOUREIRO, setores: [FINANCEIRO], permissoes: [] },
+        { cargo: DIRETORIA, setores: [], permissoes: [] },
+      ),
+    })
+    abrir('/')
+    expect(await screen.findByText('Cargo: Tesoureiro')).toBeInTheDocument()
+
+    await abrirANotificacao()
+
+    expect(await screen.findByText('Cargo: Diretor')).toBeInTheDocument()
+    expect(screen.getByText('Setores: nenhum')).toBeInTheDocument()
+  })
+
+  it('o menu da moldura acompanha: o atalho Convites some quando a permissão é revogada', async () => {
+    simularApi({
+      ...SEM_GOOGLE,
+      ...NA_CAIXA,
+      'GET /acesso/sessao/': { usuario: { ...DIRETOR, tem_cargo: true } },
+      'GET /permissoes/minhas/': sequencia<unknown>(
+        { cargo: TESOUREIRO, setores: [], permissoes: COM_CONVITES },
+        { cargo: TESOUREIRO, setores: [], permissoes: [] },
+      ),
+    })
+    abrir('/')
+    expect(await screen.findByRole('link', { name: 'Convites' })).toBeInTheDocument()
+
+    await abrirANotificacao()
+
+    expect(await screen.findByText('Nenhuma permissão concedida ainda.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Convites' })).not.toBeInTheDocument()
+  })
+
+  it('o menu acompanha: quem ganhou o papel de admin passa a ver os atalhos de administração', async () => {
+    simularApi({
+      ...SEM_GOOGLE,
+      ...NA_CAIXA,
+      'GET /acesso/sessao/': sequencia<unknown>({ usuario: DIRETOR }, { usuario: { ...DIRETOR, admin: true } }),
+    })
+    abrir('/')
+    await screen.findByText(/aguarda a classificação/i)
+    expect(screen.queryByRole('navigation', { name: 'Administração' })).not.toBeInTheDocument()
+
+    await abrirANotificacao()
+
+    expect(await screen.findByRole('navigation', { name: 'Administração' })).toBeInTheDocument()
+  })
+
+  it('se a sessão não puder ser recarregada, a notificação continua aberta e nada quebra', async () => {
+    simularApi({
+      ...SEM_GOOGLE,
+      ...NA_CAIXA,
+      'GET /acesso/sessao/': sequencia<unknown>({ usuario: DIRETOR }, erro(500, 'INTERNAL_ERROR')),
+    })
+    abrir('/')
+    await screen.findByText(/aguarda a classificação/i)
+
+    await abrirANotificacao()
+
+    expect(await screen.findByRole('button', { name: 'Notificações, 1 não lidas' })).toBeInTheDocument()
+    expect(screen.getByText(/aguarda a classificação/i)).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})

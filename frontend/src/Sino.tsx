@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { notificacoes, type Notificacao, type Resumo } from './api/notificacoes'
 import { Alerta } from './componentes'
 import { mensagemDoErro } from './mensagens'
+import { useSessao } from './sessao'
 import { useCaixa } from './useCaixa'
 
 /** O indicador se atualiza sozinho a cada minuto (decisão 2 da spec: sem tempo real). */
@@ -21,10 +22,13 @@ function rotuloDoSino(naoLidas: number): string {
 
 function Caixa({ aoFechar, aoMudar }: { aoFechar: () => void; aoMudar: () => void }) {
   const navegar = useNavigate()
+  const { recarregar } = useSessao()
   const { itens, temMais, carregando, erro, carregarMais, ler, lerTodas } = useCaixa(aoMudar)
 
   async function abrirItem(item: Notificacao) {
     if (!(await ler(item))) return
+    // A notificação pode dizer que algo mudou para o usuário (cargo, papel, permissão): atualiza o que o site sabe.
+    void recarregar()
     aoFechar()
     if (caminhoDoSite(item.caminho)) void navegar(item.caminho)
   }

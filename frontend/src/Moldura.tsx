@@ -10,9 +10,9 @@ import { CONVITES_GERENCIAR, ProvedorDeMinhas, temPermissao, useMinhas } from '.
  * não aparece: cada tela protegida cuida de esperar ou de mandar para a tela de entrar.
  */
 export function Moldura() {
-  const { usuario, sair } = useSessao()
+  const { usuario, sair, versao } = useSessao()
   // Só quem tem cargo pode ter permissão por cargo ou setor; a mesma resposta serve às telas dentro da moldura.
-  const minhas = useMinhas(!!usuario?.tem_cargo)
+  const minhas = useMinhas(!!usuario?.tem_cargo, versao)
   if (!usuario) return <Outlet />
 
   return (

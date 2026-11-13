@@ -15,10 +15,11 @@ interface Minhas {
 }
 
 /**
- * Cargo, setores e permissões de quem está logado, de `GET permissoes/minhas/`. Com `ativo` falso não consulta.
- * `carregando` é verdadeiro até a resposta chegar (ou falhar).
+ * Cargo, setores e permissões de quem está logado, de `GET permissoes/minhas/`. Com `ativo` falso não consulta, e
+ * `detalhe` fica vazio (quem perdeu o cargo não guarda o que tinha). Uma `versao` nova refaz a consulta, para as
+ * telas mostrarem os dados atuais sem recarregar. `carregando` é verdadeiro até a primeira resposta (ou falha).
  */
-export function useMinhas(ativo: boolean): Minhas {
+export function useMinhas(ativo: boolean, versao = 0): Minhas {
   const [detalhe, definirDetalhe] = useState<DetalheDoUsuario | null>(null)
   const [erro, definirErro] = useState<unknown>(null)
   const [concluido, definirConcluido] = useState(false)
@@ -28,15 +29,19 @@ export function useMinhas(ativo: boolean): Minhas {
     let vivo = true
     permissoes
       .minhas()
-      .then((resposta) => vivo && definirDetalhe(resposta))
+      .then((resposta) => {
+        if (!vivo) return
+        definirDetalhe(resposta)
+        definirErro(null)
+      })
       .catch((falha) => vivo && definirErro(falha))
       .finally(() => vivo && definirConcluido(true))
     return () => {
       vivo = false
     }
-  }, [ativo])
+  }, [ativo, versao])
 
-  return { detalhe, erro, carregando: ativo && !concluido }
+  return { detalhe: ativo ? detalhe : null, erro: ativo ? erro : null, carregando: ativo && !concluido }
 }
 
 /** A moldura consulta as permissões uma vez, para o menu, e as telas dentro dela reaproveitam a resposta. */
