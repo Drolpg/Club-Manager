@@ -286,6 +286,17 @@ Não validado: o site no navegador por uma pessoa; o acesso total pelo roteiro (
 (`pip-audit`, `npm audit`) rodou só no CI, e nenhuma dependência foi acrescentada. O passo 5 deste checkpoint
 (requisitos para "Implementado") fica para depois da aprovação do dono.
 
+### Ajustes da revisão do PR #2 (2026-11-13)
+
+1. `fix(kernel)`: escrita logada sem token CSRF responde `CSRF_FAILED`. `uv run poe verify` → saída 0; 390 passed;
+   cobertura 97,14%. Teste novo: `backend/tests/test_csrf.py` (4; 2 falhavam antes da correção).
+2. `feat(web)`: quem tem `convites.gerenciar` e não é admin usa os convites no site. `npm run verify` → saída 0;
+   83 passed; cobertura de linhas 93,28%. Testes novos em `frontend/src/permissoes.test.tsx` (describe "convites para
+   quem tem a permissão"). A página inicial consulta `permissoes/minhas/` só de quem tem cargo, como antes (um teste
+   existente confere a última chamada do login com Google); a rota `/admin/convites` consulta para qualquer
+   não-admin. Por isso quem tem a permissão por concessão individual e **sem cargo** abre os convites pelo endereço,
+   mas não vê o atalho na página inicial.
+
 ## Rollback ou recuperação
 
 As migrações revertem com `python manage.py migrate permissoes zero`; a versão anterior é a tag `v0.2.0`.

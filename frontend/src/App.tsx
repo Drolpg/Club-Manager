@@ -5,6 +5,7 @@ import { Convites, Usuarios } from './paginas/Admin'
 import { Inicio } from './paginas/Inicio'
 import { CargosESetores, Permissoes, UsuarioDetalhe } from './paginas/Permissoes'
 import { ProvedorDeSessao, useSessao } from './sessao'
+import { CONVITES_GERENCIAR, temPermissao, useMinhas } from './useMinhas'
 
 // O site só decide o que mostrar. Quem pode o quê é sempre conferido pela API (RNF-01).
 function Protegida({ soAdmin = false, children }: { soAdmin?: boolean; children: ReactNode }) {
@@ -12,6 +13,16 @@ function Protegida({ soAdmin = false, children }: { soAdmin?: boolean; children:
   if (usuario === undefined) return <p className="pagina">Carregando…</p>
   if (usuario === null) return <Navigate to="/entrar" replace />
   if (soAdmin && !usuario.admin) return <Navigate to="/" replace />
+  return children
+}
+
+// Convites são do admin e de quem tem a permissão `convites.gerenciar`. A API confere de novo em cada chamada.
+function ProtegidaDeConvites({ children }: { children: ReactNode }) {
+  const { usuario } = useSessao()
+  const { detalhe, carregando } = useMinhas(!!usuario && !usuario.admin)
+  if (usuario === undefined || carregando) return <p className="pagina">Carregando…</p>
+  if (usuario === null) return <Navigate to="/entrar" replace />
+  if (!usuario.admin && !temPermissao(detalhe, CONVITES_GERENCIAR)) return <Navigate to="/" replace />
   return children
 }
 
@@ -35,9 +46,9 @@ function App() {
         <Route
           path="/admin/convites"
           element={
-            <Protegida soAdmin>
+            <ProtegidaDeConvites>
               <Convites />
-            </Protegida>
+            </ProtegidaDeConvites>
           }
         />
         <Route

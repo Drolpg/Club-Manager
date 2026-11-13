@@ -1,28 +1,12 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { permissoes, type DetalheDoUsuario } from '../api/permissoes'
+import { type DetalheDoUsuario } from '../api/permissoes'
 import { Alerta, Pagina } from '../componentes'
 import { mensagemDoErro } from '../mensagens'
 import { useSessao } from '../sessao'
+import { CONVITES_GERENCIAR, temPermissao, useMinhas } from '../useMinhas'
 
 /** O cargo, os setores e as permissões de quem está logado (CA-26). A API só devolve os dele. */
-function MinhasPermissoes() {
-  const [detalhe, definirDetalhe] = useState<DetalheDoUsuario | null>(null)
-  const [erro, definirErro] = useState<unknown>(null)
-
-  useEffect(() => {
-    let ativo = true
-    permissoes
-      .minhas()
-      .then((resposta) => ativo && definirDetalhe(resposta))
-      .catch((falha) => ativo && definirErro(falha))
-    return () => {
-      ativo = false
-    }
-  }, [])
-
-  if (erro) return <Alerta>{mensagemDoErro(erro)}</Alerta>
-  if (!detalhe) return null
+function MinhasPermissoes({ detalhe }: { detalhe: DetalheDoUsuario }) {
   return (
     <section aria-label="Meu acesso">
       <p>Cargo: {detalhe.cargo?.nome}</p>
@@ -44,6 +28,7 @@ function MinhasPermissoes() {
 // Página inicial provisória. O dashboard básico de verdade entra no M10.
 export function Inicio() {
   const { usuario, sair } = useSessao()
+  const { detalhe, erro } = useMinhas(!!usuario?.tem_cargo)
   if (!usuario) return null
 
   return (
@@ -52,7 +37,13 @@ export function Inicio() {
       {!usuario.tem_cargo && !usuario.admin && (
         <p>Seu cadastro está concluído e aguarda a classificação pelo administrador do clube.</p>
       )}
-      {usuario.tem_cargo && <MinhasPermissoes />}
+      {usuario.tem_cargo && erro ? <Alerta>{mensagemDoErro(erro)}</Alerta> : null}
+      {usuario.tem_cargo && detalhe && <MinhasPermissoes detalhe={detalhe} />}
+      {!usuario.admin && temPermissao(detalhe, CONVITES_GERENCIAR) && (
+        <nav aria-label="Convites">
+          <Link to="/admin/convites">Convites</Link>
+        </nav>
+      )}
       {usuario.admin && (
         <nav aria-label="Administração">
           <Link to="/admin/convites">Convites</Link>

@@ -14,6 +14,7 @@ function abrir(caminho: string) {
 }
 
 const COMO_DIRETOR = { 'GET /acesso/sessao/': { usuario: DIRETOR }, ...SEM_GOOGLE }
+const SEM_PERMISSAO = { cargo: null, setores: [], permissoes: [] }
 const COMO_ADMIN = { 'GET /acesso/sessao/': { usuario: ADMIN }, ...SEM_GOOGLE }
 
 const TESOUREIRO = { id: 'ca-1', nome: 'Tesoureiro', ativo: true }
@@ -111,7 +112,7 @@ describe('menu do admin e página inicial (CA-26)', () => {
   it.each(['/admin/cargos', '/admin/setores', '/admin/permissoes', '/admin/usuarios/u-1'])(
     'o diretor que abre %s volta para a página inicial',
     async (caminho) => {
-      simularApi(COMO_DIRETOR)
+      simularApi({ ...COMO_DIRETOR, 'GET /permissoes/minhas/': SEM_PERMISSAO })
 
       abrir(caminho)
 
@@ -509,5 +510,112 @@ describe('usuário', () => {
     abrir('/admin/usuarios')
 
     expect(await screen.findByRole('link', { name: 'Bia Diretora' })).toHaveAttribute('href', '/admin/usuarios/u-1')
+  })
+})
+
+describe('convites para quem tem a permissão convites.gerenciar (CA-27)', () => {
+  const PODE_CONVIDAR = {
+    codigo: 'convites.gerenciar',
+    nome: 'Gerenciar convites',
+    origens: [{ tipo: 'INDIVIDUAL', id: null, nome: null }],
+  }
+  const COM_PERMISSAO = { ...SEM_PERMISSAO, permissoes: [PODE_CONVIDAR] }
+  const CONVITE = {
+    id: 'c-1',
+    situacao: 'ATIVO',
+    gerado_por: { id: 'u-1', nome: 'Bia Diretora' },
+    gerado_em: '2026-11-12T10:00:00-03:00',
+    expira_em: '2026-11-13T10:00:00-03:00',
+    usado_em: null,
+    revogado_em: null,
+  }
+  const COMO_CONVIDADOR = { ...COMO_DIRETOR, 'GET /permissoes/minhas/': COM_PERMISSAO }
+  const COM_CARGO = { 'GET /acesso/sessao/': { usuario: { ...DIRETOR, tem_cargo: true } }, ...SEM_GOOGLE }
+
+  it('mostra o atalho de convites e nenhum de usuários', async () => {
+    simularApi({
+      ...COM_CARGO,
+      'GET /permissoes/minhas/': { ...COM_PERMISSAO, cargo: TESOUREIRO },
+    })
+
+    abrir('/')
+
+    expect(await screen.findByRole('link', { name: 'Convites' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Usuários' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Cargos' })).not.toBeInTheDocument()
+  })
+
+  it('o diretor com cargo e sem a permissão não vê o atalho de convites', async () => {
+    simularApi({ ...COM_CARGO, 'GET /permissoes/minhas/': { ...SEM_PERMISSAO, cargo: TESOUREIRO } })
+
+    abrir('/')
+
+    expect(await screen.findByText('Cargo: Tesoureiro')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Convites' })).not.toBeInTheDocument()
+  })
+
+  it('quem tem a permissão por concessão individual, sem cargo, abre os convites pelo endereço', async () => {
+    simularApi({ ...COMO_CONVIDADOR, 'GET /acesso/convites/': [] })
+
+    abrir('/admin/convites')
+
+    expect(await screen.findByRole('heading', { name: 'Convites' })).toBeInTheDocument()
+  })
+
+  it('lista, gera, regenera e revoga convites', async () => {
+    const chamadas = simularApi({
+      ...COMO_CONVIDADOR,
+      'GET /acesso/convites/': [CONVITE],
+      'POST /acesso/convites/': [201, { ...CONVITE, id: 'c-2', link: 'https://clube.exemplo/convite/novo' }],
+      'POST /acesso/convites/c-1/regenerar/': [201, { ...CONVITE, id: 'c-3', link: 'https://clube.exemplo/convite/outro' }],
+      'POST /acesso/convites/c-1/revogar/': { ...CONVITE, situacao: 'REVOGADO' },
+    })
+
+    abrir('/admin/convites')
+
+    expect(await screen.findByRole('heading', { name: 'Convites' })).toBeInTheDocument()
+    await screen.findByText('Bia Diretora')
+    await userEvent.click(screen.getByRole('button', { name: 'Gerar convite' }))
+    expect(await screen.findByDisplayValue('https://clube.exemplo/convite/novo')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Regenerar' }))
+    expect(await screen.findByDisplayValue('https://clube.exemplo/convite/outro')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Revogar' }))
+    await waitFor(() => expect(chamou(chamadas, 'POST', '/acesso/convites/c-1/revogar/')).toBeDefined())
+  })
+
+  it('a lista de usuários continua só do admin', async () => {
+    const chamadas = simularApi(COMO_CONVIDADOR)
+
+    abrir('/admin/usuarios')
+
+    expect(await screen.findByText(/aguarda a classificação/i)).toBeInTheDocument()
+    expect(chamou(chamadas, 'GET', '/acesso/usuarios/')).toBeUndefined()
+  })
+
+  it('o diretor sem a permissão que abre os convites volta para a página inicial', async () => {
+    const chamadas = simularApi({ ...COMO_DIRETOR, 'GET /permissoes/minhas/': SEM_PERMISSAO })
+
+    abrir('/admin/convites')
+
+    expect(await screen.findByText(/aguarda a classificação/i)).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Convites' })).not.toBeInTheDocument()
+    expect(chamou(chamadas, 'GET', '/acesso/convites/')).toBeUndefined()
+  })
+
+  it('volta para a página inicial quando as permissões não carregam', async () => {
+    simularApi({ ...COMO_DIRETOR, 'GET /permissoes/minhas/': erro(500, 'INTERNAL_ERROR') })
+
+    abrir('/admin/convites')
+
+    expect(await screen.findByText(/aguarda a classificação/i)).toBeInTheDocument()
+  })
+
+  it('o admin continua abrindo os convites sem consultar as permissões', async () => {
+    const chamadas = simularApi({ ...COMO_ADMIN, 'GET /acesso/convites/': [] })
+
+    abrir('/admin/convites')
+
+    expect(await screen.findByRole('heading', { name: 'Convites' })).toBeInTheDocument()
+    expect(chamou(chamadas, 'GET', '/permissoes/minhas/')).toBeUndefined()
   })
 })
