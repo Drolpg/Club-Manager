@@ -150,6 +150,12 @@ Se um teste parecer errado ou a spec não cobrir um caso, pare e pergunte. Não 
 | CA-16 | `notificacoes/tests/test_preferencias.py::test_ca16_usuario_novo_tem_as_duas_preferencias_ligadas` |
 | CA-17 (serviço, checkpoint 2) | `notificacoes/tests/test_preferencias.py::test_ca17_a_mudanca_de_um_usuario_nao_toca_a_do_outro`, `test_alterar_cria_a_linha_e_a_mudanca_vale`; `test_notificar.py::test_a_preferencia_vale_por_destinatario` |
 | CA-19 (registro, checkpoint 2) | `notificacoes/tests/test_notificar.py::test_ca19_nenhuma_preferencia_impede_o_registro` |
+| CA-03 (envio, checkpoint 3) | `notificacoes/tests/test_email.py::test_ca03_o_que_pede_acao_vai_por_email_mesmo_com_os_informativos_desligados` |
+| CA-04 (nenhum e-mail, checkpoint 3) | `notificacoes/tests/test_email.py::test_ca04_informativo_com_email_desligado_nao_envia_nenhum_email` |
+| CA-06 | `notificacoes/tests/test_email.py::test_ca06_servidor_que_falha_duas_vezes_o_envio_e_tentado_de_novo_e_acaba_enviado`, `::test_ca06_esgotadas_as_cinco_tentativas_a_falha_definitiva_fica_registrada`, `::test_ca06_uma_notificacao_que_falhou_nao_e_enviada_de_novo`, `::test_cada_tentativa_que_falha_fica_contada_e_a_notificacao_segue_pendente` |
+| CA-08 | `notificacoes/tests/test_email.py::test_ca08_o_email_traz_o_titulo_o_texto_e_o_link_do_item_sem_token`, `::test_o_email_nao_traz_dado_pessoal_alem_do_que_o_texto_diz` |
+| Idempotência do envio (ADR-006) | `notificacoes/tests/test_email.py::test_o_envio_e_idempotente_a_tarefa_duas_vezes_manda_um_email_so`, `::test_so_a_pendente_e_enviada` (3 situações) |
+| Nova tentativa e `on_failure` | `notificacoes/tests/test_email.py::test_a_nova_tentativa_vale_para_falha_de_rede_e_de_smtp`, `::test_um_erro_de_programacao_nao_e_tentado_de_novo_e_marca_falhou` |
 | NOT-R01 | `notificacoes/tests/test_notificar.py::test_ca02_…`, `::test_notificacoes_antigas_de_quem_foi_desativado_continuam_guardadas` |
 | NOT-R02 | `notificacoes/tests/test_modelos.py::test_not_r02_uma_notificacao_por_destinatario_e_chave` |
 | NOT-R03 | `notificacoes/tests/test_envio_domain.py::test_not_r03_todas_as_combinacoes` (4 casos) |
@@ -205,6 +211,19 @@ Preenchida no checkpoint 7.
   escritos antes.
 - Além dos campos que o plano lista, o modelo também recusa alterar `pede_acao` e `caminho`, e recusa trocar uma
   `lida_em` já preenchida (NOT-R04 também no `save`, e não só em `marcar_lida`).
+
+### Checkpoint 3 — Tarefa de e-mail (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 499 testes (481 + 18 novos), cobertura 97,53%, contratos do
+  import-linter 1 mantido, 0 quebrados.
+- Nenhum teste existente alterado neste checkpoint. O `services/email.py` provisório do checkpoint 2 foi
+  substituído pelo envio de verdade.
+- Os testes de falha rodam a tarefa como um worker (`tasks.enviar_email.apply(...)`, com a propagação do modo
+  imediato desligada só dentro do teste). Com `CELERY_TASK_EAGER_PROPAGATES=True`, a configuração dos testes, o
+  Celery relança a exceção antes de tentar de novo e antes de chamar `on_failure`; a configuração de teste não foi
+  alterada. Fica sem teste o intervalo real entre as tentativas (60 s, dobrando, até 1 h): o modo imediato o ignora.
+- Nova tentativa: `OSError` e `smtplib.SMTPException`, espera inicial de 60 s e crescente, 4 novas tentativas (5 no
+  total); `on_failure` grava `FALHOU` também para um erro que não se repete.
 
 ## Rollback ou recuperação
 
