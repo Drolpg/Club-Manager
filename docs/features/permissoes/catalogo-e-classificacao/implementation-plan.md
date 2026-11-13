@@ -272,7 +272,7 @@ detalhe. `useLista` e `dataEHora` saíram de `Admin.tsx` para arquivos próprios
 uv run poe verify (backend/) → saída 0; 386 passed; cobertura 97,13%
 npm run verify (frontend/)   → saída 0; 75 passed; cobertura de linhas 92,61%
 docker compose up -d --build → api, worker, web saudáveis; migrações aplicadas
-roteiro pela API atrás do proxy (http://localhost:8080) → 33 chamadas, todas com o status esperado
+roteiro pela API atrás do proxy (http://localhost:8080) → 27 verificações, todas com o status esperado
 ```
 
 O roteiro cobriu: criar cargo; classificar um diretor (cargo novo e setor Financeiro); conceder `convites.gerenciar`
