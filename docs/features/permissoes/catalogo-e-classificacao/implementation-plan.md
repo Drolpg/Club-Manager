@@ -145,6 +145,27 @@ tela com o caminho feliz e um erro. No Windows, rode o `npm` num terminal aberto
 | CA-04 | `permissoes/tests/test_cargos_e_setores.py::test_ca04_item_sem_uso_e_desativado_e_pode_ser_reativado` |
 | CA-05 | `permissoes/tests/test_cargos_e_setores.py::test_ca05_item_que_um_usuario_ativo_tem_nao_e_desativado` |
 | CA-06 | `permissoes/tests/test_cargos_e_setores.py::test_ca06_quem_nao_e_admin_nao_altera`, `::test_ca06_diretor_com_cargo_lista_e_diretor_sem_cargo_nao` |
+| CA-07 | `permissoes/tests/test_classificacao.py::test_ca07_diretor_sem_cargo_recebe_cargo_e_dois_setores` |
+| CA-08 | `permissoes/tests/test_classificacao.py::test_ca08_reclassificar_vale_na_requisicao_seguinte_do_diretor` |
+| CA-09 | `permissoes/tests/test_classificacao.py::test_ca09_tirar_o_cargo_remove_cargo_e_setores_e_audita` |
+| CA-10 | `permissoes/tests/test_classificacao.py::test_ca10_usuario_que_nao_esta_ativo_nao_e_classificado` |
+| CA-11 | `permissoes/tests/test_classificacao.py::test_ca11_cargo_desativado_nao_e_atribuido`, `permissoes/tests/test_classificacao.py::test_ca11_setor_desativado_nao_e_atribuido` |
+| CA-12 | `permissoes/tests/test_classificacao.py::test_ca12_quem_nao_e_admin_nao_classifica`, `permissoes/tests/test_classificacao.py::test_ca12_o_servico_tambem_recusa_quem_nao_e_admin` |
+| CA-13 | `permissoes/tests/test_concessoes.py::test_ca13_admin_ve_o_catalogo_com_nome_e_descricao` |
+| CA-14 | `permissoes/tests/test_consulta.py::test_ca14_permissao_concedida_a_um_cargo_vale_para_quem_tem_o_cargo` |
+| CA-15 | `permissoes/tests/test_consulta.py::test_ca15_permissao_concedida_a_um_setor_vale_para_quem_e_do_setor` |
+| CA-16 | `permissoes/tests/test_consulta.py::test_ca16_concessao_individual_vale_mesmo_fora_do_setor_de_origem`, `permissoes/tests/test_consulta.py::test_ca16_concessao_individual_vale_ate_sem_classificacao` |
+| CA-17 | `permissoes/tests/test_consulta.py::test_ca17_a_permissao_dura_enquanto_restar_uma_concessao_ativa` |
+| CA-18 | `permissoes/tests/test_consulta.py::test_ca18_cargo_ou_setor_desativado_deixa_de_conceder` |
+| CA-19 | `permissoes/tests/test_consulta.py::test_ca19_usuario_desativado_nao_tem_permissao_e_reativado_volta_a_ter` |
+| CA-20 | `permissoes/tests/test_consulta.py::test_ca20_admin_tem_todas_as_permissoes_do_catalogo_sem_concessao` |
+| CA-21 | `permissoes/tests/test_consulta.py::test_ca21_acesso_total_da_tudo_menos_o_que_esta_fora_dele`, `permissoes/tests/test_consulta.py::test_ca21_acesso_total_nao_da_a_administracao` |
+| CA-22 | `permissoes/tests/test_consulta.py::test_ca22_presidente_sem_concessao_nao_tem_permissao_nenhuma` |
+| CA-23 | `permissoes/tests/test_concessoes.py::test_ca23_conceder_duas_vezes_ao_mesmo_alvo_deixa_uma_concessao_so` |
+| CA-24 | `permissoes/tests/test_concessoes.py::test_ca24_quem_nao_e_admin_nao_concede_nem_revoga`, `permissoes/tests/test_concessoes.py::test_ca24_os_servicos_tambem_recusam_quem_nao_e_admin` |
+| CA-25 | `permissoes/tests/test_consulta.py::test_ca25_admin_ve_cada_permissao_com_todas_as_origens`, `permissoes/tests/test_consulta.py::test_ca25_detalhe_de_outro_usuario_e_so_do_admin` |
+| CA-26 | `permissoes/tests/test_consulta.py::test_ca26_diretor_ve_o_proprio_cargo_setores_e_permissoes_e_nao_os_de_outro` (API) |
+| CA-28 | `permissoes/tests/test_consulta.py::test_ca28_le_gestao_so_com_cargo_e_ativo` |
 
 ## Revisão de segurança
 
@@ -188,6 +209,16 @@ Testes novos: `backend/permissoes/tests/test_cargos_e_setores.py` (40, a maioria
 vistos falhando antes do código. O teste de arquitetura barrou uma primeira versão em que os testes de `permissoes`
 importavam `acesso.models`; os testes passaram a usar `backend/tests/apoio.py`, e as fixtures comuns foram para
 `backend/conftest.py`.
+
+### Checkpoint 3 — Classificação, concessões e API pública (2026-11-13)
+
+```text
+uv run poe verify → saída 0; 349 passed; cobertura 96,91%
+```
+
+Testes novos (70): `test_classificacao.py` (19), `test_concessoes.py` (26) e `test_consulta.py` (25), vistos
+falhando antes do código (os módulos de serviço ainda não existiam). CA-07 (coluna "com cargo" da lista de
+usuários) e CA-26 (tela) completam-se nos checkpoints 4 e 5.
 
 ## Rollback ou recuperação
 
