@@ -45,14 +45,14 @@ agente só recomenda.
 | AD-004 | Frontend web | Resolved | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
 | AD-005 | Filas e tarefas agendadas | Resolved | Arquitetura compartilhada | Leandro | M4 |
 | AD-006 | Estratégia de autenticação e tokens para site e app | Resolved | Arquitetura compartilhada | Leandro | M2 |
-| AD-007 | Modelagem das permissões (ação, recurso e escopo) | Pending | Arquitetura compartilhada | Leandro | M3 |
+| AD-007 | Modelagem das permissões (ação, recurso e escopo) | Resolved | Arquitetura compartilhada | Leandro | M3 |
 | AD-008 | Modelagem do motor de aprovações e das versões de solicitação | Pending | Arquitetura compartilhada | Leandro | M5 |
 | AD-009 | Modelagem da trilha de auditoria | Resolved | Arquitetura compartilhada | Leandro | M3 |
 | AD-010 | Estornos e cancelamentos como lançamentos ligados ao original | Pending | Arquitetura compartilhada | Leandro | M7 |
 | AD-011 | Armazenamento de anexos | Pending | Arquitetura compartilhada | Leandro | M6 (primeiro comprovante) |
 | AD-012 | Provedor de e-mail | Not Blocking | Arquitetura compartilhada | Leandro | M12 (produção) |
 | AD-013 | CI/CD, deploy e dimensionamento da instância única | Pending | Arquitetura compartilhada | Leandro | M1 (CI) e M12 (deploy) |
-| AD-014 | O que o painel do admin cria sozinho e o que exige programação | Pending | Dono do marco M3 | Leandro | M3 |
+| AD-014 | O que o painel do admin cria sozinho e o que exige programação | Resolved | Dono do marco M3 | Leandro | M3 |
 | AD-015 | Adequação à LGPD | Pending | Arquitetura compartilhada | Leandro | M2 |
 | AD-016 | Itens do protótipo que o enunciado não cobre | Resolved | Escopo de entrega | Leandro | Rito 6 |
 | AD-017 | Tecnologia do aplicativo mobile | Deferred | Arquitetura compartilhada | Leandro | Nada na etapa 1 |
@@ -205,7 +205,12 @@ para o Google, token opaco para o aplicativo futuro.
 
 ### AD-007 — Como modelar as permissões?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** catálogo de permissões em código (`<recurso>.<acao>`); concessões a cargo, setor ou usuário, revogadas e nunca
+apagadas; união por função pura; sem escopo por setor do item.
+
+**Resolved on:** 2026-11-13, por Leandro Nascimento
 
 **Scope:** Arquitetura compartilhada
 
@@ -218,7 +223,7 @@ somam (PER-03) e precisa ser extensível para tipos de usuário futuros.
 `<recurso>.<acao>` num catálogo em código; concessões a cargo, setor ou usuário, revogadas e nunca apagadas; união
 calculada por função pura; sem escopo por setor do item (decisão do dono).
 
-**Follow-up:** ADR na especificação do M3.
+**Follow-up:** technical-spec `permissoes/catalogo-e-classificacao`.
 
 ---
 
@@ -334,7 +339,11 @@ backup, rollback e as regras do free tier para a conta do dono.
 
 ### AD-014 — O que o painel do admin cria sozinho e o que exige programação?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** o painel concede e revoga permissões do catálogo; criar uma permissão nova é programação.
+
+**Resolved on:** 2026-11-13, por Leandro Nascimento
 
 **Scope:** Dono do marco M3
 
@@ -346,7 +355,7 @@ criado por programação (PER-05). O enunciado permite propor outra abordagem.
 **Nota (2026-11-13):** o dono aprovou, na spec funcional, que o catálogo fica no código e o painel só concede e
 revoga o que existe nele. Passa a Resolved com a aprovação da technical-spec.
 
-**Follow-up:** especificação do M3.
+**Follow-up:** technical-spec `permissoes/catalogo-e-classificacao`.
 
 ---
 

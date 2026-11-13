@@ -64,20 +64,20 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Origem | Status | Feature |
 | --- | --- | --- | --- | --- |
-| RF-015 | O admin cria, renomeia e desativa cargos | PER-04 | Aprovado | — |
-| RF-016 | O admin cria, renomeia e desativa setores | PER-04, seção 4 | Aprovado | — |
-| RF-017 | O admin classifica um diretor, atribuindo um cargo e um ou mais setores | ACE-07, seção 4 | Aprovado | — |
-| RF-018 | O admin concede e revoga uma permissão a um cargo | PER-03 | Aprovado | — |
-| RF-019 | O admin concede e revoga uma permissão a um setor | PER-03 | Aprovado | — |
-| RF-020 | O admin concede e revoga uma permissão a um usuário, inclusive de um setor a que ele não pertence | PER-03 | Aprovado | — |
-| RF-021 | O sistema calcula as permissões de um usuário como a união das concessões do cargo, dos setores e das individuais | PER-03 | Aprovado | — |
-| RF-022 | O admin vê, para cada usuário, as permissões que ele tem e de onde vem cada uma | PER-05 | Aprovado | — |
-| RF-023 | O admin concede e revoga acesso total a um usuário | PER-06 | Aprovado | — |
-| RF-024 | O diretor sem cargo acessa só o dashboard básico | ACE-08, PER-01 | Aprovado | — |
-| RF-025 | O diretor com cargo lê os dados de gestão (financeiro, eventos, feed, documentos) | PER-01 | Aprovado | — |
-| RF-026 | O sistema registra, de forma imutável, quem fez o quê, quando, sobre qual item e com que justificativa, em toda ação relevante | AUD-01, AUD-02 | Aprovado | — |
-| RF-027 | Quem pode ver um item consulta o histórico dele no próprio detalhe | AUD-03 | Aprovado | — |
-| RF-118 | O diretor consulta o próprio cargo, os próprios setores e as próprias permissões | Spec `permissoes/catalogo-e-classificacao` **(novo)** | Aprovado | — |
+| RF-015 | O admin cria, renomeia e desativa cargos | PER-04 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-016 | O admin cria, renomeia e desativa setores | PER-04, seção 4 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-017 | O admin classifica um diretor, atribuindo um cargo e um ou mais setores | ACE-07, seção 4 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-018 | O admin concede e revoga uma permissão a um cargo | PER-03 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-019 | O admin concede e revoga uma permissão a um setor | PER-03 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-020 | O admin concede e revoga uma permissão a um usuário, inclusive de um setor a que ele não pertence | PER-03 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-021 | O sistema calcula as permissões de um usuário como a união das concessões do cargo, dos setores e das individuais | PER-03 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-022 | O admin vê, para cada usuário, as permissões que ele tem e de onde vem cada uma | PER-05 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-023 | O admin concede e revoga acesso total a um usuário | PER-06 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-024 | O diretor sem cargo acessa só o dashboard básico | ACE-08, PER-01 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-025 | O diretor com cargo lê os dados de gestão (financeiro, eventos, feed, documentos) | PER-01 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-026 | O sistema registra, de forma imutável, quem fez o quê, quando, sobre qual item e com que justificativa, em toda ação relevante | AUD-01, AUD-02 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-027 | Quem pode ver um item consulta o histórico dele no próprio detalhe | AUD-03 | Em implementação | `permissoes/catalogo-e-classificacao` |
+| RF-118 | O diretor consulta o próprio cargo, os próprios setores e as próprias permissões | Spec `permissoes/catalogo-e-classificacao` **(novo)** | Em implementação | `permissoes/catalogo-e-classificacao` |
 
 ### Notificações (M4)
 

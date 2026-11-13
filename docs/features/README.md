@@ -20,4 +20,4 @@ aprovação. Ajuste pontual entra como adendo numerado, com aprovação própria
 | Contexto | Feature | RFs | Status | Plano |
 | --- | --- | --- | --- | --- |
 | Identidade e Permissões | [identidade-e-acesso](acesso/identidade-e-acesso/functional-spec.md) (M2) | RF-001 a RF-014, RF-116, RF-117 | Implemented (`v0.2.0`) | [plano](acesso/identidade-e-acesso/implementation-plan.md) |
-| Identidade e Permissões | [catalogo-e-classificacao](permissoes/catalogo-e-classificacao/functional-spec.md) (M3) | RF-015 a RF-027, RF-118 | Funcional aprovada; [técnica](permissoes/catalogo-e-classificacao/technical-spec.md) em Draft | — |
+| Identidade e Permissões | [catalogo-e-classificacao](permissoes/catalogo-e-classificacao/functional-spec.md) (M3) | RF-015 a RF-027, RF-118 | In Progress | [plano](permissoes/catalogo-e-classificacao/implementation-plan.md) |

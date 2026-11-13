@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `permissoes/catalogo-e-classificacao` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 | Especificação funcional | `./functional-spec.md` (aprovada em 2026-11-13) |
 | Decisões aplicadas | ADR-001, ADR-003, ADR-004, ADR-008; AD-007 e AD-014 (resolvidas por esta spec) |
 
