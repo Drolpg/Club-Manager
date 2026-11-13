@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `permissoes/catalogo-e-classificacao` |
-| Status | In Progress |
+| Status | Implemented |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
 | Especificação técnica | `./technical-spec.md` (aprovada em 2026-11-13) |
@@ -198,17 +198,19 @@ Preenchida no checkpoint 6 (2026-11-13), com `sdd-method:reviewing-security`. Se
 
 ## Definition of Done
 
-- [ ] Checkpoints concluídos, com evidência.
-- [ ] Todo CA com ao menos um teste.
-- [ ] Verificação completa com saída 0; cobertura dentro da meta.
-- [ ] Fronteiras de módulo verificadas.
-- [ ] Toda ação da regra 17 da funcional auditada, com teste.
-- [ ] Revisão de segurança registrada, sem achado crítico ou alto aberto.
-- [ ] Migrations reversíveis; dados iniciais classificados.
-- [ ] Contrato, `docs/api/` e guia de teste manual atualizados.
-- [ ] Registro de requisitos, decisões e riscos atualizados.
-- [ ] CI verde no GitHub.
-- [ ] Critérios de aceite validados e aprovados pelo dono.
+- [x] Checkpoints concluídos, com evidência.
+- [x] Todo CA com ao menos um teste.
+- [x] Verificação completa com saída 0; cobertura dentro da meta (backend 97%, site 93%).
+- [x] Fronteiras de módulo verificadas.
+- [x] Toda ação da regra 17 da funcional auditada, com teste.
+- [x] Revisão de segurança registrada, sem achado crítico ou alto aberto.
+- [x] Migrations reversíveis; dados iniciais classificados.
+- [x] Contrato, `docs/api/` e guia de teste manual atualizados.
+- [x] Registro de requisitos, decisões e riscos atualizados.
+- [x] CI verde no GitHub (PR #2, workflows `backend` e `frontend`, 2026-11-13).
+- [x] Critérios de aceite validados e aprovados pelo dono (Leandro Nascimento, 2026-11-13), que
+      conferiu o site no navegador. A implementação foi feita por uma sessão executora e revisada
+      por outra, contra a spec e este plano, antes da aprovação.
 
 ## Evidências de verificação
 

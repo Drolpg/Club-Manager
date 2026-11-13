@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `permissoes/catalogo-e-classificacao` |
-| Status | Approved |
+| Status | Implemented |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
 | Aprovado por | Leandro Nascimento |

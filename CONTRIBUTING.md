@@ -12,9 +12,10 @@ Vale para pessoas e agentes. O método do projeto está em `docs/method.md`; as 
 
 Modelo: `main` + `dev`
 
-- `main`: só recebe merge com autorização explícita do dono; cada merge é uma versão demonstrável, e é dela que sai o
+- `main`: só recebe merge com autorização explícita do dono, quando a etapa 1 estiver pronta; é dela que sai o
   deploy de produção.
-- `dev`: branch de integração; toda feature nasce dela e volta para ela depois do checkpoint.
+- `dev`: branch de integração; toda feature nasce dela e volta para ela depois do checkpoint. Os marcos se
+  acumulam nela até a etapa 1 ficar pronta.
 - Nome: `<tipo>/<escopo>-<descricao-curta>`, tudo minúsculo. Ex.: `feat/financeiro-validacao-de-pagamento`.
 
 ```mermaid
@@ -29,7 +30,7 @@ gitGraph
   checkout dev
   merge feat-escopo-tarefa
   checkout main
-  merge dev tag: "v0.1.0"
+  merge dev tag: "v1.0.0"
 ```
 
 ## Commits
@@ -75,8 +76,13 @@ docs(metodo): registrar decisão de estilo de arquitetura
 
 ## Versões
 
-Tag SemVer na `main` a cada entrega (`v<major>.<minor>.<patch>`). Enquanto a etapa 1 não estiver em produção, as
-versões são `v0.<n>.0`, uma por marco concluído; a `v1.0.0` é o M12 no ar.
+Tag SemVer na `main` (`v<major>.<minor>.<patch>`), só para mudança de versão do sistema pronto. A etapa 1 inteira
+é a `v1.0.0`: os marcos são integrados na `dev`, sem tag e sem merge na `main`, e a `main` recebe tudo de uma
+vez no fim. Depois disso, cada entrega sobe a versão.
+
+Decisão do dono em 2026-11-13, a partir do M3. As tags `v0.1.0` (M1) e `v0.2.0` (M2) já existiam e ficam como
+estão; descartado: uma tag `v0.<n>.0` por marco, para a `v1.0.0` não nascer depois de uma sequência longa de
+versões.
 
 ## Nunca
 
