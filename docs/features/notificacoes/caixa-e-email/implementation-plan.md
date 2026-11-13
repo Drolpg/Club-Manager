@@ -162,6 +162,12 @@ Se um teste parecer errado ou a spec não cobrir um caso, pare e pergunte. Não 
 | NOT-R04 | `notificacoes/tests/test_modelos.py::test_not_r04_marcar_lida_de_novo_nao_muda_a_data_da_primeira_leitura`, `::test_not_r04_o_modelo_recusa_trocar_uma_data_de_leitura_ja_preenchida` |
 | NOT-R05 | `notificacoes/tests/test_modelos.py::test_not_r05_o_modelo_recusa_alterar_o_conteudo` (9 campos), `::test_not_r05_nenhuma_notificacao_e_apagada` |
 | Tipos (`registrar_tipo`) | `notificacoes/tests/test_tipos.py` |
+| CA-20 | `notificacoes/tests/test_tratadores.py::test_ca20_cadastro_concluido_notifica_todos_os_admins_ativos_com_pedido_de_acao`, `::test_ca20_o_mesmo_cadastro_concluido_duas_vezes_gera_uma_notificacao_por_admin`; por senha: `tests/test_notificacoes_de_ponta_a_ponta.py::test_ca20_cadastro_por_senha_verificado_notifica_o_admin_e_o_email_simples_do_m2_nao_existe_mais`; pelo Google: `::test_ca20_cadastro_pelo_google_notifica_o_admin_e_o_email_simples_do_m2_nao_existe_mais`, `::test_ca20_entrar_pelo_google_de_quem_aguardava_verificacao_notifica_o_admin` |
+| CA-21 | `notificacoes/tests/test_tratadores.py::test_ca21_classificar_notifica_o_diretor_com_o_cargo_e_os_setores`, `::test_ca21_classificar_sem_setores_diz_que_nao_ha_setores`, `::test_ca21_cada_mudanca_gera_a_sua_notificacao`, `::test_ca21_tirar_o_cargo_de_quem_nao_tinha_nao_notifica` |
+| CA-22 | `notificacoes/tests/test_tratadores.py::test_ca22_ganhar_e_perder_o_papel_de_admin_notifica_o_usuario`, `::test_ca22_ganhar_e_perder_uma_permissao_individual_notifica_com_o_nome_do_catalogo`, `::test_ca22_o_acesso_total_notifica_pelo_nome`, `::test_ca22_conceder_o_que_o_usuario_ja_tem_nao_notifica_de_novo`, `::test_ca22_permissao_dada_a_cargo_ou_setor_nao_gera_notificacao` |
+| Registro no `ready` | `notificacoes/tests/test_tratadores.py::test_o_ready_registra_os_quatro_tipos_do_modulo`, `::test_o_ready_registra_um_tratador_para_cada_evento_e_nao_duplica_ao_rodar_de_novo` |
+| Fronteiras (`acesso` e `permissoes` não importam `notificacoes`) | `backend/tests/test_architecture.py` e o contrato do import-linter (existentes, verdes) |
+| `nome_da_permissao` | `permissoes/tests/test_nome_da_permissao.py` |
 | ADR-003 (despachante) | `tests/test_events.py` (entrega, ordem, tipos que não se misturam, exceção que propaga, transação desfeita) |
 
 ## Revisão de segurança
@@ -224,6 +230,24 @@ Preenchida no checkpoint 7.
   alterada. Fica sem teste o intervalo real entre as tentativas (60 s, dobrando, até 1 h): o modo imediato o ignora.
 - Nova tentativa: `OSError` e `smtplib.SMTPException`, espera inicial de 60 s e crescente, 4 novas tentativas (5 no
   total); `on_failure` grava `FALHOU` também para um erro que não se repete.
+
+### Checkpoint 4 — Tratadores dos quatro eventos (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 523 testes (499 + 24 novos), cobertura 97,58%, contratos do
+  import-linter 1 mantido, 0 quebrados; `test_architecture.py` verde (`acesso` e `permissoes` não importam
+  `notificacoes`).
+- Nenhum teste existente alterado neste checkpoint: com os tratadores ativos no `ready`, toda a suíte do M2 e do M3
+  continua verde.
+- `permissoes.public` ganhou `nome_da_permissao(codigo)`. O plano pede o texto "com o nome da permissão (do
+  catálogo)", mas `notificacoes` só pode importar a API pública de `permissoes`, que não expunha o nome. É uma
+  função de consulta, sem regra nova, com teste próprio.
+- A chave das notificações de classificação, papel de admin e concessão leva o ID do usuário e um UUID 7 (que
+  carrega o instante), no lugar do instante em texto: duas mudanças no mesmo instante não podem colidir e perder
+  uma notificação. A do cadastro concluído é determinística (`cadastro-concluido:<id>`), para o mesmo fato não
+  duplicar.
+- Os testes dos tratadores acionam as ações pela API HTTP de `acesso` e `permissoes`, porque os testes de um módulo
+  não importam os internos de outro; os fluxos de CA-20 por senha e pelo Google, que cruzam três módulos, ficam em
+  `backend/tests/test_notificacoes_de_ponta_a_ponta.py`.
 
 ## Rollback ou recuperação
 
