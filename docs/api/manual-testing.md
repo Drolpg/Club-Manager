@@ -61,3 +61,23 @@ Só depois de criar o ID de cliente ([setup/google.md](../setup/google.md)) e de
 | G4 | Sair e entrar com nome de usuário e senha | Entra na mesma conta |
 
 Sem `GOOGLE_CLIENT_ID`, o botão não aparece e o resto do roteiro funciona igual.
+
+## Classificação e permissões (M3)
+
+Com o sistema no ar e o admin do roteiro anterior, mais um diretor ativo (um que já passou pelo roteiro acima).
+Os passos P1 a P9 e P11 foram executados pela API, atrás do proxy do compose, em 2026-11-13, todos passando; o P10
+(acesso total) só está coberto pelos testes automáticos, e nenhum passo foi conferido pelo navegador por uma pessoa.
+
+| # | Passo | Resultado esperado |
+| --- | --- | --- |
+| P1 | Como admin: Cargos → criar "Tesoureiro de teste" | O cargo aparece "Ativo" |
+| P2 | Usuários → abrir o diretor → cargo "Tesoureiro de teste" e setor "Financeiro" → "Salvar classificação" | Em Usuários, o diretor passa a "Com cargo"; no histórico, "Classificado" com o nome do admin |
+| P3 | Como diretor: abrir a página inicial | Cargo, setores e "Nenhuma permissão concedida ainda." |
+| P4 | Como diretor: tentar gerar um convite (pela API: `POST acesso/convites/`) | 403 `PERMISSION_DENIED` |
+| P5 | Como admin: Permissões → conceder "Gerenciar convites" ao setor Financeiro | A concessão aparece na lista; repetir mostra "Esta concessão já existia." |
+| P6 | Como diretor: gerar, listar e revogar um convite (pela API) | 201, 200 e 200; a lista de usuários continua negada (403) |
+| P7 | Como admin: Permissões → "Revogar" a concessão | A concessão sai da lista |
+| P8 | Como diretor: gerar convite de novo | 403 |
+| P9 | Como admin: abrir o diretor | Histórico com a classificação, e o do setor com a concessão e a revogação, sempre com o nome de quem agiu |
+| P10 | Como admin: "Conceder acesso total" ao diretor e abrir "Permissões" do usuário | "Gerenciar convites — pelo acesso total"; o diretor continua sem acesso às telas de admin |
+| P11 | Como admin: "Revogar acesso total"; tirar o cargo do diretor; desativar o cargo de teste | Cada passo funciona; o cargo só desativa depois de ninguém o ter |

@@ -178,10 +178,23 @@ tela com o caminho feliz e um erro. No Windows, rode o `npm` num terminal aberto
 
 ## Revisão de segurança
 
-Preenchida no checkpoint 6.
+Preenchida no checkpoint 6 (2026-11-13), com `sdd-method:reviewing-security`. Sem achado crítico ou alto.
 
-| Item | Achado | Mitigação | Status |
-| --- | --- | --- | --- |
+| Item | Como foi conferido | Achado | Mitigação | Status |
+| --- | --- | --- | --- | --- |
+| Validação de entrada | Serializers declaram cada campo (UUID, `ChoiceField` para o tipo de alvo, lista de UUIDs, nome de 2 a 60); o serviço valida de novo o catálogo, o alvo e a regra de setores sem cargo | Nenhum | — | OK |
+| Mass assignment | Nenhum serializer grava no modelo; só os campos de cada caso de uso entram nos serviços | Nenhum | — | OK |
+| Autenticação | Todas as rotas novas exigem sessão (permissão padrão negada); `minhas/` exige só estar logado | Nenhum | — | OK |
+| Autorização | Escrita e detalhe de outro usuário: `EhAdmin` na rota e `exigir_admin` no serviço (testado sem passar pela rota); leitura de cargos e setores: admin ou diretor com cargo; convites: admin ou `convites.gerenciar` pela porta. O acesso total não abre nada de admin. Não há posse de recurso a conferir, porque os itens são do clube | Quem tem `convites.gerenciar` vê todos os convites e o histórico deles (é o desenho aprovado) | Aceito no desenho (P8) | OK |
+| Exposição de dados | `minhas/` devolve só o próprio; o detalhe é só do admin; o histórico leva o nome do ator, nunca `dados`; a lista de usuários segue só para admin | Nenhum | — | OK |
+| Segredos | Nenhum segredo novo | — | — | N/A (sem segredo novo) |
+| Logs | Nenhum log novo; a auditoria guarda IDs e o código da permissão, sem dado pessoal | Nenhum | — | OK |
+| Persistência | Só ORM, sem SQL cru; sem migração nova nos checkpoints 3 a 6 (as 0001 e 0002 são do checkpoint 2); a concessão ativa duplicada é barrada por índice único parcial e tratada com savepoint | Nenhum | — | OK |
+| Respostas de erro | Erros novos usam `BusinessError` com código estável (tabela da technical-spec) | Escrita de usuário logado sem token CSRF responde `PERMISSION_DENIED` com a mensagem do DRF ("CSRF Failed: CSRF token missing."), e a doc diz `CSRF_FAILED`. Observado no roteiro do checkpoint 6, passo 12b. Defeito do M2; não vaza dado interno e o resultado é 403 | Não corrigido aqui: fora do escopo desta feature. Registrado no modelo de ameaças | Aberto (baixo) → a decidir pelo dono |
+| Dependências | Nenhuma dependência nova, no backend e no site | — | — | N/A (sem dependência nova; o SCA do CI roda como sempre) |
+| Abuso | Rotas novas só para quem está logado; listas pequenas, sem paginação; sem limite por IP além do existente | Admin ou diretor mal-intencionado poderia fazer muitas chamadas autenticadas | Aceito: poucos usuários, todos identificados e auditados | OK |
+| Integrações externas | Nenhuma nova | — | — | N/A (sem integração externa) |
+| Elevação de privilégio | Ninguém concede a si mesmo; `acesso.total` só para usuário e sem administração; permissão fora do catálogo é recusada na concessão e ignorada na resolução; porta sem registro usa o padrão seguro | Nenhum | — | OK |
 
 ## Definition of Done
 
@@ -252,6 +265,26 @@ testes; o vermelho foi provado depois, guardando as telas com `git stash`: 40 do
 são os que já valiam, como o redirecionamento do diretor e o diretor sem cargo). Dois ajustes vieram dos testes: as
 telas de permissões só mostram o formulário depois de carregar as opções, e a lista de usuários passou a levar ao
 detalhe. `useLista` e `dataEHora` saíram de `Admin.tsx` para arquivos próprios, compartilhados.
+
+### Checkpoint 6 — Validação final (2026-11-13)
+
+```text
+uv run poe verify (backend/) → saída 0; 386 passed; cobertura 97,13%
+npm run verify (frontend/)   → saída 0; 75 passed; cobertura de linhas 92,61%
+docker compose up -d --build → api, worker, web saudáveis; migrações aplicadas
+roteiro pela API atrás do proxy (http://localhost:8080) → 33 chamadas, todas com o status esperado
+```
+
+O roteiro cobriu: criar cargo; classificar um diretor (cargo novo e setor Financeiro); conceder `convites.gerenciar`
+ao setor (e repetir: 200, sem duplicar); o diretor gerar, listar e revogar convite e continuar negado em usuários e
+no catálogo; revogar a concessão e o diretor ser negado de novo; histórico de usuário, cargo, setor e convite com o
+nome de quem agiu; `DELETE` de cargo e de concessão sem rota (404); tirar o cargo; desativar o cargo sem uso; sem
+sessão (401) e sem CSRF (403). O roteiro criou dois usuários de teste e um cargo desativado no banco de
+desenvolvimento do compose (nada é apagado).
+
+Não validado: o site no navegador por uma pessoa; o acesso total pelo roteiro (só pelos testes automáticos); o SCA
+(`pip-audit`, `npm audit`) rodou só no CI, e nenhuma dependência foi acrescentada. O passo 5 deste checkpoint
+(requisitos para "Implementado") fica para depois da aprovação do dono.
 
 ## Rollback ou recuperação
 

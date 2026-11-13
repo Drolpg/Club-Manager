@@ -13,7 +13,7 @@ Sessão no servidor, em cookie (ADR-008). Não há token no corpo das respostas.
    `csrftoken`.
 2. `POST /api/v1/acesso/sessao/` com `identificador` (nome de usuário ou e-mail) e `senha` abre a sessão: a resposta
    traz o cookie `sessionid`, que é `HttpOnly`.
-3. Toda escrita (`POST`, `DELETE`) precisa do cabeçalho `X-CSRFToken` com o valor do cookie `csrftoken`. Sem ele, a
+3. Toda escrita (`POST`, `PUT`, `DELETE`) precisa do cabeçalho `X-CSRFToken` com o valor do cookie `csrftoken`. Sem ele, a
    resposta é 403 `CSRF_FAILED`.
 4. `DELETE /api/v1/acesso/sessao/` encerra a sessão.
 
@@ -54,6 +54,13 @@ Em `VALIDATION_ERROR`, `details` traz os motivos por campo.
 | `NAO_PODE_ALTERAR_A_SI_MESMO` | 422 | Desativar a si mesmo ou tirar o próprio papel de admin |
 | `CONVITE_NAO_ESTA_ATIVO`, `CONVITE_NAO_PODE_SER_REGENERADO` | 422 | Ação fora da situação do convite |
 | `USUARIO_NAO_ESTA_ATIVO`, `USUARIO_NAO_ESTA_INATIVO`, `USUARIO_JA_E_ADMIN`, `USUARIO_NAO_E_ADMIN` | 422 | Ação fora da situação do usuário |
+| `NOME_EM_USO` | 409 | Cargo ou setor com nome já usado (sem diferenciar maiúsculas) |
+| `CARGO_EM_USO`, `SETOR_EM_USO` | 422 | Desativar cargo ou setor que usuários ativos têm; `details.usuarios` traz a quantidade |
+| `CARGO_INATIVO`, `SETOR_INATIVO` | 422 | Classificar com cargo ou setor inativo |
+| `JA_ESTA_ATIVO`, `JA_ESTA_INATIVO` | 422 | Reativar o que está ativo, ou desativar o que está inativo |
+| `USUARIO_NAO_ESTA_ATIVO` | 422 | Também ao classificar usuário que não está ativo |
+| `ACESSO_TOTAL_SO_PARA_USUARIO` | 422 | Conceder o acesso total a cargo ou setor |
+| `CONCESSAO_JA_REVOGADA` | 422 | Revogar uma concessão já revogada |
 | `INTERNAL_ERROR` | 500 | Erro inesperado; o detalhe fica só no log, com o `X-Request-ID` da resposta |
 
 Login, recuperação de senha, reenvio de verificação e convite inválido respondem do mesmo jeito exista a conta (ou o
@@ -66,13 +73,22 @@ convite) ou não.
 | Saúde | `GET health/` | Aberta |
 | Sessão | `GET`, `POST`, `DELETE acesso/sessao/`; `POST acesso/sessao/google/` | Aberta (sair exige sessão) |
 | Configuração pública | `GET acesso/configuracao/` | Aberta |
-| Convites | `GET`, `POST acesso/convites/`; `POST acesso/convites/{id}/regenerar/`, `…/revogar/` | Admin |
+| Convites | `GET`, `POST acesso/convites/`; `POST acesso/convites/{id}/regenerar/`, `…/revogar/`; `GET acesso/convites/{id}/historico/` | Admin, ou quem tem a permissão `convites.gerenciar` |
 | Consulta de convite | `POST acesso/convites/consultar/` | Aberta |
 | Cadastro | `POST acesso/cadastros/`, `POST acesso/cadastros/google/` | Aberta, com convite |
 | Verificação de e-mail | `POST acesso/verificacoes/`, `POST acesso/verificacoes/reenviar/` | Aberta |
 | Senha | `POST acesso/senhas/recuperar/`, `POST acesso/senhas/redefinir/` | Aberta |
-| Usuários | `GET acesso/usuarios/`; `POST acesso/usuarios/{id}/desativar/`, `…/reativar/`, `…/tornar-admin/`, `…/remover-admin/` | Admin |
+| Usuários | `GET acesso/usuarios/`; `POST acesso/usuarios/{id}/desativar/`, `…/reativar/`, `…/tornar-admin/`, `…/remover-admin/`; `GET acesso/usuarios/{id}/historico/` | Admin |
+| Cargos e setores | `GET permissoes/cargos/`, `GET permissoes/setores/` | Admin ou diretor ativo com cargo |
+| | `POST permissoes/cargos/` (e `setores/`); `POST …/{id}/renomear/`, `…/desativar/`, `…/reativar/`; `GET …/{id}/historico/` | Admin |
+| Catálogo e concessões | `GET permissoes/catalogo/`; `GET`, `POST permissoes/concessoes/` (201 se criou, 200 se já existia); `POST permissoes/concessoes/{id}/revogar/` | Admin |
+| Classificação e permissões de um usuário | `GET permissoes/usuarios/{id}/`; `PUT permissoes/usuarios/{id}/classificacao/` (`cargo_id` nulo tira o cargo e os setores) | Admin |
+| Minhas permissões | `GET permissoes/minhas/` | Logado: só as próprias |
 | Contrato | `GET schema/`, `GET docs/` | Admin |
+
+Cargo, setor e concessão nunca são apagados: não há rota `DELETE` para eles; só desativar ou revogar. O histórico
+de um item (`…/historico/`) vem do mais recente para o mais antigo, com `acao`, `ator` (`id` e `nome`, ou nulo
+para o sistema), `justificativa` e `criado_em`.
 
 O token de convite, de verificação e de recuperação vai sempre no corpo, nunca na URL da API.
 
