@@ -8,6 +8,7 @@ from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
+from acesso import public
 from acesso.domain.identificacao import (
     nome_de_usuario_valido,
     normalizar_email,
@@ -17,6 +18,7 @@ from acesso.domain.identificacao import (
 from acesso.models import Situacao, Usuario
 from acesso.services.autorizacao import exigir_admin
 from auditoria import public as auditoria
+from kernel import events
 from kernel.errors import BusinessError
 
 
@@ -178,6 +180,7 @@ def tornar_admin(*, ator: Usuario, usuario_id: uuid.UUID) -> Usuario:
     alvo.tornar_admin()
     alvo.save(update_fields=["admin"])
     _auditar(ator, alvo, "PAPEL_DE_ADMIN_DADO")
+    events.publish(public.PapelDeAdminAlterado(usuario_id=alvo.id, admin=True))
     return alvo
 
 
@@ -191,4 +194,5 @@ def remover_admin(*, ator: Usuario, usuario_id: uuid.UUID) -> Usuario:
     alvo.remover_admin()
     alvo.save(update_fields=["admin"])
     _auditar(ator, alvo, "PAPEL_DE_ADMIN_REMOVIDO")
+    events.publish(public.PapelDeAdminAlterado(usuario_id=alvo.id, admin=False))
     return alvo

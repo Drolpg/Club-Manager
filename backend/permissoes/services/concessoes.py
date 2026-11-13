@@ -10,8 +10,9 @@ from django.utils import timezone
 
 from acesso import public as acesso
 from auditoria import public as auditoria
+from kernel import events
 from kernel.errors import BusinessError
-from permissoes import catalogo
+from permissoes import catalogo, public
 from permissoes.domain.resolucao import ACESSO_TOTAL
 from permissoes.models import AlvoDaConcessao, Cargo, Concessao, Setor
 from permissoes.services.autorizacao import exigir_admin
@@ -62,6 +63,16 @@ def _auditar(ator_id: uuid.UUID, acao: str, concessao: Concessao) -> None:
         item_id=_alvo_id(concessao),
         dados={"permissao": concessao.permissao, "concessao_id": str(concessao.id)},
     )
+
+
+def _publicar_se_individual(concessao: Concessao, *, concedida: bool) -> None:
+    """Só a concessão a uma pessoa vira evento; a de cargo ou setor não tem um destinatário único."""
+    if concessao.alvo_tipo == AlvoDaConcessao.USUARIO:
+        events.publish(
+            public.ConcessaoIndividualAlterada(
+                usuario_id=_alvo_id(concessao), permissao=concessao.permissao, concedida=concedida
+            )
+        )
 
 
 def _validar_alvo(alvo_tipo: AlvoDaConcessao, alvo_id: uuid.UUID) -> dict[str, uuid.UUID]:
@@ -123,6 +134,7 @@ def conceder(
             raise
         return existente, False
     _auditar(ator_id, "PERMISSAO_CONCEDIDA", concessao)
+    _publicar_se_individual(concessao, concedida=True)
     return concessao, True
 
 
@@ -137,6 +149,7 @@ def revogar(ator_id: uuid.UUID, concessao_id: uuid.UUID) -> Concessao:
     concessao.revogar(por=ator_id, agora=timezone.now())
     concessao.save(update_fields=["revogada_por_id", "revogada_em"])
     _auditar(ator_id, "PERMISSAO_REVOGADA", concessao)
+    _publicar_se_individual(concessao, concedida=False)
     return concessao
 
 

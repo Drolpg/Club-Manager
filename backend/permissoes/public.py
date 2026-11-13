@@ -9,6 +9,9 @@
 - `registrar_permissao(...)`: cada módulo declara as suas permissões ao iniciar (AD-014).
 """
 
+import uuid
+from dataclasses import dataclass
+
 from permissoes.catalogo import registrar_permissao
 from permissoes.domain.resolucao import Origem, TipoDeOrigem
 from permissoes.services.consulta import (
@@ -21,8 +24,27 @@ from permissoes.services.consulta import (
     quem_pode,
 )
 
+
+@dataclass(frozen=True)
+class ClassificacaoAlterada:
+    """Evento de integração: o usuário foi classificado, reclassificado ou ficou sem cargo."""
+
+    usuario_id: uuid.UUID
+
+
+@dataclass(frozen=True)
+class ConcessaoIndividualAlterada:
+    """Evento de integração: o usuário ganhou (`concedida=True`) ou perdeu uma permissão concedida a ele."""
+
+    usuario_id: uuid.UUID
+    permissao: str
+    concedida: bool
+
+
 __all__ = (
+    "ClassificacaoAlterada",
     "ClassificacaoInfo",
+    "ConcessaoIndividualAlterada",
     "ItemInfo",
     "Origem",
     "TipoDeOrigem",

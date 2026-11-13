@@ -15,13 +15,6 @@ def enviar_email_de_verificacao(usuario_id: str) -> None:
     emails.enviar_verificacao(uuid.UUID(usuario_id))
 
 
-@shared_task(name="acesso.avisar_admins_de_diretor_a_classificar")
-def avisar_admins_de_diretor_a_classificar(usuario_id: str) -> None:
-    from acesso.services import emails
-
-    emails.avisar_admins_de_diretor_a_classificar(uuid.UUID(usuario_id))
-
-
 @shared_task(name="acesso.enviar_email_de_recuperacao")
 def enviar_email_de_recuperacao(usuario_id: str) -> None:
     from acesso.services import emails

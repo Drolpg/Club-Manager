@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `notificacoes/caixa-e-email` |
-| Status | Draft |
+| Status | In Progress |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
 | Especificação técnica | `./technical-spec.md` (aprovada em 2026-11-13) |
@@ -138,6 +138,10 @@ Se um teste parecer errado ou a spec não cobrir um caso, pare e pergunte. Não 
 
 | Critério | Teste |
 | --- | --- |
+| CA-20 (base, checkpoint 1) | `acesso/tests/test_eventos.py::test_concluir_o_cadastro_publica_cadastro_concluido`, `::test_verificar_o_link_publica_cadastro_concluido`, `::test_o_cadastro_pelo_google_publica_cadastro_concluido`, `::test_entrar_pelo_google_de_quem_aguardava_verificacao_publica_cadastro_concluido`, `::test_concluir_o_cadastro_nao_manda_mais_o_email_simples_aos_admins` |
+| CA-21 (base, checkpoint 1) | `permissoes/tests/test_eventos.py::test_classificar_publica_classificacao_alterada`, `::test_reclassificar_publica_de_novo`, `::test_tirar_o_cargo_de_quem_tinha_publica`, `::test_tirar_o_cargo_de_quem_nao_tinha_nao_publica` |
+| CA-22 (base, checkpoint 1) | `acesso/tests/test_eventos.py::test_tornar_admin_publica_papel_de_admin_alterado`, `::test_remover_admin_publica_papel_de_admin_alterado`; `permissoes/tests/test_eventos.py::test_conceder_a_um_usuario_publica_concessao_individual_alterada`, `::test_revogar_de_um_usuario_publica_com_concedida_falso`, `::test_o_acesso_total_tambem_publica` |
+| ADR-003 (despachante) | `tests/test_events.py` (entrega, ordem, tipos que não se misturam, exceção que propaga, transação desfeita) |
 
 ## Revisão de segurança
 
@@ -161,6 +165,18 @@ Preenchida no checkpoint 7.
 
 ## Evidências de verificação
 
+### Checkpoint 1 — Despachante de eventos e eventos publicados (2026-11-13)
+
+- Ponto de partida: `uv run poe verify` em `backend/`, saída 0, 390 testes; `npm run verify` em `frontend/`, saída 0,
+  83 testes.
+- `uv run poe verify` em `backend/`: saída 0, 424 testes, cobertura 97,47%, contratos do import-linter 1 mantido,
+  0 quebrados.
+- Testes existentes alterados, por mudança de spec (CA-20: o e-mail simples aos admins virou o evento):
+  `acesso/tests/test_cadastro.py::test_ca11_…`, `acesso/tests/test_google.py::test_ca15_…` e
+  `acesso/tests/test_google.py::test_entrar_pelo_google_verifica_a_conta_que_aguardava_verificacao`. A expectativa
+  "e-mail aos admins" virou "`CadastroConcluido` publicado e nenhum e-mail do acesso"; o `test_ca11` foi renomeado
+  (`…_e_publica_o_cadastro_concluido`). O resto de cada teste ficou igual.
+
 ## Rollback ou recuperação
 
-A migração reverte com `python manage.py migrate notificacoes zero`. A versão anterior é a tag do M3.
+A migração reverte com `python manage.py migrate notificacoes zero`. A versão anterior é o commit de merge do M3 na `dev` (`f957859`).

@@ -7,7 +7,9 @@ from django.db import transaction
 
 from acesso import public as acesso
 from auditoria import public as auditoria
+from kernel import events
 from kernel.errors import BusinessError
+from permissoes import public
 from permissoes.models import Cargo, Classificacao, Setor
 from permissoes.services.autorizacao import exigir_admin
 
@@ -76,6 +78,7 @@ def classificar(
                 item_id=usuario_id,
                 dados=tinha,
             )
+            events.publish(public.ClassificacaoAlterada(usuario_id=usuario_id))
         return None
 
     cargo = _cargo_ativo(cargo_id)
@@ -91,4 +94,5 @@ def classificar(
         item_id=usuario_id,
         dados={"cargo_id": str(cargo.id), "setor_ids": sorted(str(s.id) for s in setores)},
     )
+    events.publish(public.ClassificacaoAlterada(usuario_id=usuario_id))
     return classificacao
