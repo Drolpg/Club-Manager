@@ -168,6 +168,17 @@ Se um teste parecer errado ou a spec não cobrir um caso, pare e pergunte. Não 
 | Registro no `ready` | `notificacoes/tests/test_tratadores.py::test_o_ready_registra_os_quatro_tipos_do_modulo`, `::test_o_ready_registra_um_tratador_para_cada_evento_e_nao_duplica_ao_rodar_de_novo` |
 | Fronteiras (`acesso` e `permissoes` não importam `notificacoes`) | `backend/tests/test_architecture.py` e o contrato do import-linter (existentes, verdes) |
 | `nome_da_permissao` | `permissoes/tests/test_nome_da_permissao.py` |
+| CA-09 | `notificacoes/tests/test_rotas.py::test_ca09_a_caixa_traz_so_as_do_usuario_da_mais_recente_para_a_mais_antiga`, `::test_ca09_o_item_traz_so_os_campos_do_contrato`, `::test_ca09_o_admin_tambem_so_ve_a_propria_caixa` |
+| CA-10 | `notificacoes/tests/test_rotas.py::test_ca10_o_resumo_conta_so_as_nao_lidas_do_usuario`, `::test_ca10_o_resumo_sem_notificacoes`, `::test_ca10_o_mais_recente_e_o_ultimo_que_chegou_mesmo_que_ja_lido` |
+| CA-11 | `notificacoes/tests/test_rotas.py::test_ca11_abrir_a_notificacao_a_marca_lida_com_data_e_diminui_o_resumo` |
+| CA-12 | `notificacoes/tests/test_rotas.py::test_ca12_abrir_de_novo_nao_muda_a_data_da_primeira_leitura` |
+| CA-13 | `notificacoes/tests/test_rotas.py::test_ca13_marcar_todas_como_lidas_so_mexe_nas_do_usuario`, `::test_ca13_marcar_todas_sem_nenhuma_nao_lida_marca_zero` |
+| CA-14 | `notificacoes/tests/test_rotas.py::test_ca14_a_notificacao_de_outro_responde_que_nao_existe_inclusive_para_o_admin` (diretor e admin), `::test_ca14_notificacao_que_nao_existe_responde_igual_a_de_outro`, `::test_ca14_a_de_outro_nao_aparece_na_caixa_nem_no_resumo_nem_como_cursor` |
+| CA-15 | `notificacoes/tests/test_rotas.py::test_ca15_a_caixa_carrega_as_seguintes_por_cursor_sem_repetir_nem_pular`, `::test_ca15_o_limite_padrao_e_20`, `::test_ca15_o_limite_maximo_e_50_e_o_minimo_e_1` |
+| CA-16 (rota) | `notificacoes/tests/test_rotas.py::test_ca16_as_preferencias_de_um_usuario_novo_estao_ligadas` |
+| CA-17 (rota) | `notificacoes/tests/test_rotas.py::test_ca17_alterar_as_preferencias_muda_so_as_do_usuario`, `::test_ca17_o_put_aceita_so_uma_chave_e_deixa_a_outra_como_esta`, `::test_ca17_a_mudanca_vale_para_as_proximas_notificacoes` |
+| CA-19 (rota e campo) | `notificacoes/tests/test_rotas.py::test_ca19_nenhuma_rota_apaga_nem_desliga_o_registro`, `::test_ca19_o_put_de_preferencias_ignora_campo_que_tentaria_desligar_o_registro`, `::test_ca19_as_rotas_do_modulo_sao_so_as_da_especificacao` |
+| Validação e 401 | `notificacoes/tests/test_rotas.py::test_parametro_invalido_da_caixa_responde_400` (`limite` 0, 51, -1, texto; `antes` inválido), `::test_cursor_de_notificacao_que_nao_existe_responde_400`, `::test_preferencia_que_nao_e_booleana_responde_400_e_nao_muda_nada` (3 casos), `::test_sem_sessao_toda_rota_responde_401` (6 rotas) |
 | ADR-003 (despachante) | `tests/test_events.py` (entrega, ordem, tipos que não se misturam, exceção que propaga, transação desfeita) |
 
 ## Revisão de segurança
@@ -248,6 +259,21 @@ Preenchida no checkpoint 7.
 - Os testes dos tratadores acionam as ações pela API HTTP de `acesso` e `permissoes`, porque os testes de um módulo
   não importam os internos de outro; os fluxos de CA-20 por senha e pelo Google, que cruzam três módulos, ficam em
   `backend/tests/test_notificacoes_de_ponta_a_ponta.py`.
+
+### Checkpoint 5 — Rotas da caixa e das preferências (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 563 testes (523 + 40 novos), cobertura 97,61%, contratos do
+  import-linter 1 mantido, 0 quebrados.
+- Nenhum teste existente alterado neste checkpoint.
+- Toda consulta e toda escrita filtram por `destinatario_id` do usuário logado; a notificação de outro responde
+  404 `NOT_FOUND`, inclusive para o admin. Não existe rota DELETE (o DELETE na raiz responde 405, e nos itens, 404).
+- Ordem da caixa: `criada_em` e `id`, decrescentes (usa o índice `destinatario_id, criada_em`). `antes` é o ID da
+  última recebida; um `antes` que não é do usuário ou não existe responde 400 `VALIDATION_ERROR`, sem revelar a
+  existência. `mais_recente_id` do resumo é a última que chegou, lida ou não.
+- `limite=` vazio é tratado pelo DRF como não informado (usa o padrão 20); a spec só manda recusar `limite` fora de
+  1 a 50 e texto, o que está coberto.
+- As preferências aceitam só `true` ou `false` (`"sim"`, `1` e `null` dão 400) e só as chaves enviadas mudam. Ler e
+  marcar como lida não registram auditoria: a spec não pede, e a leitura fica na própria `lida_em`.
 
 ## Rollback ou recuperação
 
