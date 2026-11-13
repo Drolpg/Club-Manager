@@ -95,7 +95,7 @@ A verificação completa do projeto são os dois comandos `verify`. O CI roda ex
 | Value object | `@dataclass(frozen=True)` validado em `__post_init__`, em `<modulo>/domain/` |
 | Função de decisão | Função pura em `<modulo>/domain/`, sem import de Django, DRF ou Celery |
 | Port | A abstração do Django (armazenamento, e-mail); `Protocol` só onde não houver uma |
-| Permissão | Código `<recurso>.<acao>` declarado com `permissoes.public.registrar_permissao` no `ready`; conferida com `permissoes.public.pode` (a rota de escrita confere uma permissão do catálogo, ou exige admin) |
+| Permissão | Código `<recurso>.<acao>` declarado com `permissoes.public.registrar_permissao` no `ready`; conferida com `permissoes.public.pode` (a rota de escrita declara quem pode: permissão do catálogo, admin, ou condição da spec; conferido na rota e no serviço) |
 | Porta de consulta (módulo de baixo pergunta ao de cima) | Função com padrão seguro no módulo de baixo, substituída por `registrar_portas` no `ready` do de cima (adendo 1 da ADR-003) |
 | Evento de integração | `@dataclass(frozen=True)` publicado no despachante em processo (ADR-003) |
 | Transação do caso de uso | `transaction.atomic()` na função de serviço, com a linha do aggregate bloqueada |

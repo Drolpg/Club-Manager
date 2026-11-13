@@ -51,8 +51,9 @@ demais — decisão em `docs/adr/ADR-001-estilo-arquitetural.md`, avaliação em
   `ModelSerializer` que gravem direto no modelo; declare os campos de saída (ADR-004).
 - Uma tarefa do Celery só chama um serviço do módulo dono (ADR-006).
 - Toda rota é negada por padrão; a que for aberta declara a permissão explicitamente.
-- Toda rota de escrita confere uma permissão do catálogo (`permissoes.public.pode`) ou exige admin, na rota e no
-  serviço. Um módulo declara as suas permissões com `registrar_permissao` ao iniciar.
+- Toda rota de escrita declara quem pode: uma permissão do catálogo (`permissoes.public.pode`), o admin, ou uma
+  condição que a spec define (ter cargo, ser o dono do item). A conferência é feita na rota e no serviço. Um módulo
+  declara as suas permissões com `registrar_permissao` ao iniciar.
 
 **Não adicionar** (decidido contra; adicionar qualquer um exige nova decisão):
 
