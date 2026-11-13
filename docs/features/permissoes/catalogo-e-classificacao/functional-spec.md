@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `permissoes/catalogo-e-classificacao` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 | Requisitos | RF-015 a RF-027, RF-118; RN-005 a RN-008, RN-014; RF-001 e RF-002 (permissão de convidar) |
 | Referências | Marco M3; canvas "Identidade e Permissões" e "Auditoria" em `docs/domain/strategic-design.md`; AD-007, AD-014; feature `acesso/identidade-e-acesso` |
 
@@ -226,7 +226,7 @@ Histórico e auditoria:
 | 3 | Permissão é ação mais recurso, sem escopo por setor do item | Leandro Nascimento | 2026-11-13 |
 | 4 | Cada marco acrescenta as suas permissões ao catálogo e já as sugere ao setor natural | Leandro Nascimento | 2026-11-13 |
 
-Propostas do agente, que passam a valer com a aprovação desta spec:
+Propostas do agente, aprovadas pelo dono junto com esta spec, em 2026-11-13:
 
 | # | Proposta | Motivo |
 | --- | --- | --- |

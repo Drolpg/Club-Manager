@@ -214,6 +214,10 @@ para o Google, token opaco para o aplicativo futuro.
 **Problem:** uma permissão combina ação, tipo de recurso e, se preciso, setor (PER-02), vem de três origens que se
 somam (PER-03) e precisa ser extensível para tipos de usuário futuros.
 
+**Nota (2026-11-13):** proposta na technical-spec `permissoes/catalogo-e-classificacao`: permissão como código
+`<recurso>.<acao>` num catálogo em código; concessões a cargo, setor ou usuário, revogadas e nunca apagadas; união
+calculada por função pura; sem escopo por setor do item (decisão do dono).
+
 **Follow-up:** ADR na especificação do M3.
 
 ---
@@ -338,6 +342,9 @@ backup, rollback e as regras do free tier para a conta do dono.
 
 **Problem:** o painel monta combinações a partir de ações e recursos conhecidos; comportamento totalmente novo é
 criado por programação (PER-05). O enunciado permite propor outra abordagem.
+
+**Nota (2026-11-13):** o dono aprovou, na spec funcional, que o catálogo fica no código e o painel só concede e
+revoga o que existe nele. Passa a Resolved com a aprovação da technical-spec.
 
 **Follow-up:** especificação do M3.
 
