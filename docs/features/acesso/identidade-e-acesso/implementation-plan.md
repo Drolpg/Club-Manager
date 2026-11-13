@@ -238,8 +238,12 @@ ID de cliente.
 
 ```text
 uv run poe verify
-216 passed; import-linter: 1 contrato mantido; nenhuma migração pendente
+216 passed; cobertura 96,41%; import-linter: 1 contrato mantido; nenhuma migração pendente
 ```
+
+Registro honesto: o commit `b056db3` deste checkpoint saiu com o lint falhando (uma linha com 112 colunas num
+comentário de teste), porque o comando de commit não conferiu o código de saída da verificação. O commit seguinte
+corrige a linha, e o resultado acima é o da verificação refeita, com saída 0.
 
 Testes novos: `backend/acesso/tests/test_documentacao.py` (6). O teste antigo que esperava o contrato aberto a
 qualquer pessoa (`tests/test_contract.py`) foi substituído, porque a technical-spec aprovada mudou esse

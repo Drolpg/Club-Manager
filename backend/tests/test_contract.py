@@ -1,4 +1,4 @@
-"""O contrato da API é conferido em `acesso/tests/test_documentacao.py`, porque passou a exigir admin logado."""
+"""O contrato da API é conferido em `acesso/tests/test_documentacao.py`: ele passou a exigir admin."""
 
 from config.celery import app as celery_app
 
