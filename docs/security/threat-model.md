@@ -2,10 +2,10 @@
 
 | Campo | Valor |
 | --- | --- |
-| Atualizado em | 2026-11-12 |
+| Atualizado em | 2026-11-13 |
 | Diagrama base | `docs/architecture/overview.md` § Containers |
 | Responsável | Leandro Nascimento |
-| Escopo desta versão | Marco M2: identidade e acesso. Cada marco seguinte acrescenta as ameaças do que entrega |
+| Escopo desta versão | Marcos M2 (identidade e acesso) e M3 (permissões e auditoria). Cada marco seguinte acrescenta as ameaças do que entrega |
 
 Feito uma vez neste marco, como desvio registrado em `docs/method.md` (elemento do nível 3), porque o sistema passa a
 guardar dados pessoais e a controlar o acesso a dados financeiros.
@@ -56,3 +56,24 @@ guardar dados pessoais e a controlar o acesso a dados financeiros.
 | Bloqueio de conta por terceiro | Bloqueio temporário | Aceita | — |
 | Enumeração de e-mail no cadastro, por quem tem convite | Limite por IP | Aceita | Technical-spec |
 | Sem verificação em duas etapas | — | Aceita | Backlog |
+
+## M3: permissões e auditoria
+
+Elementos novos: catálogo de permissões, concessões (a cargo, setor ou usuário), classificação, portas de `acesso`
+preenchidas por `permissoes`, rotas de histórico.
+
+| Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
+| --- | --- | --- | --- | --- | --- | --- |
+| Concessões e classificação | — | Alterar quem pode o quê sem ser admin → `EhAdmin` na rota e `exigir_admin` no serviço; `acesso.total` nunca passa em `EhAdmin` | Quem concedeu, revogou ou classificou → auditoria na mesma transação, com ator e alvo | Ver permissões de outro usuário → o detalhe é só do admin; `minhas/` devolve só as de quem pergunta | Conceder em massa → só o admin, e a concessão repetida não cria duplicata | Diretor dar permissão a si mesmo → só o admin concede. Acesso total virar admin → o acesso total só amplia o catálogo e nunca dá administração |
+| Catálogo | — | Criar permissão pelo painel → o catálogo vive no código; código fora dele é recusado | — | — | — | **Permissão órfã:** concessão de um código que saiu do catálogo → ignorada na resolução (PER-R05) |
+| Portas de `acesso` | — | — | — | — | — | **Porta sem implementação:** sem `permissoes` registrado, `acesso` usa o padrão seguro (convites só do admin; ninguém com cargo). Porta que responde "sim" demais → a sessão ainda tem de estar ativa, e o serviço confere de novo |
+| Histórico | — | Alterar o histórico → a auditoria é imutável (gatilho do banco) | — | Ver o histórico sem direito → segue a regra do item (admin; convites, também quem os gerencia); só o nome do ator sai, nunca `dados` | — | — |
+| Cargo, setor | — | Apagar para sumir com o rastro → não existe rota de apagar; só desativar | Renomear para confundir → auditoria de cada renomeação | — | — | — |
+
+| Ameaça | Mitigação | Status | Registro |
+| --- | --- | --- | --- |
+| Elevação por concessão | Só admin concede; acesso total não administra | Implementada (M3) | CA-21, CA-24 |
+| Porta sem implementação | Padrão seguro, testado com a porta restaurada | Implementada (M3) | `acesso/tests/test_portas.py` |
+| Permissão órfã | Ignorada na resolução | Implementada (M3) | PER-R05; `test_permissao_fora_do_catalogo_e_ignorada` |
+| Alteração de permissão sem rastro | Auditoria na transação | Implementada (M3) | CA-29 |
+| Escrita autenticada sem token CSRF respondia `PERMISSION_DENIED` e não `CSRF_FAILED` | `kernel.http.SessionAuthentication.enforce_csrf` converte a falha em `CSRF_FAILED`, no mesmo texto de `csrf_failure` | Corrigida (revisão do PR #2) | `backend/tests/test_csrf.py` |

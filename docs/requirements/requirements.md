@@ -64,19 +64,20 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Origem | Status | Feature |
 | --- | --- | --- | --- | --- |
-| RF-015 | O admin cria, renomeia e desativa cargos | PER-04 | Aprovado | — |
-| RF-016 | O admin cria, renomeia e desativa setores | PER-04, seção 4 | Aprovado | — |
-| RF-017 | O admin classifica um diretor, atribuindo um cargo e um ou mais setores | ACE-07, seção 4 | Aprovado | — |
-| RF-018 | O admin concede e revoga uma permissão a um cargo | PER-03 | Aprovado | — |
-| RF-019 | O admin concede e revoga uma permissão a um setor | PER-03 | Aprovado | — |
-| RF-020 | O admin concede e revoga uma permissão a um usuário, inclusive de um setor a que ele não pertence | PER-03 | Aprovado | — |
-| RF-021 | O sistema calcula as permissões de um usuário como a união das concessões do cargo, dos setores e das individuais | PER-03 | Aprovado | — |
-| RF-022 | O admin vê, para cada usuário, as permissões que ele tem e de onde vem cada uma | PER-05 | Aprovado | — |
-| RF-023 | O admin concede e revoga acesso total a um usuário | PER-06 | Aprovado | — |
-| RF-024 | O diretor sem cargo acessa só o dashboard básico | ACE-08, PER-01 | Aprovado | — |
-| RF-025 | O diretor com cargo lê os dados de gestão (financeiro, eventos, feed, documentos) | PER-01 | Aprovado | — |
-| RF-026 | O sistema registra, de forma imutável, quem fez o quê, quando, sobre qual item e com que justificativa, em toda ação relevante | AUD-01, AUD-02 | Aprovado | — |
-| RF-027 | Quem pode ver um item consulta o histórico dele no próprio detalhe | AUD-03 | Aprovado | — |
+| RF-015 | O admin cria, renomeia e desativa cargos | PER-04 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-016 | O admin cria, renomeia e desativa setores | PER-04, seção 4 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-017 | O admin classifica um diretor, atribuindo um cargo e um ou mais setores | ACE-07, seção 4 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-018 | O admin concede e revoga uma permissão a um cargo | PER-03 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-019 | O admin concede e revoga uma permissão a um setor | PER-03 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-020 | O admin concede e revoga uma permissão a um usuário, inclusive de um setor a que ele não pertence | PER-03 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-021 | O sistema calcula as permissões de um usuário como a união das concessões do cargo, dos setores e das individuais | PER-03 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-022 | O admin vê, para cada usuário, as permissões que ele tem e de onde vem cada uma | PER-05 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-023 | O admin concede e revoga acesso total a um usuário | PER-06 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-024 | O diretor sem cargo acessa só o dashboard básico | ACE-08, PER-01 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-025 | O diretor com cargo lê os dados de gestão (financeiro, eventos, feed, documentos) | PER-01 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-026 | O sistema registra, de forma imutável, quem fez o quê, quando, sobre qual item e com que justificativa, em toda ação relevante | AUD-01, AUD-02 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-027 | Quem pode ver um item consulta o histórico dele no próprio detalhe | AUD-03 | Implementado | `permissoes/catalogo-e-classificacao` |
+| RF-118 | O diretor consulta o próprio cargo, os próprios setores e as próprias permissões | Spec `permissoes/catalogo-e-classificacao` **(novo)** | Implementado | `permissoes/catalogo-e-classificacao` |
 
 ### Notificações (M4)
 
@@ -87,6 +88,7 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-030 | O usuário abre a caixa de entrada no site, com indicador de notificações novas | NOT-01 | Aprovado | — |
 | RF-031 | O usuário marca uma notificação como lida e vai dela para o item relacionado | NOT-03 | Aprovado | — |
 | RF-032 | O usuário ajusta como é alertado, sem desligar o registro da notificação | NOT-04 | Aprovado | — |
+| RF-119 | O sistema notifica o usuário quando mudam a classificação, o papel de admin ou as permissões individuais dele | Spec `notificacoes/caixa-e-email` **(novo)** | Aprovado | — |
 
 ### Aprovações (M5)
 
@@ -105,6 +107,9 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-043 | Quem pode ver a solicitação consulta todas as versões, decisões, motivos e mensagens | APR-08 | Aprovado | — |
 | RF-044 | O aprovador consulta a fila das solicitações que pode decidir | APR-11 | Aprovado | — |
 | RF-045 | O sistema notifica quem pode decidir quando uma solicitação é enviada ou reenviada, e notifica o solicitante de cada decisão, com um texto padrão e a mensagem do aprovador | NOT-06, H12 | Aprovado | — |
+| RF-120 | O solicitante retira da análise a própria solicitação, para corrigir e reenviar | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Aprovado | — |
+| RF-121 | O sistema lembra quem pode decidir depois de 3 dias sem decisão, e avisa o admin depois de 7 | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Aprovado | — |
+| RF-122 | O diretor com cargo lista as solicitações, com filtro por tipo, por situação e pelas próprias | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Aprovado | — |
 
 ### Financeiro — cobrança e recebimento (M6)
 
@@ -137,6 +142,9 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-070 | Quem tem a permissão mantém a dívida depois da convocação, com motivo | H10 **(novo)** | Aprovado | — |
 | RF-071 | Quem tem a permissão registra uma entrada sem devedor (patrocínio, rifa, ajuda), com comprovante ou evidência em texto | FIN-06, FIN-07 | Aprovado | — |
 | RF-072 | Quem tem a permissão valida ou rejeita uma entrada, com motivo | FIN-06 | Aprovado | — |
+| RF-123 | O sistema lembra o devedor 3 dias antes do vencimento, se ele ainda não registrou o pagamento | Spec `financeiro/cobrancas-e-recebimentos` **(novo)** | Aprovado | — |
+| RF-124 | O devedor consulta as próprias cobranças, mesmo sem cargo | Spec `financeiro/cobrancas-e-recebimentos` **(novo)** | Aprovado | — |
+| RF-125 | O sistema avisa quem opera o financeiro quando um diretor com cobranças em aberto é desativado | Spec `financeiro/cobrancas-e-recebimentos` **(novo)** | Aprovado | — |
 
 ### Financeiro — gasto e prestação de contas (M7)
 
@@ -153,6 +161,9 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-081 | Quem tem a permissão liquida a saída depois de conferir a prestação de contas | FIN-17, H15 | Aprovado | — |
 | RF-082 | Quem tem a permissão cancela uma saída antes do envio do recurso, com motivo | FIN-18 | Aprovado | — |
 | RF-083 | Quem tem a permissão estorna um registro liquidado (saída, entrada ou cobrança paga), com justificativa, gerando um lançamento ligado ao original | FIN-18, APR-09 | Aprovado | — |
+| RF-126 | O sistema lembra o solicitante da prestação de contas aos 5 dias do envio e, vencido o prazo de 7 dias, avisa também quem liquida | Spec `financeiro/gastos-e-prestacao-de-contas` **(novo)** | Aprovado | — |
+| RF-127 | O aprovador de um gasto vê o total validado de entradas, o liquidado de saídas e o comprometido | Spec `financeiro/gastos-e-prestacao-de-contas` **(novo)** | Aprovado | — |
+| RF-128 | Quem envia recursos registra, na mesma saída, o envio da diferença de um complemento aprovado | Spec `financeiro/gastos-e-prestacao-de-contas` **(novo)** | Aprovado | — |
 
 ### Eventos (M8)
 
@@ -168,6 +179,9 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-091 | O sistema notifica, na data do evento, quem pode confirmar a realização | EVT-07 | Aprovado | — |
 | RF-092 | O proponente, quem responde por eventos ou o admin confirma que o evento aconteceu; se foi antes da data, informa a data e o motivo | EVT-07, H22 | Aprovado | — |
 | RF-093 | O proponente, o admin ou quem tem a permissão cancela um evento, com motivo; ele sai do calendário e todos os diretores são notificados | EVT-08, H25 | Aprovado | — |
+| RF-129 | O diretor ativo com cargo confirma se vai ou não a um evento publicado, e o evento mostra as respostas | Spec `eventos/eventos-e-calendario` **(novo)** | Aprovado | — |
+| RF-130 | O sistema cancela o evento que não foi publicado até a data dele, e avisa o proponente | Spec `eventos/eventos-e-calendario` **(novo)** | Aprovado | — |
+| RF-131 | O sistema lembra quem pode confirmar a realização 1 e 3 dias depois da data, se ninguém confirmou nem cancelou | Spec `eventos/eventos-e-calendario` **(novo)** | Aprovado | — |
 
 ### Comunicação e perfil (M9)
 

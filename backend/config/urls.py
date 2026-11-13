@@ -9,6 +9,7 @@ from kernel.health import health
 v1: list[URLPattern | URLResolver] = [
     path("health/", health, name="health"),
     path("acesso/", include("acesso.http.urls")),
+    path("permissoes/", include("permissoes.http.urls")),
     # O contrato e a documentação só para o admin logado.
     path("schema/", SpectacularAPIView.as_view(permission_classes=[EhAdmin]), name="schema"),
     path(

@@ -5,9 +5,12 @@
 """
 
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass
 
+from acesso import portas
 from acesso.models import Situacao, Usuario
+from acesso.services.historico import Ator, RegistroDoHistorico, com_nomes
 
 
 @dataclass(frozen=True)
@@ -40,3 +43,36 @@ def usuario_por_id(usuario_id: uuid.UUID) -> UsuarioInfo | None:
 
 def admins_ativos() -> list[UsuarioInfo]:
     return [_info(u) for u in Usuario.objects.filter(admin=True, situacao=Situacao.ATIVO)]
+
+
+def ids_ativos(usuario_ids: Iterable[uuid.UUID]) -> set[uuid.UUID]:
+    """Dos IDs recebidos, os que são de usuários ativos."""
+    return set(
+        Usuario.objects.filter(pk__in=list(usuario_ids), situacao=Situacao.ATIVO).values_list("id", flat=True)
+    )
+
+
+def historico_com_nomes(item_tipo: str, item_id: uuid.UUID) -> list[RegistroDoHistorico]:
+    """O histórico de um item, do mais recente para o mais antigo, com o nome de quem agiu."""
+    return com_nomes(item_tipo, item_id)
+
+
+# Portas de consulta que `permissoes` preenche ao iniciar (adendo 1 da ADR-003).
+registrar_portas = portas.registrar
+restaurar_portas = portas.restaurar
+pode_gerenciar_convites = portas.pode_gerenciar_convites
+usuarios_com_cargo = portas.usuarios_com_cargo
+
+__all__ = (
+    "Ator",
+    "RegistroDoHistorico",
+    "UsuarioInfo",
+    "admins_ativos",
+    "historico_com_nomes",
+    "ids_ativos",
+    "pode_gerenciar_convites",
+    "registrar_portas",
+    "restaurar_portas",
+    "usuario_por_id",
+    "usuarios_com_cargo",
+)

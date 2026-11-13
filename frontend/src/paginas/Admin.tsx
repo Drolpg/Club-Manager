@@ -1,21 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { acesso, type AcaoDeUsuario, type Convite, type ConviteGerado, type Usuario } from '../api/acesso'
 import { Alerta, Pagina } from '../componentes'
+import { dataEHora } from '../formatos'
 import { SITUACAO_DO_CONVITE, SITUACAO_DO_USUARIO, mensagemDoErro } from '../mensagens'
 import { useSessao } from '../sessao'
-
-const dataEHora = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
-
-function useLista<T>(carregar: () => Promise<T[]>) {
-  const [itens, definirItens] = useState<T[]>([])
-  const [erro, definirErro] = useState<unknown>(null)
-  const recarregar = useCallback(() => {
-    carregar().then(definirItens).catch(definirErro)
-  }, [carregar])
-  useEffect(recarregar, [recarregar])
-  return { itens, erro, definirErro, recarregar }
-}
+import { useLista } from '../useLista'
 
 export function Convites() {
   const { itens, erro, definirErro, recarregar } = useLista<Convite>(acesso.convites)
@@ -128,7 +118,9 @@ export function Usuarios() {
         <tbody>
           {itens.map((usuario) => (
             <tr key={usuario.id}>
-              <td>{usuario.nome}</td>
+              <td>
+                <Link to={`/admin/usuarios/${usuario.id}`}>{usuario.nome}</Link>
+              </td>
               <td>{usuario.nome_de_usuario}</td>
               <td>{SITUACAO_DO_USUARIO[usuario.situacao]}</td>
               <td>{usuario.admin ? 'Admin' : 'Diretor'}</td>

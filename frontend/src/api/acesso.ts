@@ -33,6 +33,13 @@ export interface DadosDeCadastro {
   senha: string
 }
 
+export interface RegistroDoHistorico {
+  acao: string
+  ator: { id: string; nome: string } | null
+  justificativa: string
+  criado_em: string
+}
+
 export type AcaoDeUsuario = 'desativar' | 'reativar' | 'tornar-admin' | 'remover-admin'
 
 interface Sessao {
@@ -66,4 +73,5 @@ export const acesso = {
 
   usuarios: () => apiGet<Usuario[]>(`${base}/usuarios/`),
   acaoDeUsuario: (id: string, acao: AcaoDeUsuario) => apiPost<Usuario>(`${base}/usuarios/${id}/${acao}/`),
+  historicoDeUsuario: (id: string) => apiGet<RegistroDoHistorico[]>(`${base}/usuarios/${id}/historico/`),
 }

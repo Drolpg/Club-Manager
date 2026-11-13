@@ -51,6 +51,9 @@ demais — decisão em `docs/adr/ADR-001-estilo-arquitetural.md`, avaliação em
   `ModelSerializer` que gravem direto no modelo; declare os campos de saída (ADR-004).
 - Uma tarefa do Celery só chama um serviço do módulo dono (ADR-006).
 - Toda rota é negada por padrão; a que for aberta declara a permissão explicitamente.
+- Toda rota de escrita declara quem pode: uma permissão do catálogo (`permissoes.public.pode`), o admin,
+  ou uma condição que a spec define (ter cargo, ser o dono do item). A conferência é feita na rota e no
+  serviço. Um módulo declara as suas permissões com `registrar_permissao` ao iniciar.
 
 **Não adicionar** (decidido contra; adicionar qualquer um exige nova decisão):
 
@@ -142,6 +145,24 @@ Sempre:
 - Segredos só por variável de ambiente; `.env` e `docs/_local/` nunca vão para o git.
 - Acesso a anexos sempre controlado por permissão.
 - Toda feature registra uma revisão de segurança (`sdd-method:reviewing-security`); cada marco fecha com um relatório.
+
+## Lições da implementação
+
+Erros que já aconteceram neste projeto. Confira cada um antes de dizer que terminou.
+
+- **Confira o código de saída da verificação.** Encadear `verify | grep … && git commit` deixa o commit sair com a
+  verificação falhando. Rode a verificação, leia a saída e só então faça o commit.
+- **Não rode a suíte do backend e a do site ao mesmo tempo:** os testes do site ficam instáveis.
+- **Meça o assunto do commit:** até 72 caracteres.
+- **Linhas de até 110 colunas**, inclusive em comentários, docstrings e textos longos.
+- **Testes de um módulo não importam os internos de outro.** Para criar usuários, use `backend/tests/apoio.py`; as
+  fixtures comuns estão em `backend/conftest.py`.
+- **O que roda depois do commit não roda sozinho nos testes.** Veja o padrão em
+  `backend/acesso/tests/test_cadastro.py`.
+- **`localhost` no Windows tenta IPv6 primeiro.** Use `127.0.0.1` para o banco e o Redis de desenvolvimento.
+- **Suba o sistema de verdade antes de fechar um marco.** O CI não sobe os contêineres, e dois defeitos só
+  apareceram assim: uma dependência que faltava na imagem e a falha de CSRF fora do formato de erro.
+- **Diga o que não foi validado.** Um relato com "não conferi X" vale mais do que um "tudo certo" incompleto.
 
 ## Decisões
 

@@ -75,8 +75,21 @@ estendido ao caso do cadastro concluído.
 | Um módulo precisa ser extraído para outro processo | Outbox e eventos assíncronos para as relações desse módulo |
 | Os eventos de integração passam de um punhado, ou surgem tratadores encadeados | Rever o context map antes de acrescentar mais eventos |
 
+## Adendo 1 — Porta de consulta do módulo de baixo (2026-11-13)
+
+A decisão original cobre o de baixo **provocar** algo no de cima (evento). Faltava o de baixo precisar de uma
+**resposta** que só o de cima sabe dar.
+
+| Regra | Motivo |
+| --- | --- |
+| O módulo de baixo define uma porta na sua API pública, com um padrão seguro (negar) | Ele continua sem conhecer o de cima, e funciona sozinho |
+| O módulo de cima registra a implementação na inicialização | A dependência continua apontando para baixo |
+| Portas existem só onde houver essa necessidade | Hoje: em `acesso`, quem pode gerenciar convites e quais usuários têm cargo, respondidas por `permissoes` |
+
+Aprovado por Leandro Nascimento em 2026-11-13, com a technical-spec `permissoes/catalogo-e-classificacao`.
+
 ---
 
-**Last Updated:** 2026-11-11  
+**Last Updated:** 2026-11-13  
 **Decision Maker:** Leandro Nascimento  
 **Status:** Accepted

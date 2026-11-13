@@ -27,3 +27,8 @@ em aberto (escolha que bloqueia trabalho).
 | Comentários e reações no feed | Seção 10 | "A definir" no enunciado; decidir no refinamento do M9 | Refinamento do M9 | 2026-11-11 |
 | Pastas, categorias e acesso restrito por cargo nos documentos | Seção 10 | "A definir" no enunciado; decidir no refinamento do M9 | Refinamento do M9 | 2026-11-11 |
 | Registro de participação em eventos | Seção 10, pendência do M8 | "A definir" no enunciado | Refinamento do M8 | 2026-11-11 |
+| Notificações em tempo real; preferência por tipo de notificação; resumo diário por e-mail | Spec `notificacoes/caixa-e-email` | O dono escolheu a consulta a cada minuto e uma chave só | Pedido do dono | 2026-11-13 |
+| Prazos de lembrete de solicitação configuráveis; trocar o aprovador indicado depois do envio | Spec `aprovacoes/motor-de-solicitacoes` | Prazos fixos e admin como saída bastam para começar | Pedido do dono | 2026-11-13 |
+| Juros e multa em cobrança atrasada | Spec `financeiro/cobrancas-e-recebimentos` | Não pedido | Pedido do dono | 2026-11-13 |
+| Bloquear novos pedidos de quem tem prestação de contas atrasada; reembolso de gasto sem pedido prévio | Spec `financeiro/gastos-e-prestacao-de-contas` | Não pedido | Pedido do dono | 2026-11-13 |
+| Evento recorrente; lista de presença marcada pelo organizador; lembrete a quem confirmou presença; aprovação diferente por categoria de evento | Spec `eventos/eventos-e-calendario` | Fora do mínimo escolhido pelo dono | Pedido do dono | 2026-11-13 |

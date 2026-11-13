@@ -2,6 +2,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
+from acesso import portas
 from acesso.models import Usuario
 from kernel import rate_limit
 from kernel.errors import BusinessError
@@ -17,6 +18,16 @@ class EhAdmin(BasePermission):
 
     def has_permission(self, request: Request, view: APIView) -> bool:
         return isinstance(request.user, Usuario) and request.user.is_active and request.user.admin
+
+
+class PodeGerenciarConvites(BasePermission):
+    """Admin, ou quem a porta de `permissoes` liberar (`convites.gerenciar`). O serviço confere de novo."""
+
+    def has_permission(self, request: Request, view: APIView) -> bool:
+        usuario = request.user
+        return (
+            isinstance(usuario, Usuario) and usuario.is_active and portas.pode_gerenciar_convites(usuario.id)
+        )
 
 
 def limitar_por_ip(request: Request) -> None:

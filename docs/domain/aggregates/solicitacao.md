@@ -123,3 +123,44 @@ o contexto Identidade e Permissões. O aggregate recebe o resultado e protege o 
 - A indicação de aprovador gera aviso ao admin e fica explícita no histórico? → H26 (proposta para o rito 6)
 - Editar enquanto está `EM_ANALISE` é permitido? Proposta: não; o solicitante cancela ou espera a decisão → rito 6
 - Modelagem física das versões e do conteúdo → AD-008
+
+## 11. Adendos
+
+### Adendo 1 — Retirar para corrigir, e invariantes da implementação (2026-11-13)
+
+Motivo: na spec funcional `aprovacoes/motor-de-solicitacoes`, o dono decidiu que o solicitante pode retirar da
+análise uma solicitação para corrigi-la. A technical-spec acrescentou três garantias.
+
+Situação nova, `RETIRADA`, e as transições dela:
+
+```mermaid
+stateDiagram-v2
+  EM_ANALISE --> RETIRADA: retirar
+  RETIRADA --> EM_ANALISE: reenviar (nova versão)
+  RETIRADA --> CANCELADA: cancelar
+```
+
+Comando novo:
+
+| Comando | Ator | Pré-condições | Eventos emitidos | Falhas de negócio |
+| --- | --- | --- | --- | --- |
+| `retirar` | Solicitante | `EM_ANALISE` | `SolicitacaoRetirada` | `NAO_ESTA_EM_ANALISE`, `SO_O_SOLICITANTE` |
+
+O comando `reenviar` passa a aceitar também a situação `RETIRADA`.
+
+| ID | Regra | Como é garantida | Teste |
+| --- | --- | --- | --- |
+| INV-SOL-12 | Só o solicitante retira, e só em análise; a retirada não cria versão | Método `retirar` | Rito 8 |
+| INV-SOL-13 | Só se reenvia uma solicitação `CONTESTADA` ou `RETIRADA`; o reenvio cria a versão seguinte | Método `reenviar` | Rito 8 |
+| INV-SOL-14 | Uma versão tem no máximo uma decisão | Relação um para um no banco, além do método (reforça a INV-SOL-03) | Rito 8 |
+| INV-SOL-15 | O aprovador indicado é um diretor ativo com cargo e não é o solicitante | Serviço de envio | Rito 8 |
+
+Casos de borda fechados com este adendo:
+
+| Pergunta | Decisão | Data | Quem decidiu |
+| --- | --- | --- | --- |
+| Editar enquanto está em análise? | Não se edita; o solicitante retira, corrige e reenvia | 2026-11-13 | Leandro Nascimento |
+| A indicação de aprovador gera aviso? | Fica no histórico e o admin é notificado (CB-02) | 2026-11-11 | Leandro Nascimento |
+| Quem tem auto-aprovação decide como? | Pelo caminho normal, com a marca de aprovação própria e aviso ao admin | 2026-11-13 | Leandro Nascimento |
+
+Aprovado por / em: Leandro Nascimento / 2026-11-13.

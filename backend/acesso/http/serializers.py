@@ -3,6 +3,7 @@ from typing import Any
 from django.utils import timezone
 from rest_framework import serializers
 
+from acesso import portas
 from acesso.models import Convite, Usuario
 
 
@@ -23,8 +24,26 @@ class UsuarioSerializer(serializers.Serializer[Any]):
     tem_cargo = serializers.SerializerMethodField()
 
     def get_tem_cargo(self, usuario: Usuario) -> bool:
-        # Cargo e setores chegam com o módulo `permissoes` (M3). Até lá, ninguém tem cargo.
-        return False
+        # Quem tem cargo é `permissoes` quem diz, pela porta. A lista passa o conjunto pronto em `com_cargo`,
+        # para consultar uma vez só; um usuário sozinho (a sessão) consulta a porta para ele.
+        com_cargo = self.context.get("com_cargo")
+        if com_cargo is None:
+            com_cargo = portas.usuarios_com_cargo([usuario.id])
+        return usuario.id in com_cargo
+
+
+class _AtorSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    nome = serializers.CharField()
+
+
+class HistoricoSerializer(serializers.Serializer[Any]):
+    """Uma ação do histórico de um item. `ator` é nulo para ações do sistema."""
+
+    acao = serializers.CharField()
+    ator = _AtorSerializer(allow_null=True)
+    justificativa = serializers.CharField(allow_blank=True)
+    criado_em = serializers.DateTimeField()
 
 
 class SessaoSerializer(serializers.Serializer[Any]):

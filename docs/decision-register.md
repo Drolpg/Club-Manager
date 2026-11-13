@@ -45,14 +45,14 @@ agente só recomenda.
 | AD-004 | Frontend web | Resolved | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
 | AD-005 | Filas e tarefas agendadas | Resolved | Arquitetura compartilhada | Leandro | M4 |
 | AD-006 | Estratégia de autenticação e tokens para site e app | Resolved | Arquitetura compartilhada | Leandro | M2 |
-| AD-007 | Modelagem das permissões (ação, recurso e escopo) | Pending | Arquitetura compartilhada | Leandro | M3 |
-| AD-008 | Modelagem do motor de aprovações e das versões de solicitação | Pending | Arquitetura compartilhada | Leandro | M5 |
+| AD-007 | Modelagem das permissões (ação, recurso e escopo) | Resolved | Arquitetura compartilhada | Leandro | M3 |
+| AD-008 | Modelagem do motor de aprovações e das versões de solicitação | Resolved | Arquitetura compartilhada | Leandro | M5 |
 | AD-009 | Modelagem da trilha de auditoria | Resolved | Arquitetura compartilhada | Leandro | M3 |
 | AD-010 | Estornos e cancelamentos como lançamentos ligados ao original | Pending | Arquitetura compartilhada | Leandro | M7 |
 | AD-011 | Armazenamento de anexos | Pending | Arquitetura compartilhada | Leandro | M6 (primeiro comprovante) |
 | AD-012 | Provedor de e-mail | Not Blocking | Arquitetura compartilhada | Leandro | M12 (produção) |
 | AD-013 | CI/CD, deploy e dimensionamento da instância única | Pending | Arquitetura compartilhada | Leandro | M1 (CI) e M12 (deploy) |
-| AD-014 | O que o painel do admin cria sozinho e o que exige programação | Pending | Dono do marco M3 | Leandro | M3 |
+| AD-014 | O que o painel do admin cria sozinho e o que exige programação | Resolved | Dono do marco M3 | Leandro | M3 |
 | AD-015 | Adequação à LGPD | Pending | Arquitetura compartilhada | Leandro | M2 |
 | AD-016 | Itens do protótipo que o enunciado não cobre | Resolved | Escopo de entrega | Leandro | Rito 6 |
 | AD-017 | Tecnologia do aplicativo mobile | Deferred | Arquitetura compartilhada | Leandro | Nada na etapa 1 |
@@ -205,7 +205,12 @@ para o Google, token opaco para o aplicativo futuro.
 
 ### AD-007 — Como modelar as permissões?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** catálogo de permissões em código (`<recurso>.<acao>`); concessões a cargo, setor ou usuário, revogadas e nunca
+apagadas; união por função pura; sem escopo por setor do item.
+
+**Resolved on:** 2026-11-13, por Leandro Nascimento
 
 **Scope:** Arquitetura compartilhada
 
@@ -214,13 +219,23 @@ para o Google, token opaco para o aplicativo futuro.
 **Problem:** uma permissão combina ação, tipo de recurso e, se preciso, setor (PER-02), vem de três origens que se
 somam (PER-03) e precisa ser extensível para tipos de usuário futuros.
 
-**Follow-up:** ADR na especificação do M3.
+**Nota (2026-11-13):** proposta na technical-spec `permissoes/catalogo-e-classificacao`: permissão como código
+`<recurso>.<acao>` num catálogo em código; concessões a cargo, setor ou usuário, revogadas e nunca apagadas; união
+calculada por função pura; sem escopo por setor do item (decisão do dono).
+
+**Follow-up:** technical-spec `permissoes/catalogo-e-classificacao`.
 
 ---
 
 ### AD-008 — Como modelar o motor de aprovações e as versões de solicitação?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** aggregate `Solicitacao` com versões e decisões imutáveis; uma decisão por versão; tipos de solicitação
+registrados em código pelos módulos donos, cada um com a função que valida o conteúdo e o tratador de mudanças;
+conteúdo em JSON, com valor e resumo em colunas próprias.
+
+**Resolved on:** 2026-11-13, por Leandro Nascimento
 
 **Scope:** Arquitetura compartilhada
 
@@ -232,7 +247,11 @@ que não se sobrescrevem e liquidação imutável (APR-01 a APR-11).
 **Nota (2026-11-11):** a descoberta do domínio mudou as premissas: um só validador por solicitação, contestar como
 terceira decisão, e evento com custo como duas solicitações ligadas (`docs/domain/discovery/event-storming.md`).
 
-**Follow-up:** ADR na especificação do M5.
+**Nota (2026-11-13):** modelagem proposta na technical-spec `aprovacoes/motor-de-solicitacoes`: o aggregate
+`Solicitacao` com versões e decisões imutáveis; tipos de solicitação registrados em código pelos módulos donos,
+cada um com o próprio tratador de mudanças; conteúdo em JSON validado pelo dono.
+
+**Follow-up:** technical-spec `aprovacoes/motor-de-solicitacoes`.
 
 ---
 
@@ -330,7 +349,11 @@ backup, rollback e as regras do free tier para a conta do dono.
 
 ### AD-014 — O que o painel do admin cria sozinho e o que exige programação?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** o painel concede e revoga permissões do catálogo; criar uma permissão nova é programação.
+
+**Resolved on:** 2026-11-13, por Leandro Nascimento
 
 **Scope:** Dono do marco M3
 
@@ -339,7 +362,10 @@ backup, rollback e as regras do free tier para a conta do dono.
 **Problem:** o painel monta combinações a partir de ações e recursos conhecidos; comportamento totalmente novo é
 criado por programação (PER-05). O enunciado permite propor outra abordagem.
 
-**Follow-up:** especificação do M3.
+**Nota (2026-11-13):** o dono aprovou, na spec funcional, que o catálogo fica no código e o painel só concede e
+revoga o que existe nele. Passa a Resolved com a aprovação da technical-spec.
+
+**Follow-up:** technical-spec `permissoes/catalogo-e-classificacao`.
 
 ---
 

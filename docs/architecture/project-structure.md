@@ -88,6 +88,18 @@ Os arquivos são criados quando a primeira feature do módulo precisar deles. Ho
 
 Todas rodam em `uv run poe verify`, na máquina e no CI.
 
+### Como um módulo declara e pergunta permissões
+
+- **Declarar:** ao iniciar (no `ready` do `AppConfig`), o módulo chama
+  `permissoes.public.registrar_permissao(codigo, nome, descricao, fora_do_acesso_total=False)`. O código tem o formato
+  `<recurso>.<acao>` e nunca muda de significado. As permissões de `acesso` ficam em `permissoes/catalogo.py`, porque
+  `acesso` não pode importar `permissoes`.
+- **Perguntar:** `permissoes.public.pode(usuario_id, codigo)`, `quem_pode(codigo)` e `le_gestao(usuario_id)`. Não há
+  cache: a mudança vale na requisição seguinte.
+- **Quando um módulo de baixo precisa da resposta de um de cima** (hoje, `acesso` quanto a convites e a "ter cargo"):
+  define uma porta com padrão seguro em `acesso/portas.py`, exposta por `acesso.public.registrar_portas`; `permissoes`
+  registra a implementação no `ready` (adendo 1 da ADR-003).
+
 Regras ainda sem verificação automática, conferidas na revisão de cada feature:
 
 - views e serializers sem regra de negócio, e escrita sempre por um serviço (ADR-004);
@@ -99,7 +111,7 @@ Regras ainda sem verificação automática, conferidas na revisão de cada featu
 
 | Placeholder | Onde | Feature que vai criá-lo |
 | --- | --- | --- |
-| Conteúdo de cada `public.py` | `backend/<modulo>/public.py` | A primeira feature de cada módulo (M2 a M11) |
+| Conteúdo de cada `public.py` | `backend/<modulo>/public.py` | A primeira feature de cada módulo (M2 a M11); `acesso` e `permissoes` já têm o seu |
 | Despachante de eventos em processo | `backend/kernel/` | M4 (`CadastroConcluido`); no M2 o aviso aos admins é um e-mail do próprio `acesso` |
 | Value object `Dinheiro` | `backend/kernel/` ou `financeiro/domain/` | M5 (valor da solicitação); o lugar é decidido na technical-spec |
 | Armazenamento de anexos | Configuração `STORAGES` | M6 (AD-011) |
