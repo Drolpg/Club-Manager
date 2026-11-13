@@ -27,6 +27,7 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | --- | --- | --- |
 | [setup/local.md](setup/local.md) | Tutorial | Como subir o sistema localmente e rodar os testes |
 | [setup/configuration.md](setup/configuration.md) | Referência | Que variáveis existem e de onde vem cada valor |
+| [setup/google.md](setup/google.md) | Guia | Como ligar o login com o Google |
 | `operations/` (M12) | Guia | Deploy, backup e rollback na instância única |
 
 ## Para consumir a API
@@ -34,7 +35,8 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | Documento | Responde |
 | --- | --- |
 | `/api/v1/docs/` no sistema em execução | O contrato gerado pela aplicação, navegável |
-| `api/README.md` (M2) | Autenticação e recursos disponíveis |
+| [api/README.md](api/README.md) | Autenticação, erros e recursos disponíveis |
+| [api/manual-testing.md](api/manual-testing.md) | Como percorrer o fluxo de acesso manualmente |
 
 ## Para contribuir
 

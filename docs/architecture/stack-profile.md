@@ -22,15 +22,20 @@ As versões são as resolvidas em 2026-11-11; a fonte exata é `backend/uv.lock`
 | Testes HTTP | `APIClient` do DRF | — | `uv run pytest` | |
 | Cobertura | pytest-cov | 7.1 | Parte do `pytest` | Meta: 80%, com ramos |
 | Migrations | Migrações do Django | — | `uv run python manage.py makemigrations` | Convenção abaixo; `poe migrations-check` falha se faltar migração |
-| Contrato de API gerado | drf-spectacular | 0.30 | — | Servido em `/api/v1/schema/`; navegável em `/api/v1/docs/` |
+| Contrato de API gerado | drf-spectacular, com `drf-spectacular-sidecar` | 0.30 | — | Em `/api/v1/schema/` e `/api/v1/docs/`, só para admin logado; sem CDN |
 | Validação na borda | Serializers do DRF | — | — | Só validam e formatam (ADR-004) |
-| Eventos em processo | Despachante próprio, síncrono | — | — | Criado na primeira feature que publicar um evento (ADR-003) |
+| Eventos em processo | Despachante próprio, síncrono | — | — | Criado no M4, quando `notificacoes` reagir ao cadastro concluído (ADR-003) |
 | Fila e agendador | Celery, Redis | 5.7, 8 | `celery -A config worker -B` | ADR-006 |
 | Lint e formatação | Ruff | 0.17 | `uv run poe lint`, `uv run poe format` | Inclui as regras de segurança `S` (Bandit) |
 | SCA | pip-audit | 2.10 | `uv run poe audit` | Roda no CI |
 | SAST | Regras `S` do Ruff | — | `uv run poe lint` | |
 | DAST | A definir | — | — | Avaliar no M12, guiado pelo contrato |
 | Servidor | gunicorn, WhiteNoise | 27, 6.12 | Comando da imagem | Dois processos |
+| Senhas | Argon2 (`argon2-cffi`) | — | — | Nos testes, o mesmo algoritmo com custo mínimo (`tests/hashers.py`) |
+| Sessão | Sessões do Django no banco, com CSRF | — | — | ADR-008 |
+| Login com Google | `google-auth` | — | — | Atrás da port `VerificadorGoogle`; fake nos testes |
+| E-mail | `MAILERS` do Django 6.1, SMTP por `EMAIL_URL` | — | — | Sem `EMAIL_URL`, sai no log; nos testes, em memória |
+| Limite de tentativas | `kernel.rate_limit`, no cache (Redis) | — | — | Nos testes, cache em memória |
 
 ## Ferramentas do site
 
@@ -38,6 +43,7 @@ As versões são as resolvidas em 2026-11-11; a fonte exata é `backend/uv.lock`
 | --- | --- | --- | --- | --- |
 | Build e execução | Node, npm, Vite | 22, 10, 8 | `npm run dev`, `npm run build` | Lockfile versionado |
 | Biblioteca de interface | React | 19 | — | ADR-005 |
+| Roteamento | React Router | 8 | — | |
 | Checagem de tipos | TypeScript | 7 | `npm run types` | |
 | Testes | Vitest, Testing Library, jsdom | 5, 16, 31 | `npm test` | |
 | Cobertura | Cobertura v8 do Vitest | 5 | `npm run coverage` | Meta: 80% |
@@ -73,7 +79,11 @@ A verificação completa do projeto são os dois comandos `verify`. O CI roda ex
   decisão.
 - **Estilo:** linhas de até 110 colunas; formatação do Ruff; sem imports curinga (exceto em `settings_test.py`).
 - **Injeção de dependência:** nenhuma. As fronteiras trocam por configuração do Django.
-- **Chaves primárias:** a definir na primeira technical-spec com modelo (M2); os canvases supõem UUID.
+- **Chaves primárias:** UUID versão 7 (`uuid.uuid7`), em todos os modelos.
+- **Referência entre módulos:** por ID (campo UUID), sem chave estrangeira; dentro do módulo, chave estrangeira
+  normal. A auditoria guarda só IDs.
+- **Depois do commit:** e-mail e trabalho pesado são enfileirados com `transaction.on_commit`; a tarefa recebe só
+  IDs e nunca um token.
 
 ## Mapeamento de conceitos
 

@@ -47,7 +47,7 @@ agente só recomenda.
 | AD-006 | Estratégia de autenticação e tokens para site e app | Resolved | Arquitetura compartilhada | Leandro | M2 |
 | AD-007 | Modelagem das permissões (ação, recurso e escopo) | Pending | Arquitetura compartilhada | Leandro | M3 |
 | AD-008 | Modelagem do motor de aprovações e das versões de solicitação | Pending | Arquitetura compartilhada | Leandro | M5 |
-| AD-009 | Modelagem da trilha de auditoria | Pending | Arquitetura compartilhada | Leandro | M3 |
+| AD-009 | Modelagem da trilha de auditoria | Resolved | Arquitetura compartilhada | Leandro | M3 |
 | AD-010 | Estornos e cancelamentos como lançamentos ligados ao original | Pending | Arquitetura compartilhada | Leandro | M7 |
 | AD-011 | Armazenamento de anexos | Pending | Arquitetura compartilhada | Leandro | M6 (primeiro comprovante) |
 | AD-012 | Provedor de e-mail | Not Blocking | Arquitetura compartilhada | Leandro | M12 (produção) |
@@ -238,7 +238,13 @@ terceira decisão, e evento com custo como duas solicitações ligadas (`docs/do
 
 ### AD-009 — Como modelar a trilha de auditoria?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** tabela só de inserção (`RegistroDeAuditoria`), com IDs e códigos, sem dado pessoal; o modelo recusa
+alterar e apagar, e um gatilho no banco recusa o mesmo por qualquer caminho. Escrita por `auditoria.public.registrar`,
+na transação do caso de uso.
+
+**Resolved on:** 2026-11-12, por Leandro Nascimento, na aprovação da technical-spec `acesso/identidade-e-acesso`
 
 **Scope:** Arquitetura compartilhada
 
@@ -249,7 +255,7 @@ terceira decisão, e evento com custo como duas solicitações ligadas (`docs/do
 **Nota (2026-11-12):** modelagem proposta na technical-spec `acesso/identidade-e-acesso`: tabela só de inserção, com
 gatilho no banco que recusa alterar e apagar. A gravação entra no M2; a consulta, no M3.
 
-**Follow-up:** ADR na especificação do M3.
+**Follow-up:** implementada no M2; a consulta nas telas (RF-027) entra no M3.
 
 ---
 

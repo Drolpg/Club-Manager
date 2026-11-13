@@ -149,27 +149,34 @@ Preenchida no checkpoint 11.
 
 | Item | Achado | Mitigação | Status |
 | --- | --- | --- | --- |
-| Validação de entrada e mass assignment | | | |
-| Autenticação e autorização | | | |
-| Exposição de dados | | | |
-| Segredos e logs | | | |
-| Persistência e migrations | | | |
-| Respostas de erro | | | |
-| Dependências novas | | | |
-| Abuso do endpoint | | | |
+| Validação de entrada e mass assignment | Serializers declaram campo a campo, com tamanho máximo; campo extra (por exemplo, `cpf` ou `email` no cadastro com Google) é ignorado; `admin` e `situacao` nunca vêm do cliente | Testes `test_ca14…`, `test_o_email_da_conta_e_sempre_o_do_google…` | OK |
+| Autenticação e autorização | Negado por padrão; rotas abertas declaram `AllowAny`; rotas de admin exigem `EhAdmin` na view e `exigir_admin` no serviço; sessão conferida a cada requisição | `test_ca04…`, `test_ca32…`, `test_servico_recusa…`, `test_usuario_desativado_perde_a_sessao…` | OK |
+| Exposição de dados | Respostas sem hash de senha; listas só para admin; login, recuperação, reenvio e convite inválido não revelam existência. O cadastro revela nome de usuário ou e-mail em uso a quem tem convite válido | Aceito no modelo de ameaças, com limite por IP | Mitigado |
+| Segredos e logs | Token de convite só como hash; tokens de verificação e de recuperação assinados, nunca guardados nem na fila; auditoria e logs sem senha, token ou e-mail; `.env` fora do git | `test_token_do_convite_nao_e_guardado…`, `test_o_token_nunca_passa_pela_fila` | OK |
+| Persistência e migrations | Quatro migrações novas, reversíveis; auditoria com gatilho que recusa alterar e apagar; nenhum seed | `test_migracao_reverte_e_reaplica`, `test_banco_recusa_…` | OK |
+| Respostas de erro | Envelope com código estável em todos os casos, inclusive falha de CSRF (achado na validação final e corrigido) | `test_falha_de_csrf_responde_no_envelope_de_erro` | OK |
+| Dependências novas | `argon2-cffi`, `google-auth` (com `requests`), `drf-spectacular-sidecar`, `packaging`, `react-router`; todas com versão no lockfile | `pip-audit` e `npm audit` sem achados em 2026-11-12 | OK |
+| Abuso do endpoint | 5 erros de login em 15 minutos por conta; 20 requisições por minuto por IP nas rotas abertas de escrita; 3 reenvios e 3 pedidos de recuperação por hora | `test_ca22…`, `test_consulta_de_convite_e_limitada_por_ip`, `test_reenvio_e_limitado…`, `test_pedido_de_recuperacao_e_limitado…` | OK |
+| Integrações externas | Token do Google validado por assinatura, público-alvo, validade e e-mail verificado; conta já vinculada não é tomada por outra conta Google com o mesmo e-mail | `test_adapter_real_…`, `test_outra_conta_google…` | OK |
+| Cookies | `HttpOnly`, `SameSite=Lax` e `Secure` fora de depuração; CSRF em toda escrita, inclusive no login | `test_cookie_de_sessao…`, `test_login_sem_token_csrf_e_recusado` | OK |
+
+Pontos em aberto, sem achado crítico ou alto: sem HTTPS (M12); o `TRUNCATE` da tabela de auditoria não é barrado pelo
+gatilho de linha (exige ser dono da tabela; avaliar no M12 com o usuário de banco da aplicação); sem verificação em
+duas etapas (backlog).
 
 ## Definition of Done
 
-- [ ] Checkpoints concluídos, com evidência.
-- [ ] Testes relevantes criados e passando; todo CA com ao menos um teste.
-- [ ] Verificação completa passando; cobertura dentro da meta.
-- [ ] Fronteiras de módulo verificadas.
-- [ ] Toda ação da regra 19 da funcional auditada, com teste.
-- [ ] Revisão de segurança registrada, sem achado crítico ou alto aberto.
-- [ ] Migrations reversíveis; nenhum seed.
-- [ ] Contrato, `docs/api/` e guia de teste manual atualizados.
-- [ ] Registro de requisitos, decisões e riscos atualizados.
+- [x] Checkpoints concluídos, com evidência.
+- [x] Testes relevantes criados e passando; todo CA com ao menos um teste (matriz acima).
+- [x] Verificação completa passando; cobertura dentro da meta (backend 96%, site 86%).
+- [x] Fronteiras de módulo verificadas.
+- [x] Toda ação da regra 19 da funcional auditada, com teste.
+- [x] Revisão de segurança registrada, sem achado crítico ou alto aberto.
+- [x] Migrations reversíveis; nenhum seed.
+- [x] Contrato, `docs/api/` e guia de teste manual atualizados.
+- [x] Registro de requisitos, decisões e riscos atualizados.
 - [ ] Critérios de aceite validados e aprovados pelo dono.
+- [ ] CI verde no GitHub (roda ao integrar na `dev`).
 
 ## Evidências de verificação
 
@@ -264,6 +271,35 @@ Testes: `frontend/src/App.test.tsx` (26) e `frontend/src/api/client.test.ts` (4)
 provisória do M1 ("API no ar") foram substituídos, porque a página deu lugar às telas desta feature. Dois testes
 novos tinham suposições de tempo erradas (ordem das chamadas e espera pela lista) e foram corrigidos antes do
 commit, sem mudar o que conferem.
+
+### Checkpoint 11 — Validação final (2026-11-12)
+
+```text
+uv run poe verify        → saída 0; 217 passed; cobertura 96,42%; import-linter: 1 contrato mantido
+npm run verify           → saída 0; 30 passed; cobertura 86,39%
+uv run pip-audit         → No known vulnerabilities found
+npm audit --audit-level=high → found 0 vulnerabilities
+docker compose up -d --build → api, worker, web, db e redis no ar
+```
+
+Fluxo completo percorrido pela API contra o sistema no ar, pelo proxy (`http://localhost:8080`), em 17 passos, todos
+com o resultado esperado: admin criado pelo comando; login pelo e-mail; convite gerado; cadastro; convite gasto; login
+recusado antes da verificação; e-mail de verificação no log do `worker`; verificação; login do diretor sem cargo;
+diretor impedido de gerar convite; listagem; desativação; sessão do desativado encerrada na hora; saída; rota de admin
+negada sem sessão.
+
+O que essa validação achou, e que os testes automatizados não pegavam:
+
+- a falha de CSRF respondia com a página HTML padrão do Django, fora do envelope de erro. Corrigido
+  (`CSRF_FAILED`), com teste;
+- no log, os links dos e-mails aparecem quebrados com `=`. É a codificação do e-mail, não um defeito do sistema;
+  ficou documentado em `docs/setup/local.md` e `docs/api/manual-testing.md`.
+
+Não validado: o roteiro pelo navegador, por uma pessoa, e o login com uma conta Google real (depende de o dono criar
+o ID de cliente). O CI no GitHub só roda quando a branch for integrada à `dev` ou num pull request.
+
+Memória em repouso com o M2 no ar: `api` 167 MB, `worker` 168 MB, `db` 46 MB, `redis` 14 MB, `web` 16 MB; cerca de
+410 MB (eram 330 MB no M1).
 
 ## Rollback ou recuperação
 

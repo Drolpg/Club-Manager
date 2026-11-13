@@ -82,7 +82,7 @@ validação), com revisão de segurança e auditoria de coerência ao fim.
 | --- | --- | --- | --- | --- |
 | M0 Arquitetura | E1 | Concluído | 2026-11-11 | Leandro Nascimento |
 | M1 Fundação | E2 | Concluído (`v0.1.0`) | 2026-11-12 | Leandro Nascimento |
-| M2 Identidade e acesso | E3 | Em andamento (especificação) | | |
+| M2 Identidade e acesso | E3 | Implementado na branch `feat/acesso-identidade-e-acesso`; aguardando a aprovação do dono | | |
 | M3 Permissões e auditoria | E4 | Pendente | | |
 | M4 Notificações | E5 | Pendente | | |
 | M5 Motor de aprovações | E6 | Pendente | | |

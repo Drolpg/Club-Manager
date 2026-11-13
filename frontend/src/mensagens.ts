@@ -14,6 +14,7 @@ const TEXTO: Record<string, string> = {
   ACESSO_SO_POR_CONVITE: 'O acesso é só por convite. Peça um ao administrador.',
   CONTA_JA_EXISTE: 'Já existe uma conta com este e-mail. Entre por ela.',
   NAO_PODE_ALTERAR_A_SI_MESMO: 'Esta ação precisa ser feita por outro admin.',
+  CSRF_FAILED: 'A página ficou desatualizada. Recarregue e tente de novo.',
   NETWORK_ERROR: 'Não foi possível falar com o servidor. Confira a sua conexão.',
 }
 

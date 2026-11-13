@@ -36,15 +36,29 @@ Como verificar:
 
 | O quê | Onde | Resultado esperado |
 | --- | --- | --- |
-| Site | <http://localhost:8080> | Página "Club Manager" com o texto "API no ar" |
+| Site | <http://localhost:8080> | Tela "Entrar" |
 | Saúde da API | <http://localhost:8080/api/v1/health/> | `{"status":"ok","database":"ok"}` |
-| Documentação da API | <http://localhost:8080/api/v1/docs/> | Página do Swagger com a rota `health` |
+| Documentação da API | <http://localhost:8080/api/v1/docs/> | Sem login, erro `NOT_AUTHENTICATED`; logado como admin, a página do Swagger |
 | Serviços | `docker compose ps` | Os cinco com estado `Up`; `db`, `redis` e `api` como `healthy` |
 | Worker | `docker compose logs worker` | Linha terminando em `ready.` |
 
 Para parar: `docker compose down`. Para apagar também os dados do banco local: `docker compose down --volumes`.
 
-## 3. Rodar os testes
+## 3. Criar o primeiro admin
+
+O sistema nasce vazio e só se entra por convite gerado por um admin. O primeiro admin é criado por um comando,
+que pede os dados na hora (não existe senha padrão):
+
+```text
+docker compose exec api python manage.py criar_admin
+```
+
+Resultado esperado: `Admin <nome de usuário> criado.` O mesmo comando cria outro admin se todos perderem o
+acesso. O roteiro completo de teste do acesso está em [api/manual-testing.md](../api/manual-testing.md).
+
+Em desenvolvimento os e-mails não são enviados: saem no log do `worker` (`docker compose logs worker`).
+
+## 4. Rodar os testes
 
 Os testes do backend usam o PostgreSQL do compose, exposto na porta 5433. Basta o banco estar no ar:
 
@@ -70,7 +84,7 @@ npm run verify
 
 Roda lint, tipos, testes com cobertura e build.
 
-## 4. Desenvolver o site com recarga automática
+## 5. Desenvolver o site com recarga automática
 
 Com o sistema no ar (passo 2), em `frontend/`:
 
@@ -89,4 +103,5 @@ O Vite abre em <http://localhost:5173> e repassa `/api` para a API em `127.0.0.1
 | `failed to connect to the docker API` | O Docker Desktop não está aberto | Abra o Docker Desktop, ou rode `docker desktop start` |
 | Testes do backend falham com erro de senha do banco | O volume do banco foi criado com outra senha | `docker compose down --volumes` e suba de novo |
 | Os testes do backend ficam parados, sem terminar | Algo aponta para `localhost`, que no Windows tenta IPv6 primeiro; as portas de desenvolvimento só atendem em `127.0.0.1` | Use `127.0.0.1` no `DATABASE_URL` e no `REDIS_URL` |
+| O link copiado do log do `worker` dá "link inválido" | No log, o e-mail aparece codificado e as linhas longas são quebradas com `=` no fim | Junte as linhas, tirando o `=` do fim de cada uma |
 | O editor marca linhas com mais de 79 colunas | O linter padrão do editor não lê a configuração do projeto | O limite do projeto é 110 (Ruff, em `backend/pyproject.toml`); use a extensão do Ruff no editor |

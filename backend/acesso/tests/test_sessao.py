@@ -210,3 +210,12 @@ def test_login_valida_os_campos(client: APIClient, db: None) -> None:
 
     assert resposta.status_code == 400
     assert resposta.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_falha_de_csrf_responde_no_envelope_de_erro(diretor: Usuario) -> None:
+    client = APIClient(enforce_csrf_checks=True)
+
+    resposta = _login(client, "bia")
+
+    assert resposta.status_code == 403
+    assert resposta.json()["error"]["code"] == "CSRF_FAILED"

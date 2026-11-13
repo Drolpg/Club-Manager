@@ -30,7 +30,8 @@
 ├── frontend/                 Site (React, Vite, TypeScript)
 │   └── src/
 │       ├── api/              Cliente da API; nenhuma regra de negócio
-│       └── test/             Configuração dos testes
+│       ├── paginas/          Telas
+│       └── test/             Configuração dos testes e simulação da API
 └── docs/                     Método, enunciado, domínio, requisitos, decisões
 ```
 
@@ -91,17 +92,15 @@ Regras ainda sem verificação automática, conferidas na revisão de cada featu
 
 - views e serializers sem regra de negócio, e escrita sempre por um serviço (ADR-004);
 - estado de aggregate alterado só pelos métodos dele (ADR-001);
-- chave estrangeira entre módulos só para o usuário; as demais referências entre módulos são por ID. Esta regra é
-  proposta e é confirmada na primeira technical-spec com modelo (M2).
+- referência entre módulos por ID, sem chave estrangeira (decidido na technical-spec do M2: a auditoria guarda só
+  IDs).
 
 ## Placeholders
 
 | Placeholder | Onde | Feature que vai criá-lo |
 | --- | --- | --- |
 | Conteúdo de cada `public.py` | `backend/<modulo>/public.py` | A primeira feature de cada módulo (M2 a M11) |
-| Despachante de eventos em processo | `backend/kernel/` | M2 (`CadastroConcluido`) |
+| Despachante de eventos em processo | `backend/kernel/` | M4 (`CadastroConcluido`); no M2 o aviso aos admins é um e-mail do próprio `acesso` |
 | Value object `Dinheiro` | `backend/kernel/` ou `financeiro/domain/` | M5 (valor da solicitação); o lugar é decidido na technical-spec |
-| Autenticação e usuário | `backend/acesso/` | M2 (AD-006) |
 | Armazenamento de anexos | Configuração `STORAGES` | M6 (AD-011) |
-| Envio de e-mail | Configuração de e-mail do Django | M2 (AD-012) |
-| Roteamento, componentes e temas do site | `frontend/src/` | M2 e M11 |
+| Biblioteca de componentes e temas do site | `frontend/src/` | M11; o M2 usa HTML e CSS simples |
