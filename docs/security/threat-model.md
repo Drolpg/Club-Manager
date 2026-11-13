@@ -76,4 +76,4 @@ preenchidas por `permissoes`, rotas de histórico.
 | Porta sem implementação | Padrão seguro, testado com a porta restaurada | Implementada (M3) | `acesso/tests/test_portas.py` |
 | Permissão órfã | Ignorada na resolução | Implementada (M3) | PER-R05; `test_permissao_fora_do_catalogo_e_ignorada` |
 | Alteração de permissão sem rastro | Auditoria na transação | Implementada (M3) | CA-29 |
-| Escrita autenticada sem token CSRF responde `PERMISSION_DENIED` e não `CSRF_FAILED` | Nenhuma ainda: o `csrf_failure` só cobre rotas sem sessão; o resultado continua sendo 403 | Aberta, achado do M2 visto no M3 | Relato do checkpoint 6; decisão do dono |
+| Escrita autenticada sem token CSRF respondia `PERMISSION_DENIED` e não `CSRF_FAILED` | `kernel.http.SessionAuthentication.enforce_csrf` converte a falha em `CSRF_FAILED`, no mesmo texto de `csrf_failure` | Corrigida (revisão do PR #2) | `backend/tests/test_csrf.py` |

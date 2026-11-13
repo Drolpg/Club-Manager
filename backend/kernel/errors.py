@@ -68,8 +68,9 @@ def handler500(request: HttpRequest) -> JsonResponse:
     return JsonResponse(envelope("INTERNAL_ERROR", _INTERNAL_MESSAGE), status=500)
 
 
+CSRF_MESSAGE = "A página ficou desatualizada. Recarregue e tente de novo."
+
+
 def csrf_failure(request: HttpRequest, reason: str = "") -> JsonResponse:
     """Escrita sem o token CSRF válido. O motivo fica só no log do Django."""
-    return JsonResponse(
-        envelope("CSRF_FAILED", "A página ficou desatualizada. Recarregue e tente de novo."), status=403
-    )
+    return JsonResponse(envelope("CSRF_FAILED", CSRF_MESSAGE), status=403)

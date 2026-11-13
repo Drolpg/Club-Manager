@@ -178,7 +178,7 @@ tela com o caminho feliz e um erro. No Windows, rode o `npm` num terminal aberto
 
 ## Revisão de segurança
 
-Preenchida no checkpoint 6 (2026-11-13), com `sdd-method:reviewing-security`. Sem achado crítico ou alto.
+Preenchida no checkpoint 6 (2026-11-13), com `sdd-method:reviewing-security`. Sem achado crítico ou alto; o único achado (baixo) foi corrigido na revisão do PR #2.
 
 | Item | Como foi conferido | Achado | Mitigação | Status |
 | --- | --- | --- | --- | --- |
@@ -190,7 +190,7 @@ Preenchida no checkpoint 6 (2026-11-13), com `sdd-method:reviewing-security`. Se
 | Segredos | Nenhum segredo novo | — | — | N/A (sem segredo novo) |
 | Logs | Nenhum log novo; a auditoria guarda IDs e o código da permissão, sem dado pessoal | Nenhum | — | OK |
 | Persistência | Só ORM, sem SQL cru; sem migração nova nos checkpoints 3 a 6 (as 0001 e 0002 são do checkpoint 2); a concessão ativa duplicada é barrada por índice único parcial e tratada com savepoint | Nenhum | — | OK |
-| Respostas de erro | Erros novos usam `BusinessError` com código estável (tabela da technical-spec) | Escrita de usuário logado sem token CSRF responde `PERMISSION_DENIED` com a mensagem do DRF ("CSRF Failed: CSRF token missing."), e a doc diz `CSRF_FAILED`. Observado no roteiro do checkpoint 6, passo 12b. Defeito do M2; não vaza dado interno e o resultado é 403 | Não corrigido aqui: fora do escopo desta feature. Registrado no modelo de ameaças | Aberto (baixo) → a decidir pelo dono |
+| Respostas de erro | Erros novos usam `BusinessError` com código estável (tabela da technical-spec) | Escrita de usuário logado sem token CSRF responde `PERMISSION_DENIED` com a mensagem do DRF ("CSRF Failed: CSRF token missing."), e a doc diz `CSRF_FAILED`. Observado no roteiro do checkpoint 6, passo 12b. Defeito do M2; não vaza dado interno e o resultado é 403 | Corrigido na revisão do PR #2: `enforce_csrf` em `kernel/http.py` responde `CSRF_FAILED`, com o texto de `csrf_failure`; teste em `backend/tests/test_csrf.py`. Registrado no modelo de ameaças | Mitigado |
 | Dependências | Nenhuma dependência nova, no backend e no site | — | — | N/A (sem dependência nova; o SCA do CI roda como sempre) |
 | Abuso | Rotas novas só para quem está logado; listas pequenas, sem paginação; sem limite por IP além do existente | Admin ou diretor mal-intencionado poderia fazer muitas chamadas autenticadas | Aceito: poucos usuários, todos identificados e auditados | OK |
 | Integrações externas | Nenhuma nova | — | — | N/A (sem integração externa) |

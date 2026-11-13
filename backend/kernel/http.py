@@ -2,7 +2,10 @@
 
 from django.http import HttpRequest
 from rest_framework.authentication import SessionAuthentication as _SessionAuthentication
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.request import Request
+
+from kernel.errors import CSRF_MESSAGE, BusinessError
 
 
 class SessionAuthentication(_SessionAuthentication):
@@ -10,6 +13,16 @@ class SessionAuthentication(_SessionAuthentication):
 
     def authenticate_header(self, request: Request) -> str:
         return "Session"
+
+    def enforce_csrf(self, request: Request) -> None:
+        """Escrita de usuário logado sem token válido responde `CSRF_FAILED`, e não `PERMISSION_DENIED`.
+
+        Sem isto, o DRF levanta `PermissionDenied` e o código sai igual ao de falta de permissão.
+        """
+        try:
+            super().enforce_csrf(request)
+        except PermissionDenied as erro:
+            raise BusinessError("CSRF_FAILED", CSRF_MESSAGE, status=403) from erro
 
 
 def client_ip(request: HttpRequest) -> str:
