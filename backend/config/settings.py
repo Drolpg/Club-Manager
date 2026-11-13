@@ -41,6 +41,11 @@ if not SECRET_KEY:
 
 ALLOWED_HOSTS = _env_list("DJANGO_ALLOWED_HOSTS")
 
+# Endereço público do site, usado nos links de convite e nos e-mails.
+SITE_URL = os.environ.get("SITE_URL", "").rstrip("/")
+if not SITE_URL:
+    raise ImproperlyConfigured("Defina SITE_URL com o endereço público do site.")
+
 if "DATABASE_URL" not in os.environ:
     raise ImproperlyConfigured("Defina DATABASE_URL.")
 DATABASES = {"default": _database_from_url(os.environ["DATABASE_URL"])}
@@ -48,9 +53,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Um módulo por bounded context (docs/domain/strategic-design.md).
 INSTALLED_APPS = [
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
+    "django.contrib.sessions",
     "django.contrib.staticfiles",
     "rest_framework",
     "drf_spectacular",
+    "drf_spectacular_sidecar",
     "kernel",
     "auditoria",
     "acesso",
@@ -68,7 +77,10 @@ MIDDLEWARE = [
     "kernel.logging.RequestIdMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -96,6 +108,43 @@ STORAGES = {
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 
+# Identidade e sessão (ADR-008).
+AUTH_USER_MODEL = "acesso.Usuario"
+PASSWORD_HASHERS = ["django.contrib.auth.hashers.Argon2PasswordHasher"]
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "OPTIONS": {"user_attributes": ("nome_de_usuario", "email", "nome")},
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 10},
+    },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+# Sessão no banco: 7 dias sem uso, renovados a cada requisição.
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_AGE = 7 * 24 * 60 * 60
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_FAILURE_VIEW = "kernel.errors.csrf_failure"
+# Login com o Google: sem o ID de cliente, as rotas do Google recusam tudo e o site esconde o botão.
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_VERIFIER = "acesso.google.VerificadorGoogleReal"
+# Link de recuperação de senha: 1 hora.
+PASSWORD_RESET_TIMEOUT = 60 * 60
+
+# Contadores de tentativas (kernel.rate_limit) ficam no Redis que já serve de fila.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ.get("REDIS_URL", "redis://localhost:6379/0"),
+    }
+}
+
 # Segurança de transporte: ligada sempre que não for depuração local.
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
@@ -104,16 +153,17 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
 REST_FRAMEWORK = {
-    # Autenticação entra no M2 (AD-006). Até lá não há usuário, e a permissão padrão nega tudo:
-    # cada rota aberta precisa declarar isso explicitamente.
-    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    # Sessão no servidor (ADR-008). A permissão padrão nega tudo: cada rota aberta declara isso
+    # explicitamente.
+    "DEFAULT_AUTHENTICATION_CLASSES": ["kernel.http.SessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
-    "UNAUTHENTICATED_USER": None,
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "kernel.errors.exception_handler",
     "COERCE_DECIMAL_TO_STRING": True,
+    # A API só fala JSON; o cliente de teste do DRF segue o mesmo padrão.
+    "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
 SPECTACULAR_SETTINGS = {
@@ -121,7 +171,9 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API única do Club Manager, usada pelo site e, depois, pelo aplicativo.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+    # Os arquivos da página de documentação vêm da própria imagem, não de uma CDN.
+    "SWAGGER_UI_DIST": "SIDECAR",
+    "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
     "SCHEMA_PATH_PREFIX": "/api/v1",
 }
 
@@ -134,6 +186,41 @@ CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 200
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+
+def _mailer_from_url(url: str) -> dict[str, object]:
+    """`smtp://usuario:senha@host:porta` (STARTTLS) ou `smtps://…` (TLS direto)."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("smtp", "smtps"):
+        raise ImproperlyConfigured("EMAIL_URL precisa ser smtp://usuario:senha@host:porta ou smtps://…")
+    return {
+        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        "OPTIONS": {
+            "host": parsed.hostname or "",
+            "port": parsed.port or (465 if parsed.scheme == "smtps" else 587),
+            "username": unquote(parsed.username or ""),
+            "password": unquote(parsed.password or ""),
+            "use_ssl": parsed.scheme == "smtps",
+            "use_tls": parsed.scheme == "smtp",
+            "timeout": 10,
+        },
+    }
+
+
+# E-mail: SMTP genérico por variável de ambiente (AD-012). Sem EMAIL_URL, os e-mails saem no log.
+MAILERS = {
+    "default": _mailer_from_url(os.environ["EMAIL_URL"])
+    if os.environ.get("EMAIL_URL")
+    else {"BACKEND": "django.core.mail.backends.console.EmailBackend"}
+}
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Club Manager <nao-responda@localhost>")
+
+CELERY_BEAT_SCHEDULE = {
+    "acesso.descartar_cadastros_vencidos": {
+        "task": "acesso.descartar_cadastros_vencidos",
+        "schedule": 60 * 60,
+    },
+}
 
 LOGGING = {
     "version": 1,

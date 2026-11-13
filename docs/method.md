@@ -70,7 +70,7 @@ Status: `Pendente`, `Em andamento`, `Concluído`, `Não se aplica (estilo)`, `Si
 
 | Fase | Enunciado | Entrega | Status | Auditoria |
 | --- | --- | --- | --- | --- |
-| 1 (etapa 1: diretores, no site) | `docs/challenge/phase-1.md` | Sem prazo fixo | Em andamento | M1: `docs/audits/2026-11-12-coherence.md` |
+| 1 (etapa 1: diretores, no site) | `docs/challenge/phase-1.md` | Sem prazo fixo | Em andamento | M1: `docs/audits/2026-11-12-coherence.md`; M2: `docs/audits/2026-11-13-coherence.md` |
 
 ## Marcos da fase 1
 
@@ -82,8 +82,8 @@ validação), com revisão de segurança e auditoria de coerência ao fim.
 | --- | --- | --- | --- | --- |
 | M0 Arquitetura | E1 | Concluído | 2026-11-11 | Leandro Nascimento |
 | M1 Fundação | E2 | Concluído (`v0.1.0`) | 2026-11-12 | Leandro Nascimento |
-| M2 Identidade e acesso | E3 | Em andamento (especificação) | | |
-| M3 Permissões e auditoria | E4 | Pendente | | |
+| M2 Identidade e acesso | E3 | Concluído (`v0.2.0`) | 2026-11-13 | Leandro Nascimento |
+| M3 Permissões e auditoria | E4 | Em andamento (especificação) | | |
 | M4 Notificações | E5 | Pendente | | |
 | M5 Motor de aprovações | E6 | Pendente | | |
 | M6 Financeiro: entradas | E7 | Pendente | | |

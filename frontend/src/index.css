@@ -50,3 +50,98 @@ body {
 .pagina [data-situacao='indisponivel'] {
   color: var(--erro);
 }
+
+/* Formulários e tabelas das telas de acesso (M2). O refinamento visual vem depois (DSH-04). */
+.pagina form {
+  display: grid;
+  gap: 0.75rem;
+  width: min(100%, 22rem);
+  margin-inline: auto;
+  text-align: left;
+}
+
+.campo {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.campo input,
+.aviso input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--texto-suave);
+  border-radius: 0.4rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.campo input[aria-invalid='true'] {
+  border-color: var(--erro);
+}
+
+.erro-de-campo,
+.alerta {
+  margin: 0;
+  color: var(--erro);
+}
+
+button {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--texto-suave);
+  border-radius: 0.4rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.aviso {
+  width: min(100%, 34rem);
+  margin-inline: auto;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--texto-suave);
+  border-radius: 0.5rem;
+  text-align: left;
+}
+
+.aviso h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.aviso p {
+  margin: 0.4rem 0;
+  color: var(--texto-suave);
+}
+
+.aviso input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+table {
+  margin-inline: auto;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid var(--texto-suave);
+}
+
+td button {
+  margin-right: 0.4rem;
+}
+
+.botao-google {
+  display: flex;
+  justify-content: center;
+}
