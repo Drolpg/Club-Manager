@@ -118,6 +118,7 @@ Preenchida a cada checkpoint.
 | CA-12 | `acesso/tests/test_cadastro.py::test_ca12_cadastro_nao_verificado_em_24_horas_nao_verifica_e_e_descartado`, `::test_cadastro_vencido_ainda_nao_descartado_nao_prende_o_nome_de_usuario` |
 | CA-13 | `acesso/tests/test_cadastro.py::test_ca13_dado_invalido_ou_em_uso_nao_cria_conta_e_nao_gasta_o_convite`, `::test_ca13_senha_fraca_aponta_o_campo` |
 | CA-14 (API) | `acesso/tests/test_cadastro.py::test_ca14_o_cadastro_nao_aceita_nem_guarda_cpf`; o aviso de privacidade é do site (checkpoint 10) |
+| CA-14 (site) | `frontend/src/App.test.tsx` › "CA-14: o formulário mostra o aviso de privacidade e não pede CPF" |
 | CA-15 | `acesso/tests/test_google.py::test_ca15_cadastro_pelo_google_ativa_a_conta_sem_link_de_verificacao` |
 | CA-16 | `acesso/tests/test_google.py::test_ca16_email_do_google_que_ja_tem_conta_nao_cria_outra_e_nao_gasta_o_convite` |
 | CA-17 | `acesso/tests/test_google.py::test_ca17_conta_criada_com_senha_entra_pelo_google_com_o_mesmo_email` |
@@ -137,6 +138,9 @@ Preenchida a cada checkpoint.
 | CA-30 | `acesso/tests/test_usuarios_admin.py::test_ca30_ninguem_desativa_a_si_mesmo_nem_tira_o_proprio_papel` |
 | CA-31 | `acesso/tests/test_usuarios_admin.py::test_ca31_diretor_tornado_admin_passa_a_gerar_convites` |
 | CA-32 | `acesso/tests/test_usuarios_admin.py::test_ca32_quem_nao_e_admin_nao_administra_usuarios`, `::test_ca32_quem_nao_e_admin_nao_lista_usuarios` |
+| CA-33 | `frontend/src/App.test.tsx` › "CA-33: o diretor sem cargo vê que aguarda a classificação e nenhum atalho de gestão" |
+| CA-34 | Testes de auditoria em `acesso/tests/`: `test_criar_admin.py`, `test_convites.py`, `test_cadastro.py`, `test_senha.py`, `test_usuarios_admin.py`, `test_google.py` |
+| CA-35 | Todos os testes de `backend/acesso/tests/` exercitam os fluxos só pela API; o site não tem regra (`frontend/src/App.test.tsx` simula a API) |
 | CA-36 | `acesso/tests/test_sessao.py::test_ca36_rota_protegida_sem_sessao_e_negada`; `tests/test_errors.py::test_rota_sem_permissao_explicita_e_negada_por_padrao` |
 
 ## Revisão de segurança
@@ -248,6 +252,18 @@ corrige a linha, e o resultado acima é o da verificação refeita, com saída 0
 Testes novos: `backend/acesso/tests/test_documentacao.py` (6). O teste antigo que esperava o contrato aberto a
 qualquer pessoa (`tests/test_contract.py`) foi substituído, porque a technical-spec aprovada mudou esse
 comportamento. Encerra a TD-001.
+
+### Checkpoint 10 — Site (2026-11-12)
+
+```text
+npm run verify
+30 passed; cobertura 86,39% (linhas 89,57%); lint, tipos e build sem erro; saída 0
+```
+
+Testes: `frontend/src/App.test.tsx` (26) e `frontend/src/api/client.test.ts` (4). Os cinco testes da página
+provisória do M1 ("API no ar") foram substituídos, porque a página deu lugar às telas desta feature. Dois testes
+novos tinham suposições de tempo erradas (ordem das chamadas e espera pela lista) e foram corrigidos antes do
+commit, sem mudar o que conferem.
 
 ## Rollback ou recuperação
 

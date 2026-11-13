@@ -35,19 +35,40 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
+// A API exige o token CSRF em toda escrita (ADR-008). Ele vem num cookie que o site pode ler.
+function csrfToken(): string {
+  const achado = document.cookie.split('; ').find((parte) => parte.startsWith('csrftoken='))
+  return achado ? decodeURIComponent(achado.slice('csrftoken='.length)) : ''
+}
+
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = { Accept: 'application/json' }
+  if (method !== 'GET') {
+    headers['X-CSRFToken'] = csrfToken()
+    headers['Content-Type'] = 'application/json'
+  }
+
   let response: Response
   try {
-    response = await fetch(`${BASE_URL}${path}`, { headers: { Accept: 'application/json' } })
+    response = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers,
+      credentials: 'same-origin',
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
   } catch {
     throw new ApiError(0, 'NETWORK_ERROR', 'Não foi possível falar com a API.')
   }
 
-  const body = await readJson(response)
-  if (response.ok) return body as T
+  const data = response.status === 204 ? null : await readJson(response)
+  if (response.ok) return data as T
 
-  if (isErrorEnvelope(body)) {
-    throw new ApiError(response.status, body.error.code, body.error.message, body.error.details)
+  if (isErrorEnvelope(data)) {
+    throw new ApiError(response.status, data.error.code, data.error.message, data.error.details)
   }
   throw new ApiError(response.status, 'UNEXPECTED_RESPONSE', 'A API devolveu uma resposta inesperada.')
 }
+
+export const apiGet = <T>(path: string) => request<T>('GET', path)
+export const apiPost = <T>(path: string, body?: unknown) => request<T>('POST', path, body ?? {})
+export const apiDelete = <T>(path: string) => request<T>('DELETE', path)
