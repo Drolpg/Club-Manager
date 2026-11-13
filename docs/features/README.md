@@ -21,5 +21,5 @@ aprovação. Ajuste pontual entra como adendo numerado, com aprovação própria
 | --- | --- | --- | --- | --- |
 | Identidade e Permissões | [identidade-e-acesso](acesso/identidade-e-acesso/functional-spec.md) (M2) | RF-001 a RF-014, RF-116, RF-117 | Implemented (`v0.2.0`) | [plano](acesso/identidade-e-acesso/implementation-plan.md) |
 | Identidade e Permissões | [catalogo-e-classificacao](permissoes/catalogo-e-classificacao/functional-spec.md) (M3) | RF-015 a RF-027, RF-118 | In Progress | [plano](permissoes/catalogo-e-classificacao/implementation-plan.md) |
-| Notificações | [caixa-e-email](notificacoes/caixa-e-email/functional-spec.md) (M4) | RF-028 a RF-032, RF-119 | Funcional aprovada; [técnica](notificacoes/caixa-e-email/technical-spec.md) em Draft | — |
-| Aprovações | [motor-de-solicitacoes](aprovacoes/motor-de-solicitacoes/functional-spec.md) (M5) | RF-033 a RF-045, RF-120 a RF-122 | Funcional aprovada; [técnica](aprovacoes/motor-de-solicitacoes/technical-spec.md) em Draft | — |
+| Notificações | [caixa-e-email](notificacoes/caixa-e-email/functional-spec.md) (M4) | RF-028 a RF-032, RF-119 | Especificada; aguardando implementação | [plano](notificacoes/caixa-e-email/implementation-plan.md) |
+| Aprovações | [motor-de-solicitacoes](aprovacoes/motor-de-solicitacoes/functional-spec.md) (M5) | RF-033 a RF-045, RF-120 a RF-122 | Especificada; aguardando implementação | [plano](aprovacoes/motor-de-solicitacoes/implementation-plan.md) |

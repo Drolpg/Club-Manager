@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `notificacoes/caixa-e-email` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 | Especificação funcional | `./functional-spec.md` (aprovada em 2026-11-13) |
 | Decisões aplicadas | ADR-001, ADR-003 (com o adendo 1), ADR-006, ADR-008; AD-012 |
 | Pré-requisito | Feature `permissoes/catalogo-e-classificacao` implementada (o M3 inteiro) |

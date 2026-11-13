@@ -3,13 +3,13 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `aprovacoes/motor-de-solicitacoes` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 | Especificação funcional | `./functional-spec.md` (aprovada em 2026-11-13) |
-| Decisões aplicadas | ADR-001 (DDD tático neste módulo), ADR-003, ADR-004; AD-008 (resolvida por esta spec) |
+| Decisões aplicadas | ADR-001 (DDD tático neste módulo), ADR-003, ADR-004; AD-008 |
 | Pré-requisito | Features `permissoes/catalogo-e-classificacao` (M3) e `notificacoes/caixa-e-email` (M4) implementadas |
 
 ## Contexto e desenho

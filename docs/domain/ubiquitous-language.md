@@ -41,6 +41,7 @@ definitivos; mudar um deles é uma decisão registrada. No código, os nomes de 
 | Recusar | Negar a solicitação | `recusar` | reprovar, negar, rejeitar |
 | Teto sugerido | Valor máximo que o aprovador propõe ao contestar uma solicitação com custo | `teto_sugerido` | limite |
 | Reenviar | Corrigir uma solicitação contestada e mandá-la de volta, criando nova versão | `reenviar` | resubmeter |
+| Retirar | Tirar da análise a própria solicitação para corrigi-la; ela sai da fila e volta por reenvio | `retirar` | cancelar, desistir |
 | Reabrir | Voltar a pôr em decisão uma solicitação recusada, com justificativa, criando nova versão | `reabrir` | — |
 | Versão | Cada estado do corpo da solicitação; nenhuma versão é sobrescrita | `Versao` | revisão |
 | Motivo de decisão | Opção de uma lista cadastrada pelo admin, por tipo de decisão, que justifica uma decisão; pode vir com texto livre | `MotivoDeDecisao` | justificativa padrão |
@@ -187,3 +188,4 @@ Termos do enunciado e do dono. "Solicitação de gasto" é o pedido; "saída" é
 | Data | Termo | Mudança | Motivo | Decisão |
 | --- | --- | --- | --- | --- |
 | 2026-11-11 | Todos | Primeira versão | Rito 4 | Aprovada por Leandro Nascimento |
+| 2026-11-13 | Retirar | Termo novo | Spec funcional `aprovacoes/motor-de-solicitacoes` | Aprovada por Leandro Nascimento |

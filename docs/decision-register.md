@@ -46,7 +46,7 @@ agente só recomenda.
 | AD-005 | Filas e tarefas agendadas | Resolved | Arquitetura compartilhada | Leandro | M4 |
 | AD-006 | Estratégia de autenticação e tokens para site e app | Resolved | Arquitetura compartilhada | Leandro | M2 |
 | AD-007 | Modelagem das permissões (ação, recurso e escopo) | Resolved | Arquitetura compartilhada | Leandro | M3 |
-| AD-008 | Modelagem do motor de aprovações e das versões de solicitação | Pending | Arquitetura compartilhada | Leandro | M5 |
+| AD-008 | Modelagem do motor de aprovações e das versões de solicitação | Resolved | Arquitetura compartilhada | Leandro | M5 |
 | AD-009 | Modelagem da trilha de auditoria | Resolved | Arquitetura compartilhada | Leandro | M3 |
 | AD-010 | Estornos e cancelamentos como lançamentos ligados ao original | Pending | Arquitetura compartilhada | Leandro | M7 |
 | AD-011 | Armazenamento de anexos | Pending | Arquitetura compartilhada | Leandro | M6 (primeiro comprovante) |
@@ -229,7 +229,13 @@ calculada por função pura; sem escopo por setor do item (decisão do dono).
 
 ### AD-008 — Como modelar o motor de aprovações e as versões de solicitação?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** aggregate `Solicitacao` com versões e decisões imutáveis; uma decisão por versão; tipos de solicitação
+registrados em código pelos módulos donos, cada um com a função que valida o conteúdo e o tratador de mudanças;
+conteúdo em JSON, com valor e resumo em colunas próprias.
+
+**Resolved on:** 2026-11-13, por Leandro Nascimento
 
 **Scope:** Arquitetura compartilhada
 
@@ -243,10 +249,9 @@ terceira decisão, e evento com custo como duas solicitações ligadas (`docs/do
 
 **Nota (2026-11-13):** modelagem proposta na technical-spec `aprovacoes/motor-de-solicitacoes`: o aggregate
 `Solicitacao` com versões e decisões imutáveis; tipos de solicitação registrados em código pelos módulos donos,
-cada um com o próprio tratador de mudanças; conteúdo em JSON validado pelo dono. Passa a Resolved com a aprovação
-da technical-spec.
+cada um com o próprio tratador de mudanças; conteúdo em JSON validado pelo dono.
 
-**Follow-up:** ADR na especificação do M5.
+**Follow-up:** technical-spec `aprovacoes/motor-de-solicitacoes`.
 
 ---
 
