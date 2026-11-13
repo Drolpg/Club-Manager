@@ -14,7 +14,7 @@ padrão. O modelo é o `.env.example`, na raiz.
 | `DJANGO_DEBUG` | `api`, `worker` | Não | `0` | `1` liga a depuração; nunca em produção |
 | `DJANGO_ALLOWED_HOSTS` | `api` | Em produção | `localhost,127.0.0.1` | Domínios aceitos, separados por vírgula |
 | `SITE_URL` | `api`, `worker` | Sim | `http://localhost:8080` no compose | Endereço público do site, usado nos links de convite e nos e-mails |
-| `EMAIL_URL` | `api`, `worker` | Em produção | vazio | Servidor SMTP: `smtp://usuário:senha@host:587` ou `smtps://…:465`. Vazio: os e-mails saem no log |
+| `EMAIL_URL` | `api`, `worker` | Em produção | vazio | Servidor SMTP: `smtp://usuário:senha@host:587` ou `smtps://…:465`. Vazio: os e-mails saem no log. `smtp://host:porta?tls=0` desliga a criptografia e existe só para o Mailpit; é a única opção aceita depois do `?`, e só em `smtp://`. Em desenvolvimento, o `compose.override.yaml` aponta a `api` e o `worker` para o Mailpit (`smtp://mailpit:1025?tls=0`), mesmo que o `.env` tenha um valor |
 | `DEFAULT_FROM_EMAIL` | `api`, `worker` | Em produção | `Club Manager <nao-responda@localhost>` | Remetente dos e-mails |
 | `GOOGLE_CLIENT_ID` | `api` | Não | vazio | ID de cliente do Google ([google.md](google.md)). Vazio: login com Google desligado |
 | `WEB_PORT` | `web` | Não | `8080` | Porta do site na máquina |

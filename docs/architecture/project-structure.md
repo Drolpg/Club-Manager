@@ -10,11 +10,11 @@
 ```text
 .
 ├── compose.yaml              Sobe o sistema inteiro
-├── compose.override.yaml     Só em desenvolvimento: expõe portas do banco, do Redis e da API
+├── compose.override.yaml     Só em desenvolvimento: expõe portas do banco, do Redis e da API; sobe o Mailpit
 ├── .env.example              Variáveis de ambiente, sem valores reais
 ├── backend/                  API e worker (uma imagem, dois comandos)
 │   ├── config/               Configuração do Django, rotas de topo, aplicação Celery
-│   ├── kernel/               Base técnica: erros, saúde, logs. Não conhece nenhum módulo
+│   ├── kernel/               Base técnica: erros, saúde, logs, despachante de eventos. Não conhece nenhum módulo
 │   ├── auditoria/            ┐
 │   ├── acesso/               │
 │   ├── permissoes/           │
@@ -70,7 +70,7 @@ Os arquivos são criados quando a primeira feature do módulo precisar deles. Ho
 | `permissoes` | Cargos, setores, permissões, concessões | `public` de `acesso`, `auditoria` |
 | `acesso` | Usuários, convites, login | `public` de `auditoria` |
 | `auditoria` | Trilha imutável | `kernel` |
-| `kernel` | Erros, saúde, logs | Nenhum módulo |
+| `kernel` | Erros, saúde, logs, despachante de eventos | Nenhum módulo |
 
 `aprovacoes`, `comunicacao` e `marca` estão no mesmo nível e não se importam.
 
@@ -100,6 +100,22 @@ Todas rodam em `uv run poe verify`, na máquina e no CI.
   define uma porta com padrão seguro em `acesso/portas.py`, exposta por `acesso.public.registrar_portas`; `permissoes`
   registra a implementação no `ready` (adendo 1 da ADR-003).
 
+### Como um módulo notifica e como publica um evento
+
+- **Módulo acima de `notificacoes`** (`aprovacoes`, `financeiro`, `eventos`, `comunicacao`): declara os tipos ao
+  iniciar, com `notificacoes.public.registrar_tipo(codigo, pede_acao=..., descricao=...)`, e notifica dentro da
+  transação do caso de uso com `notificacoes.public.notificar(tipo=..., destinatarios=[ids], titulo=..., texto=...,
+  item_tipo=..., item_id=..., caminho=..., chave=...)`. A `chave` identifica o fato (por exemplo,
+  `cadastro-concluido:<usuario_id>`) e impede a duplicata. Só usuário ativo recebe; o e-mail só é enfileirado
+  depois do commit.
+- **Módulo abaixo** (`acesso`, `permissoes`): não conhece `notificacoes`. Define um evento (`@dataclass(frozen=True)`)
+  no próprio `public.py` e o publica com `kernel.events.publish(evento)`. `notificacoes` registra o tratador no
+  `ready` (`notificacoes/handlers.py`), e ele roda na transação de quem publicou: o erro do tratador desfaz a
+  operação, então o tratador só monta o texto e chama `notificar`. Eventos de hoje: `CadastroConcluido` e
+  `PapelDeAdminAlterado` (`acesso`); `ClassificacaoAlterada` e `ConcessaoIndividualAlterada` (`permissoes`).
+- **Nos testes**, quem limpa os tratadores (`kernel.events.unsubscribe_all_for_tests()`) usa a fixture
+  `tratadores_de_eventos` (`backend/conftest.py`), que os devolve no fim.
+
 Regras ainda sem verificação automática, conferidas na revisão de cada feature:
 
 - views e serializers sem regra de negócio, e escrita sempre por um serviço (ADR-004);
@@ -112,7 +128,6 @@ Regras ainda sem verificação automática, conferidas na revisão de cada featu
 | Placeholder | Onde | Feature que vai criá-lo |
 | --- | --- | --- |
 | Conteúdo de cada `public.py` | `backend/<modulo>/public.py` | A primeira feature de cada módulo (M2 a M11); `acesso` e `permissoes` já têm o seu |
-| Despachante de eventos em processo | `backend/kernel/` | M4 (`CadastroConcluido`); no M2 o aviso aos admins é um e-mail do próprio `acesso` |
 | Value object `Dinheiro` | `backend/kernel/` ou `financeiro/domain/` | M5 (valor da solicitação); o lugar é decidido na technical-spec |
 | Armazenamento de anexos | Configuração `STORAGES` | M6 (AD-011) |
 | Biblioteca de componentes e temas do site | `frontend/src/` | M11; o M2 usa HTML e CSS simples |

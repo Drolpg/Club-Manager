@@ -169,6 +169,7 @@ td button {
 }
 
 .cabecalho + .pagina {
+  box-sizing: border-box;
   min-height: calc(100vh - 3.5rem);
 }
 

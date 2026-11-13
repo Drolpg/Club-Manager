@@ -3,6 +3,10 @@
 #
 # Expõe o banco, o Redis e a API só para a própria máquina (127.0.0.1), para rodar os testes e o Vite fora do
 # contêiner. Nunca para a rede.
+#
+# Também sobe o Mailpit, o servidor de e-mail de desenvolvimento: recebe os e-mails por SMTP e os mostra em
+# http://localhost:8025. Em desenvolvimento, a api e o worker sempre enviam para ele, mesmo que o .env tenha
+# um EMAIL_URL; para testar um servidor SMTP de verdade, suba só o compose.yaml. A produção não muda.
 services:
   db:
     ports:
@@ -15,3 +19,16 @@ services:
   api:
     ports:
       - "127.0.0.1:8000:8000"
+    environment:
+      EMAIL_URL: smtp://mailpit:1025?tls=0
+
+  worker:
+    environment:
+      EMAIL_URL: smtp://mailpit:1025?tls=0
+
+  # Imagem fixada na versão atual (v1.33.1, publicada em 2026-11-07). O SMTP (1025) fica só na rede interna
+  # do compose; só a página (8025) aparece na máquina, e só em 127.0.0.1.
+  mailpit:
+    image: axllent/mailpit:v1.33.1
+    ports:
+      - "127.0.0.1:8025:8025"

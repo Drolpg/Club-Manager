@@ -185,14 +185,33 @@ Se um teste parecer errado ou a spec não cobrir um caso, pare e pergunte. Não 
 | Caixa (caminho feliz e erro) | `frontend/src/notificacoes.test.tsx` > caixa de entrada (12 casos: abrir e destacar não lidas, vazia, fechar, carregar mais por cursor, abrir item e navegar, caminho fora do site, marcar todas, erros ao carregar, ao ler, ao carregar mais e ao marcar todas, texto sem HTML) |
 | Preferências (CA-16, CA-17, CA-19 na tela) | `frontend/src/notificacoes.test.tsx` > tela de preferências (8 casos: valores da API, nascem ligadas, salvar com CSRF, erro ao salvar, erro ao carregar, só duas chaves e o aviso de que o que pede ação sempre chega, sem sessão, link na moldura) |
 | Moldura | `frontend/src/notificacoes.test.tsx` > moldura das telas logadas (7 casos: menu do admin, atalho Convites do diretor, sem atalho, sem consulta de permissões sem cargo, uma só consulta de permissões, sem moldura sem sessão, Sair) |
+| `EMAIL_URL` com `?tls=0` | `backend/tests/test_email_url.py` (13 casos) |
+| Revisão de segurança (CP7) | seção "Revisão de segurança" deste plano |
 | ADR-003 (despachante) | `tests/test_events.py` (entrega, ordem, tipos que não se misturam, exceção que propaga, transação desfeita) |
 
 ## Revisão de segurança
 
-Preenchida no checkpoint 7.
+Preenchida no checkpoint 7 (2026-11-13), com `sdd-method:reviewing-security`. Sem achado crítico ou alto. Um
+defeito de interface (cabeçalho cortado por rolagem indevida) foi visto no roteiro e corrigido no mesmo checkpoint;
+não é de segurança.
 
-| Item | Achado | Mitigação | Status |
-| --- | --- | --- | --- |
+| Item | Como foi conferido | Achado | Mitigação | Status |
+| --- | --- | --- | --- | --- |
+| Validação de entrada | `limite` (1 a 50), `antes` (UUID) e as duas chaves de preferência (só `true` ou `false`) são validados nos serializers; o `{id}` da rota é UUID; os serviços não confiam só na rota | Nenhum | — | OK |
+| Mass assignment | Nenhum serializer grava no modelo; o `PUT` aceita só as duas chaves, e os campos desconhecidos são ignorados (teste) | Nenhum | — | OK |
+| Autenticação | As cinco rotas declaram `IsAuthenticated`; sem sessão, 401 `NOT_AUTHENTICATED` (6 casos testados) | Nenhum | — | OK |
+| Autorização | Posse do recurso: toda consulta e escrita filtram por `destinatario_id` do logado (NOT-R06); a de outro, 404, inclusive para o admin; não há permissão de admin sobre a caixa alheia | Nenhum | — | OK |
+| Exposição de dados | A saída traz só `id`, `tipo`, `pede_acao`, `titulo`, `texto`, `caminho`, `criada_em` e `lida_em`; nunca a chave, o item nem o estado do e-mail; o texto é curto e sem valores; o e-mail não leva token, senha nem dado de contato | Nenhum | — | OK |
+| Segredos | Nenhum segredo novo; o `EMAIL_URL` do Mailpit não tem credencial | — | — | N/A (sem segredo novo) |
+| Logs | Um log novo (falha de e-mail): ID da notificação, número da tentativa e o nome do tipo do erro; sem endereço, sem texto, sem traceback | Nenhum | — | OK |
+| Persistência | Só ORM; migração `notificacoes/0001` com índice único (`destinatario_id`, `chave`) e índices de leitura; a notificação não é apagada (modelo recusa); reversível (`migrate notificacoes zero`, conferido no checkpoint 7) | Nenhum | — | OK |
+| Respostas de erro | Códigos estáveis (`NOT_FOUND`, `VALIDATION_ERROR`, `NOT_AUTHENTICATED`) pelo envelope comum | Nenhum | — | OK |
+| Dependências | Nenhuma dependência de Python nem de npm. Única novidade: a imagem `axllent/mailpit:v1.33.1`, só em desenvolvimento, fixada na versão atual e fora do `compose.yaml` de produção | Imagem de terceiros em desenvolvimento, sem passar pelo SCA do CI (que cobre dependências de Python e npm) | Só em `127.0.0.1`, só no override, versão fixada | Mitigado |
+| Abuso | `limite` máximo de 50; consulta de 60 s só com a aba visível; chave única impede duplicata; sem rota de criação | Os diretores consultam `resumo/` a cada minuto: carga proporcional ao número de diretores (poucas dezenas) | Duas contagens indexadas | OK |
+| Integrações externas | Servidor SMTP: tempo máximo de 10 s por envio, nova tentativa limitada; `?tls=0` só em `smtp://` e é a única opção aceita | Nenhum | — | OK |
+
+Não coberto por esta revisão: DAST (o perfil de stack deixa para o M12) e o relatório de vulnerabilidades do marco
+(`docs/security/vulnerability-report-m4.md`), que fecha o M4 depois da aprovação do dono.
 
 ## Definition of Done
 
@@ -305,6 +324,43 @@ Preenchida no checkpoint 7.
   minúsculo, o Vitest falha com "failed to find the current suite" em todos os arquivos (não é defeito do código).
 - Não validado aqui: o intervalo real de 60 s e a aparência no navegador (os testes usam o relógio simulado); o
   checkpoint 7 confere isso com o sistema no ar.
+
+### Checkpoint 7 — Mailpit e validação final (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 576 testes (563 + 13 novos de `EMAIL_URL`), cobertura 97,85%, contratos
+  do import-linter 1 mantido, 0 quebrados. `npm run verify` em `frontend/`: saída 0, 123 testes, cobertura 92,6%,
+  build. Rodados um depois do outro.
+- Mailpit: imagem `axllent/mailpit:v1.33.1` (a versão atual em 2026-11-13: publicada em 2026-11-07; a tag existe
+  no Docker Hub), só no `compose.override.yaml`, página em `127.0.0.1:8025`, SMTP só na rede interna. A `api` e o
+  `worker` apontam para `smtp://mailpit:1025?tls=0`. `docker compose config` mostra o Mailpit e o `EMAIL_URL` só no
+  desenvolvimento; `docker compose -f compose.yaml config --services` não lista o Mailpit e o `EMAIL_URL` vem do
+  ambiente, como antes. O `compose.yaml` não mudou.
+- `EMAIL_URL` aceita `smtp://host:porta?tls=0` (sem STARTTLS); qualquer outra opção na consulta, ou `?tls=0` em
+  `smtps://`, levanta `ImproperlyConfigured` sem repetir a senha (`backend/tests/test_email_url.py`).
+- Sistema no ar (`docker compose up -d --build`): `docker compose ps` com os seis serviços `Up` e `db`, `redis`, `api`
+  e `mailpit` saudáveis; a migração `notificacoes.0001_notificacao_e_preferencia` aplicada na subida; o worker lista
+  `notificacoes.enviar_email`. Roteiro N1 a N10 de `docs/api/manual-testing.md`: ver o que foi e o que não foi
+  executado lá. Resultados: o admin recebeu a notificação "Novo diretor para classificar" (pede ação, com o nome do
+  diretor e o caminho `/admin/usuarios/<id>`) e o e-mail correspondente no Mailpit; nenhum e-mail "Novo diretor
+  aguardando classificação" (zero no Mailpit); depois de classificado, o diretor recebeu a notificação e o e-mail
+  "Sua classificação mudou"; o admin tentando abrir a notificação do diretor recebeu 404 `NOT_FOUND`; no Chrome, com
+  o diretor logado, o sino subiu de 1 para 2 sozinho (o admin reclassificou às 15:58:51 e o sino já mostrava 2 menos
+  de um minuto depois), a caixa mostrou as duas como "Nova", e clicar na mais recente a marcou como lida e baixou o
+  contador para 1.
+- Defeito visto no roteiro e corrigido: o cabeçalho ficava cortado, porque `.pagina` (com `padding`) passava de
+  `100vh`; `box-sizing: border-box` em `.cabecalho + .pagina` (`frontend/src/index.css`). Conferido no Chrome depois
+  de refazer a imagem do site.
+- Observado, não corrigido (fora do plano): depois de abrir uma notificação que leva à página inicial, o cargo
+  mostrado ali continua o de antes até recarregar, porque a página inicial não consulta de novo as permissões ao
+  voltar para a mesma rota.
+- Documentação atualizada: `docs/api/README.md`, `docs/api/manual-testing.md`, `docs/setup/local.md`,
+  `docs/setup/configuration.md`, `.env.example`, `docs/architecture/stack-profile.md` e `project-structure.md`,
+  `docs/domain/domain-events.md`, `docs/security/threat-model.md` (seção do M4), registro de requisitos (coluna da
+  feature; os status continuam `Aprovado`) e risco 10 (continua `Mitigado`). O contrato OpenAPI é gerado pela
+  aplicação (`/api/v1/schema/`) e não há arquivo dele no repositório. Não foram tocados a spec funcional, a
+  técnica, as ADRs nem os status de aprovação, de implementação e a Definition of Done.
+- Não validado: a falha real de um servidor SMTP (só o fake nos testes); o N9; o aviso flutuante no navegador; a
+  espera real entre as tentativas de e-mail; o CI (ver o pull request).
 
 ## Rollback ou recuperação
 

@@ -5,7 +5,7 @@
 | Atualizado em | 2026-11-13 |
 | Diagrama base | `docs/architecture/overview.md` § Containers |
 | Responsável | Leandro Nascimento |
-| Escopo desta versão | Marcos M2 (identidade e acesso) e M3 (permissões e auditoria). Cada marco seguinte acrescenta as ameaças do que entrega |
+| Escopo desta versão | Marcos M2 (identidade e acesso), M3 (permissões e auditoria) e M4 (notificações). Cada marco seguinte acrescenta as ameaças do que entrega |
 
 Feito uma vez neste marco, como desvio registrado em `docs/method.md` (elemento do nível 3), porque o sistema passa a
 guardar dados pessoais e a controlar o acesso a dados financeiros.
@@ -77,3 +77,31 @@ preenchidas por `permissoes`, rotas de histórico.
 | Permissão órfã | Ignorada na resolução | Implementada (M3) | PER-R05; `test_permissao_fora_do_catalogo_e_ignorada` |
 | Alteração de permissão sem rastro | Auditoria na transação | Implementada (M3) | CA-29 |
 | Escrita autenticada sem token CSRF respondia `PERMISSION_DENIED` e não `CSRF_FAILED` | `kernel.http.SessionAuthentication.enforce_csrf` converte a falha em `CSRF_FAILED`, no mesmo texto de `csrf_failure` | Corrigida (revisão do PR #2) | `backend/tests/test_csrf.py` |
+
+## M4: notificações
+
+Elementos novos: o registro e a caixa de notificações, o e-mail das notificações (fila), o despachante de eventos
+em processo, as preferências de alerta, o sino e o aviso flutuante no site, e o Mailpit (só em desenvolvimento).
+
+| Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
+| --- | --- | --- | --- | --- | --- | --- |
+| Caixa e resumo (rotas) | Ler a caixa de outro com a sessão dele → só a sessão do dono; nada novo | Alterar o conteúdo de uma notificação → o modelo recusa e não há rota que grave conteúdo; `ler` só preenche `lida_em` na primeira vez | Dizer que não foi avisado → o registro guarda criação, leitura e resultado do e-mail, e não pode ser apagado | **Ler a caixa alheia:** toda consulta filtra pelo usuário logado; a de outro responde 404, igual à que não existe, inclusive para o admin; um cursor `antes` de outra pessoa responde 400. IDs são UUID 7, mas o filtro, e não o segredo do ID, é a defesa | Consulta a cada minuto por todos os diretores → duas contagens indexadas; `limite` de no máximo 50 | Admin ler a caixa dos outros → não existe rota nem permissão para isso (o admin audita pelos históricos dos itens) |
+| Criação de notificação | **Notificação forjada:** só código do sistema cria (`notificar`, `registrar_tipo`); não há rota de criação, e o tipo desconhecido é erro de programação | Duplicar para encher a caixa → `chave` única por destinatário | — | Texto com dado sensível → o texto é curto e montado pelo código, sem valores nem dados de contato; o site o mostra como texto, nunca como HTML | Fato repetido gera aviso em dobro → idempotente pela chave | — |
+| E-mail da notificação | Remetente falso → SPF, DKIM e DMARC (M12), como já planejado | — | Falha de envio sem registro → `email_situacao`, tentativas e `FALHOU` ficam na notificação | **Vazamento por e-mail:** só texto puro, com título, texto e o link do site; nenhum token, senha ou dado de contato; o link exige login; só vai ao endereço do usuário ativo. Nada de dado pessoal nos logs (só o ID e o tipo do erro) | Servidor SMTP fora do ar → 5 tentativas com espera crescente e então `FALHOU`; a notificação segue na caixa e a operação de negócio não depende do e-mail | — |
+| Despachante de eventos | — | Um tratador malicioso ou com erro → só `notificacoes` registra tratadores, no `ready`; o erro de um tratador desfaz a operação de quem publicou (risco 4), por isso ele só monta o texto e chama `notificar` | — | — | Tratador lento → roda na transação; por isso é curto | — |
+| Preferências | — | Desligar o registro por uma chave → nenhuma chave faz isso; o `PUT` ignora campos desconhecidos e só aceita `true` ou `false` | — | Ver ou mudar a preferência de outro → só a do usuário logado | — | — |
+| Sino e aviso flutuante (site) | — | **`caminho` vindo da API:** só se navega para caminho do próprio site (`/…`, nunca `//`, `\` nem `https://…`) | — | Texto da notificação interpretado como HTML (XSS) → React o renderiza como texto, com teste | A consulta a cada 60 s só com a aba visível, e a falha não vira laço | — |
+| Mailpit (desenvolvimento) | — | — | — | E-mails de desenvolvimento visíveis a quem acessa a máquina → a página só atende em `127.0.0.1:8025`, o SMTP (1025) só na rede interna do compose, e o `compose.yaml` de produção não o contém | — | `EMAIL_URL` com `?tls=0` em produção por engano → só `?tls=0`, só em `smtp://`, e qualquer outra opção é recusada; o `.env.example` e a configuração dizem que é só para o Mailpit |
+
+| Ameaça | Mitigação | Status | Registro |
+| --- | --- | --- | --- |
+| Leitura da caixa de outro usuário | Filtro por destinatário em toda consulta; 404 igual ao inexistente; sem rota de admin | Implementada (M4) | CA-14; `notificacoes/tests/test_rotas.py` |
+| Notificação forjada ou alterada | Sem rota de criação; modelo recusa alterar e apagar | Implementada (M4) | NOT-R05; `notificacoes/tests/test_modelos.py` |
+| Vazamento por e-mail | Texto puro, sem token nem dado de contato; link que exige login | Implementada (M4) | CA-08; `notificacoes/tests/test_email.py` |
+| Notificação duplicada | Chave única por destinatário | Implementada (M4) | CA-07; NOT-R02 |
+| Falha do servidor de e-mail | Nova tentativa, `FALHOU`, a caixa continua | Implementada (M4) | CA-06 |
+| XSS e redirecionamento por `caminho` ou texto | Texto como texto; só caminhos do site | Implementada (M4) | `frontend/src/notificacoes.test.tsx` |
+| Servidor sem criptografia por engano | `?tls=0` só em `smtp://` e só ele | Implementada (M4) | `backend/tests/test_email_url.py` |
+| Tratador com erro desfaz a operação | Tratadores curtos e testados | Mitigada (risco 4) | ADR-003 |
+| Intervalo real entre as tentativas de e-mail não testado | Configuração conferida no teste; o modo imediato dos testes o ignora | Aceita | Rever ao ver um e-mail atrasar em produção |
+| Aviso flutuante e preferência não conferidos por outra pessoa no navegador | Testes automáticos com relógio simulado; conferência manual parcial | Aceita | Conferir na validação do dono |

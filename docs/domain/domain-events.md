@@ -23,6 +23,14 @@ evento é uma chamada direta no serviço. E-mail e trabalho pesado são enfileir
 | `SolicitacaoReaberta` | Solicitação | ID, tipo, versão nova | Eventos | Publicado |
 | `SolicitacaoCancelada` | Solicitação | ID, tipo | Financeiro, Eventos | Publicado |
 | `CadastroConcluido` | Identidade e Permissões | ID do usuário | Notificações | Publicado |
+| `PapelDeAdminAlterado` | Identidade e Permissões | ID do usuário, se agora é admin | Notificações | Publicado |
+| `ClassificacaoAlterada` | Identidade e Permissões | ID do usuário | Notificações | Publicado |
+| `ConcessaoIndividualAlterada` | Identidade e Permissões | ID do usuário, código da permissão, se foi concedida | Notificações | Publicado |
+
+Os três últimos foram acrescentados em 2026-11-13 pela feature `notificacoes/caixa-e-email` (technical-spec aprovada).
+`CadastroConcluido` e `PapelDeAdminAlterado` saem de `acesso`; `ClassificacaoAlterada` e `ConcessaoIndividualAlterada`
+saem de `permissoes`. `ConcessaoIndividualAlterada` só existe para concessão a uma pessoa; a de cargo ou setor não
+tem um destinatário só.
 
 Mudar o payload de um evento publicado exige decisão registrada.
 
@@ -48,7 +56,10 @@ Todo evento desta lista gera um registro de auditoria.
 | `SolicitacaoAprovada` (gasto ou orçamento) | Sempre que uma solicitação de gasto for aprovada, abrir a saída | `abrir` | Saída | Mesma transação | A falha desfaz a aprovação; o aprovador tenta de novo |
 | `SolicitacaoEditada` ou `SolicitacaoCancelada` (gasto) | Sempre que a solicitação sair de aprovada antes do envio, cancelar a saída | `cancelar` | Saída | Mesma transação | Idem |
 | Qualquer decisão sobre a solicitação do evento ou a orçamentária | Sempre que uma solicitação ligada a um evento mudar, recalcular a situação do evento | `atualizar_situacao` | Evento | Mesma transação | Idem; o comando é idempotente |
-| `CadastroConcluido` | Sempre que um diretor concluir o cadastro, notificar o admin para classificá-lo | Notificar | Notificação | Mesma transação para o registro; e-mail depois do commit | O registro não se perde; o e-mail é reenfileirado |
+| `CadastroConcluido` | Sempre que um diretor concluir o cadastro, notificar o admin para classificá-lo | Notificar | Notificação | Mesma transação para o registro; e-mail depois do commit | O registro não se perde; o e-mail é tentado de novo até 5 vezes e, esgotadas, fica `FALHOU` |
+| `ClassificacaoAlterada` | Sempre que o diretor for classificado, reclassificado ou ficar sem cargo, avisá-lo (informativa) | Notificar | Notificação | Idem | Idem |
+| `PapelDeAdminAlterado` | Sempre que alguém ganhar ou perder o papel de admin, avisá-lo (informativa) | Notificar | Notificação | Idem | Idem |
+| `ConcessaoIndividualAlterada` | Sempre que alguém ganhar ou perder uma permissão concedida a ele, avisá-lo (informativa) | Notificar | Notificação | Idem | Idem |
 
 ### Dentro do Financeiro
 
