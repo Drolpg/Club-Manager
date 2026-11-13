@@ -141,6 +141,21 @@ Se um teste parecer errado ou a spec não cobrir um caso, pare e pergunte. Não 
 | CA-20 (base, checkpoint 1) | `acesso/tests/test_eventos.py::test_concluir_o_cadastro_publica_cadastro_concluido`, `::test_verificar_o_link_publica_cadastro_concluido`, `::test_o_cadastro_pelo_google_publica_cadastro_concluido`, `::test_entrar_pelo_google_de_quem_aguardava_verificacao_publica_cadastro_concluido`, `::test_concluir_o_cadastro_nao_manda_mais_o_email_simples_aos_admins` |
 | CA-21 (base, checkpoint 1) | `permissoes/tests/test_eventos.py::test_classificar_publica_classificacao_alterada`, `::test_reclassificar_publica_de_novo`, `::test_tirar_o_cargo_de_quem_tinha_publica`, `::test_tirar_o_cargo_de_quem_nao_tinha_nao_publica` |
 | CA-22 (base, checkpoint 1) | `acesso/tests/test_eventos.py::test_tornar_admin_publica_papel_de_admin_alterado`, `::test_remover_admin_publica_papel_de_admin_alterado`; `permissoes/tests/test_eventos.py::test_conceder_a_um_usuario_publica_concessao_individual_alterada`, `::test_revogar_de_um_usuario_publica_com_concedida_falso`, `::test_o_acesso_total_tambem_publica` |
+| CA-01 | `notificacoes/tests/test_notificar.py::test_ca01_dois_destinatarios_ativos_recebem_uma_notificacao_cada` |
+| CA-02 | `notificacoes/tests/test_notificar.py::test_ca02_destinatario_inativo_nao_recebe_notificacao_nova` |
+| CA-03 (agendamento, checkpoint 2) | `notificacoes/tests/test_notificar.py::test_ca03_o_que_pede_acao_agenda_o_email_mesmo_com_os_informativos_desligados` |
+| CA-04 (registro, checkpoint 2) | `notificacoes/tests/test_notificar.py::test_ca04_informativo_com_email_desligado_fica_na_caixa_e_nao_agenda_email` |
+| CA-05 | `notificacoes/tests/test_notificar.py::test_ca05_o_email_so_e_agendado_depois_do_commit`, `::test_ca05_transacao_desfeita_nao_deixa_notificacao_nem_email` |
+| CA-07 | `notificacoes/tests/test_notificar.py::test_ca07_o_mesmo_fato_duas_vezes_gera_uma_notificacao_e_um_email` |
+| CA-16 | `notificacoes/tests/test_preferencias.py::test_ca16_usuario_novo_tem_as_duas_preferencias_ligadas` |
+| CA-17 (serviço, checkpoint 2) | `notificacoes/tests/test_preferencias.py::test_ca17_a_mudanca_de_um_usuario_nao_toca_a_do_outro`, `test_alterar_cria_a_linha_e_a_mudanca_vale`; `test_notificar.py::test_a_preferencia_vale_por_destinatario` |
+| CA-19 (registro, checkpoint 2) | `notificacoes/tests/test_notificar.py::test_ca19_nenhuma_preferencia_impede_o_registro` |
+| NOT-R01 | `notificacoes/tests/test_notificar.py::test_ca02_…`, `::test_notificacoes_antigas_de_quem_foi_desativado_continuam_guardadas` |
+| NOT-R02 | `notificacoes/tests/test_modelos.py::test_not_r02_uma_notificacao_por_destinatario_e_chave` |
+| NOT-R03 | `notificacoes/tests/test_envio_domain.py::test_not_r03_todas_as_combinacoes` (4 casos) |
+| NOT-R04 | `notificacoes/tests/test_modelos.py::test_not_r04_marcar_lida_de_novo_nao_muda_a_data_da_primeira_leitura`, `::test_not_r04_o_modelo_recusa_trocar_uma_data_de_leitura_ja_preenchida` |
+| NOT-R05 | `notificacoes/tests/test_modelos.py::test_not_r05_o_modelo_recusa_alterar_o_conteudo` (9 campos), `::test_not_r05_nenhuma_notificacao_e_apagada` |
+| Tipos (`registrar_tipo`) | `notificacoes/tests/test_tipos.py` |
 | ADR-003 (despachante) | `tests/test_events.py` (entrega, ordem, tipos que não se misturam, exceção que propaga, transação desfeita) |
 
 ## Revisão de segurança
@@ -176,6 +191,20 @@ Preenchida no checkpoint 7.
   `acesso/tests/test_google.py::test_entrar_pelo_google_verifica_a_conta_que_aguardava_verificacao`. A expectativa
   "e-mail aos admins" virou "`CadastroConcluido` publicado e nenhum e-mail do acesso"; o `test_ca11` foi renomeado
   (`…_e_publica_o_cadastro_concluido`). O resto de cada teste ficou igual.
+
+### Checkpoint 2 — Registro, `notificar` e preferências (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 481 testes (424 + 57 novos), cobertura 97,27%, contratos do
+  import-linter 1 mantido, 0 quebrados; `migrations-check` sem pendência (migração
+  `notificacoes/0001_notificacao_e_preferencia`).
+- Nenhum teste existente alterado neste checkpoint.
+- `notificar` agenda a tarefa `notificacoes.enviar_email`, que o plano só cria no checkpoint 3. Para o código ser
+  completo e tipado já aqui, o checkpoint 2 traz a declaração fina da tarefa (`tasks.py`, só chama o serviço) e um
+  `services/email.py` provisório que levanta `NotImplementedError`. Os testes deste checkpoint substituem o
+  `delay` da tarefa. O envio de verdade, a nova tentativa e o `FALHOU` entram no checkpoint 3, com testes
+  escritos antes.
+- Além dos campos que o plano lista, o modelo também recusa alterar `pede_acao` e `caminho`, e recusa trocar uma
+  `lida_em` já preenchida (NOT-R04 também no `save`, e não só em `marcar_lida`).
 
 ## Rollback ou recuperação
 
