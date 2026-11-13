@@ -84,11 +84,11 @@ validação), com revisão de segurança e auditoria de coerência ao fim.
 | M1 Fundação | E2 | Concluído (`v0.1.0`) | 2026-11-12 | Leandro Nascimento |
 | M2 Identidade e acesso | E3 | Concluído (`v0.2.0`) | 2026-11-13 | Leandro Nascimento |
 | M3 Permissões e auditoria | E4 | Em andamento (especificação) | | |
-| M4 Notificações | E5 | Pendente | | |
-| M5 Motor de aprovações | E6 | Pendente | | |
-| M6 Financeiro: entradas | E7 | Pendente | | |
-| M7 Financeiro: saídas | E8 | Pendente | | |
-| M8 Eventos | E9 | Pendente | | |
+| M4 Notificações | E5 | Especificado; aguardando implementação | | |
+| M5 Motor de aprovações | E6 | Especificado; aguardando implementação | | |
+| M6 Financeiro: entradas | E7 | Funcional aprovada (2026-11-13) | | |
+| M7 Financeiro: saídas | E8 | Funcional aprovada (2026-11-13) | | |
+| M8 Eventos | E9 | Funcional aprovada (2026-11-13) | | |
 | M9 Feed, documentos e perfil | E10 | Pendente | | |
 | M10 Dashboard e relatórios | E11 | Pendente | | |
 | M11 Personalização | E12 | Pendente | | |

@@ -142,9 +142,9 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-070 | Quem tem a permissão mantém a dívida depois da convocação, com motivo | H10 **(novo)** | Aprovado | — |
 | RF-071 | Quem tem a permissão registra uma entrada sem devedor (patrocínio, rifa, ajuda), com comprovante ou evidência em texto | FIN-06, FIN-07 | Aprovado | — |
 | RF-072 | Quem tem a permissão valida ou rejeita uma entrada, com motivo | FIN-06 | Aprovado | — |
-| RF-123 | O sistema lembra o devedor 3 dias antes do vencimento, se ele ainda não registrou o pagamento | Spec `financeiro/cobrancas-e-recebimentos` **(novo)** | Proposto | — |
-| RF-124 | O devedor consulta as próprias cobranças, mesmo sem cargo | Spec `financeiro/cobrancas-e-recebimentos` **(novo)** | Proposto | — |
-| RF-125 | O sistema avisa quem opera o financeiro quando um diretor com cobranças em aberto é desativado | Spec `financeiro/cobrancas-e-recebimentos` **(novo)** | Proposto | — |
+| RF-123 | O sistema lembra o devedor 3 dias antes do vencimento, se ele ainda não registrou o pagamento | Spec `financeiro/cobrancas-e-recebimentos` **(novo)** | Aprovado | — |
+| RF-124 | O devedor consulta as próprias cobranças, mesmo sem cargo | Spec `financeiro/cobrancas-e-recebimentos` **(novo)** | Aprovado | — |
+| RF-125 | O sistema avisa quem opera o financeiro quando um diretor com cobranças em aberto é desativado | Spec `financeiro/cobrancas-e-recebimentos` **(novo)** | Aprovado | — |
 
 ### Financeiro — gasto e prestação de contas (M7)
 
@@ -161,9 +161,9 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-081 | Quem tem a permissão liquida a saída depois de conferir a prestação de contas | FIN-17, H15 | Aprovado | — |
 | RF-082 | Quem tem a permissão cancela uma saída antes do envio do recurso, com motivo | FIN-18 | Aprovado | — |
 | RF-083 | Quem tem a permissão estorna um registro liquidado (saída, entrada ou cobrança paga), com justificativa, gerando um lançamento ligado ao original | FIN-18, APR-09 | Aprovado | — |
-| RF-126 | O sistema lembra o solicitante da prestação de contas aos 5 dias do envio e, vencido o prazo de 7 dias, avisa também quem liquida | Spec `financeiro/gastos-e-prestacao-de-contas` **(novo)** | Proposto | — |
-| RF-127 | O aprovador de um gasto vê o total validado de entradas, o liquidado de saídas e o comprometido | Spec `financeiro/gastos-e-prestacao-de-contas` **(novo)** | Proposto | — |
-| RF-128 | Quem envia recursos registra, na mesma saída, o envio da diferença de um complemento aprovado | Spec `financeiro/gastos-e-prestacao-de-contas` **(novo)** | Proposto | — |
+| RF-126 | O sistema lembra o solicitante da prestação de contas aos 5 dias do envio e, vencido o prazo de 7 dias, avisa também quem liquida | Spec `financeiro/gastos-e-prestacao-de-contas` **(novo)** | Aprovado | — |
+| RF-127 | O aprovador de um gasto vê o total validado de entradas, o liquidado de saídas e o comprometido | Spec `financeiro/gastos-e-prestacao-de-contas` **(novo)** | Aprovado | — |
+| RF-128 | Quem envia recursos registra, na mesma saída, o envio da diferença de um complemento aprovado | Spec `financeiro/gastos-e-prestacao-de-contas` **(novo)** | Aprovado | — |
 
 ### Eventos (M8)
 
@@ -179,9 +179,9 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-091 | O sistema notifica, na data do evento, quem pode confirmar a realização | EVT-07 | Aprovado | — |
 | RF-092 | O proponente, quem responde por eventos ou o admin confirma que o evento aconteceu; se foi antes da data, informa a data e o motivo | EVT-07, H22 | Aprovado | — |
 | RF-093 | O proponente, o admin ou quem tem a permissão cancela um evento, com motivo; ele sai do calendário e todos os diretores são notificados | EVT-08, H25 | Aprovado | — |
-| RF-129 | O diretor ativo com cargo confirma se vai ou não a um evento publicado, e o evento mostra as respostas | Spec `eventos/eventos-e-calendario` **(novo)** | Proposto | — |
-| RF-130 | O sistema cancela o evento que não foi publicado até a data dele, e avisa o proponente | Spec `eventos/eventos-e-calendario` **(novo)** | Proposto | — |
-| RF-131 | O sistema lembra quem pode confirmar a realização 1 e 3 dias depois da data, se ninguém confirmou nem cancelou | Spec `eventos/eventos-e-calendario` **(novo)** | Proposto | — |
+| RF-129 | O diretor ativo com cargo confirma se vai ou não a um evento publicado, e o evento mostra as respostas | Spec `eventos/eventos-e-calendario` **(novo)** | Aprovado | — |
+| RF-130 | O sistema cancela o evento que não foi publicado até a data dele, e avisa o proponente | Spec `eventos/eventos-e-calendario` **(novo)** | Aprovado | — |
+| RF-131 | O sistema lembra quem pode confirmar a realização 1 e 3 dias depois da data, se ninguém confirmou nem cancelou | Spec `eventos/eventos-e-calendario` **(novo)** | Aprovado | — |
 
 ### Comunicação e perfil (M9)
 

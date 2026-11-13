@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `financeiro/gastos-e-prestacao-de-contas` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 | Requisitos | RF-073 a RF-083, RF-126 a RF-128; RN-012, RN-013, RN-015, RN-019, RN-023; INV-SAI-01 a 09, INV-ENT-03 e 04 |
 | Referências | Marco M7; canvas `docs/domain/aggregates/saida.md`; histórias 5 e 6 da descoberta; hotspots H13 a H15; AD-010, AD-011; features `aprovacoes/motor-de-solicitacoes` e `financeiro/cobrancas-e-recebimentos` |
 

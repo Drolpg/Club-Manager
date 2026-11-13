@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `financeiro/cobrancas-e-recebimentos` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 | Requisitos | RF-046 a RF-072, RF-123 a RF-125; RN-011, RN-012, RN-013, RN-015 a RN-018, RN-023; INV-COB-01 a 13, INV-REC, INV-SUS, INV-ENT, INV-REN |
 | Referências | Marco M6; canvases `docs/domain/aggregates/cobranca.md` e `financeiro-menores.md`; histórias 1 a 4 e 7 da descoberta; hotspots H01 a H10, H17, H18; AD-011 |
 

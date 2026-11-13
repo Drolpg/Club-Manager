@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `eventos/eventos-e-calendario` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 | Requisitos | RF-084 a RF-093, RF-129 a RF-131; RN-013, RN-018, RN-020, RN-021; INV-EVT-01 a 07 |
 | Referências | Marco M8; canvas `docs/domain/aggregates/evento.md`; `docs/domain/domain-events.md` (situação do evento); histórias 8 e 9 da descoberta; hotspots H20, H22, H24, H25, H27, H28; features `aprovacoes/motor-de-solicitacoes` e `financeiro/gastos-e-prestacao-de-contas` |
 
