@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import { CadastroPorConvite, Entrar, RecuperarSenha, RedefinirSenha, VerificarEmail } from './paginas/Acesso'
+import { Moldura } from './Moldura'
 import { Convites, Usuarios } from './paginas/Admin'
 import { Inicio } from './paginas/Inicio'
 import { CargosESetores, Permissoes, UsuarioDetalhe } from './paginas/Permissoes'
+import { Preferencias } from './paginas/Preferencias'
 import { ProvedorDeSessao, useSessao } from './sessao'
 import { CONVITES_GERENCIAR, temPermissao, useMinhas } from './useMinhas'
 
@@ -35,62 +37,72 @@ function App() {
         <Route path="/verificar/:token" element={<VerificarEmail />} />
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
         <Route path="/redefinir-senha/:token" element={<RedefinirSenha />} />
-        <Route
-          path="/"
-          element={
-            <Protegida>
-              <Inicio />
-            </Protegida>
-          }
-        />
-        <Route
-          path="/admin/convites"
-          element={
-            <ProtegidaDeConvites>
-              <Convites />
-            </ProtegidaDeConvites>
-          }
-        />
-        <Route
-          path="/admin/usuarios"
-          element={
-            <Protegida soAdmin>
-              <Usuarios />
-            </Protegida>
-          }
-        />
-        <Route
-          path="/admin/usuarios/:id"
-          element={
-            <Protegida soAdmin>
-              <UsuarioDetalhe />
-            </Protegida>
-          }
-        />
-        <Route
-          path="/admin/cargos"
-          element={
-            <Protegida soAdmin>
-              <CargosESetores tipo="cargos" />
-            </Protegida>
-          }
-        />
-        <Route
-          path="/admin/setores"
-          element={
-            <Protegida soAdmin>
-              <CargosESetores tipo="setores" />
-            </Protegida>
-          }
-        />
-        <Route
-          path="/admin/permissoes"
-          element={
-            <Protegida soAdmin>
-              <Permissoes />
-            </Protegida>
-          }
-        />
+        <Route element={<Moldura />}>
+          <Route
+            path="/"
+            element={
+              <Protegida>
+                <Inicio />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/admin/convites"
+            element={
+              <ProtegidaDeConvites>
+                <Convites />
+              </ProtegidaDeConvites>
+            }
+          />
+          <Route
+            path="/admin/usuarios"
+            element={
+              <Protegida soAdmin>
+                <Usuarios />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/admin/usuarios/:id"
+            element={
+              <Protegida soAdmin>
+                <UsuarioDetalhe />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/admin/cargos"
+            element={
+              <Protegida soAdmin>
+                <CargosESetores tipo="cargos" />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/admin/setores"
+            element={
+              <Protegida soAdmin>
+                <CargosESetores tipo="setores" />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/admin/permissoes"
+            element={
+              <Protegida soAdmin>
+                <Permissoes />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/preferencias"
+            element={
+              <Protegida>
+                <Preferencias />
+              </Protegida>
+            }
+          />
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ProvedorDeSessao>

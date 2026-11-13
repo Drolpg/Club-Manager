@@ -179,6 +179,12 @@ Se um teste parecer errado ou a spec não cobrir um caso, pare e pergunte. Não 
 | CA-17 (rota) | `notificacoes/tests/test_rotas.py::test_ca17_alterar_as_preferencias_muda_so_as_do_usuario`, `::test_ca17_o_put_aceita_so_uma_chave_e_deixa_a_outra_como_esta`, `::test_ca17_a_mudanca_vale_para_as_proximas_notificacoes` |
 | CA-19 (rota e campo) | `notificacoes/tests/test_rotas.py::test_ca19_nenhuma_rota_apaga_nem_desliga_o_registro`, `::test_ca19_o_put_de_preferencias_ignora_campo_que_tentaria_desligar_o_registro`, `::test_ca19_as_rotas_do_modulo_sao_so_as_da_especificacao` |
 | Validação e 401 | `notificacoes/tests/test_rotas.py::test_parametro_invalido_da_caixa_responde_400` (`limite` 0, 51, -1, texto; `antes` inválido), `::test_cursor_de_notificacao_que_nao_existe_responde_400`, `::test_preferencia_que_nao_e_booleana_responde_400_e_nao_muda_nada` (3 casos), `::test_sem_sessao_toda_rota_responde_401` (6 rotas) |
+| CA-18 | `frontend/src/notificacoes.test.tsx` > aviso flutuante: "CA-18: com o aviso desligado não mostra o aviso, e o indicador continua aparecendo" |
+| CA-23 | `frontend/src/notificacoes.test.tsx` > sino: "CA-23: mostra a quantidade de não lidas ao carregar", "CA-23: a quantidade se atualiza sozinha a cada 60 segundos" (relógio simulado), "com a aba escondida não consulta, e ao voltar a ficar visível consulta na hora", "a falha ao consultar não mostra alerta…", "ao sair da tela o sino para de consultar e limpa o temporizador", "acima de 99 mostra 99+", "sem não lidas mostra o sino sem número"; moldura: "mostra o nome, o menu do admin, o sino, as preferências e Sair em qualquer tela" |
+| CA-24 | `frontend/src/notificacoes.test.tsx` > aviso flutuante: "CA-24: ao chegar uma notificação com o aviso ligado, aparece o aviso flutuante", "o aviso flutuante some sozinho depois de alguns segundos", "a primeira consulta não gera aviso…", "consulta igual à anterior não gera aviso", "mostra o texto do aviso como texto, sem interpretar HTML" |
+| Caixa (caminho feliz e erro) | `frontend/src/notificacoes.test.tsx` > caixa de entrada (12 casos: abrir e destacar não lidas, vazia, fechar, carregar mais por cursor, abrir item e navegar, caminho fora do site, marcar todas, erros ao carregar, ao ler, ao carregar mais e ao marcar todas, texto sem HTML) |
+| Preferências (CA-16, CA-17, CA-19 na tela) | `frontend/src/notificacoes.test.tsx` > tela de preferências (8 casos: valores da API, nascem ligadas, salvar com CSRF, erro ao salvar, erro ao carregar, só duas chaves e o aviso de que o que pede ação sempre chega, sem sessão, link na moldura) |
+| Moldura | `frontend/src/notificacoes.test.tsx` > moldura das telas logadas (7 casos: menu do admin, atalho Convites do diretor, sem atalho, sem consulta de permissões sem cargo, uma só consulta de permissões, sem moldura sem sessão, Sair) |
 | ADR-003 (despachante) | `tests/test_events.py` (entrega, ordem, tipos que não se misturam, exceção que propaga, transação desfeita) |
 
 ## Revisão de segurança
@@ -274,6 +280,31 @@ Preenchida no checkpoint 7.
   1 a 50 e texto, o que está coberto.
 - As preferências aceitam só `true` ou `false` (`"sim"`, `1` e `null` dão 400) e só as chaves enviadas mudam. Ler e
   marcar como lida não registram auditoria: a spec não pede, e a leitura fica na própria `lida_em`.
+
+### Checkpoint 6 — Site (2026-11-13)
+
+- `npm run verify` em `frontend/`: saída 0 (oxlint, `tsc`, 123 testes, cobertura 92,6% das linhas, build). Os
+  83 testes do ponto de partida continuam, e 40 são novos (`frontend/src/notificacoes.test.tsx`). Os testes
+  novos foram escritos e vistos falhar (nenhum elemento existia) antes das telas.
+- Estrutura: `Moldura.tsx` é uma rota de layout que envolve todas as rotas protegidas (cabeçalho com "Olá, nome",
+  menu, "Preferências", sino e "Sair"); `Sino.tsx` e `useCaixa.ts` (sino, aviso flutuante e caixa);
+  `paginas/Preferencias.tsx`; `api/notificacoes.ts`. `Inicio.tsx` perdeu o menu, o "Sair" e a saudação, que
+  passaram para a moldura. A moldura consulta `permissoes/minhas/` uma vez (só com cargo, como antes) e a página
+  inicial reaproveita a resposta por contexto (`useMinhasDaMoldura`).
+- Teste existente alterado, com autorização do dono nesta sessão (2026-11-13):
+  `frontend/src/App.test.tsx`, "entra com a credencial devolvida pelo Google". A asserção `chamadas.at(-1)` passou a
+  `chamadas.find((c) => c.metodo === 'POST')`, com o mesmo caminho e corpo. Motivo: depois do login a moldura monta o
+  sino, que consulta `resumo/` ao montar (CA-23), e o POST deixou de ser a última chamada.
+- O sino consulta ao montar sempre e, a cada 60 s, só com a aba visível; ao voltar a ficar visível consulta na hora.
+  O aviso flutuante busca a preferência e a notificação mais recente só quando `mais_recente_id` muda (a primeira
+  consulta só marca o ponto de partida). Falha de consulta do sino não vira alerta.
+- "Carregar mais" é um botão (o plano pede assim; a spec técnica fala em "ao chegar ao fim"). O `caminho` de uma
+  notificação só é aberto se for um caminho do próprio site; caso contrário a notificação é marcada como lida e a
+  caixa fecha, sem sair do site.
+- No Windows, a suíte do site só roda num terminal aberto em `C:\` com letra maiúscula: de uma sessão com `c:\`
+  minúsculo, o Vitest falha com "failed to find the current suite" em todos os arquivos (não é defeito do código).
+- Não validado aqui: o intervalo real de 60 s e a aparência no navegador (os testes usam o relógio simulado); o
+  checkpoint 7 confere isso com o sistema no ar.
 
 ## Rollback ou recuperação
 
