@@ -77,6 +77,7 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-025 | O diretor com cargo lê os dados de gestão (financeiro, eventos, feed, documentos) | PER-01 | Aprovado | — |
 | RF-026 | O sistema registra, de forma imutável, quem fez o quê, quando, sobre qual item e com que justificativa, em toda ação relevante | AUD-01, AUD-02 | Aprovado | — |
 | RF-027 | Quem pode ver um item consulta o histórico dele no próprio detalhe | AUD-03 | Aprovado | — |
+| RF-118 | O diretor consulta o próprio cargo, os próprios setores e as próprias permissões | Spec `permissoes/catalogo-e-classificacao` **(novo)** | Proposto | — |
 
 ### Notificações (M4)
 

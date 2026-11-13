@@ -16,7 +16,7 @@ vez, na ordem de dependência. Cada épico é quebrado em features pequenas na h
 | --- | --- | --- | --- | --- |
 | M1 — Fundação | Projeto, contêineres, banco, CI, esqueleto da API e do site | RNF-01 a RNF-05, RNF-08, RNF-09 | Todos os módulos, vazios | Leandro |
 | M2 — Identidade e acesso | Convite, cadastro, login, verificação, desativação | RF-001 a RF-014, RF-116, RF-117 | Identidade e Permissões (`acesso`) | Leandro |
-| M3 — Permissões e auditoria | Cargos, setores, concessões, painel do admin, trilha de auditoria | RF-015 a RF-027 | Identidade e Permissões (`permissoes`), Auditoria | Leandro |
+| M3 — Permissões e auditoria | Cargos, setores, concessões, painel do admin, trilha de auditoria | RF-015 a RF-027, RF-118 | Identidade e Permissões (`permissoes`), Auditoria | Leandro |
 | M4 — Notificações | Registro, e-mail, caixa de entrada, preferências, agendador | RF-028 a RF-032, RNF-10 | Notificações | Leandro |
 | M5 — Motor de aprovações | Solicitação com versões, decisões, motivos, fila | RF-033 a RF-045 | Aprovações: Solicitação | Leandro |
 | M6 — Financeiro: cobrança e recebimento | Cobranças, recorrência, Pix, validação, inadimplência, entradas | RF-046 a RF-072 | Financeiro: Cobrança, Recorrência, Suspensão, Renegociação, Entrada | Leandro |
