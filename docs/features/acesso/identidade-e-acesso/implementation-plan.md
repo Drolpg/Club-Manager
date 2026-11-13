@@ -295,6 +295,10 @@ O que essa validação achou, e que os testes automatizados não pegavam:
 - no log, os links dos e-mails aparecem quebrados com `=`. É a codificação do e-mail, não um defeito do sistema;
   ficou documentado em `docs/setup/local.md` e `docs/api/manual-testing.md`.
 
+Um teste do site falhou uma vez nesta etapa, e só quando a suíte do backend rodava ao mesmo tempo: o prazo padrão de
+1 segundo para a tela reagir estourou. O prazo dos testes passou a 5 segundos (`frontend/src/test/setup.ts`); em três
+execuções seguidas isoladas, os 30 testes passaram. O commit `4890554` saiu antes dessa correção.
+
 Não validado: o roteiro pelo navegador, por uma pessoa, e o login com uma conta Google real (depende de o dono criar
 o ID de cliente). O CI no GitHub só roda quando a branch for integrada à `dev` ou num pull request.
 
