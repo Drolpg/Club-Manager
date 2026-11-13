@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `aprovacoes/motor-de-solicitacoes` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 | Requisitos | RF-033 a RF-045, RF-120 a RF-122; RN-010 a RN-013; INV-SOL-01 a INV-SOL-11 |
 | Referências | Marco M5; canvas `docs/domain/aggregates/solicitacao.md`; `docs/domain/domain-events.md`; AD-008; hotspots H12, H16, H19, H21, H26; features `permissoes/catalogo-e-classificacao` e `notificacoes/caixa-e-email` |
 
@@ -285,7 +285,7 @@ Motivos, lembretes e auditoria:
 | 3 | Solicitação parada gera lembrete aos 3 dias e aviso ao admin aos 7 | Leandro Nascimento | 2026-11-13 |
 | 4 | Quem tem auto-aprovação decide o próprio pedido pelo caminho normal, com a marca de aprovação própria e aviso ao admin | Leandro Nascimento | 2026-11-13 |
 
-Propostas do agente, que passam a valer com a aprovação desta spec:
+Propostas do agente, aprovadas pelo dono junto com esta spec, em 2026-11-13:
 
 | # | Proposta | Motivo |
 | --- | --- | --- |

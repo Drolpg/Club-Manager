@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `notificacoes/caixa-e-email` |
-| Status | Draft |
+| Status | Approved |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 | Requisitos | RF-028 a RF-032, RF-013 (passa a ser notificação), RF-119; RN-009; RNF-10 |
 | Referências | Marco M4; canvas "Notificações" em `docs/domain/strategic-design.md`; ADR-003, ADR-006; AD-012; features `acesso/identidade-e-acesso` e `permissoes/catalogo-e-classificacao` |
 
@@ -175,7 +175,7 @@ Site:
 | 3 | O aviso na tela tem uma chave só, liga ou desliga | Leandro Nascimento | 2026-11-13 |
 | 4 | A notificação fica lida ao ser aberta; há o botão "marcar todas como lidas" | Leandro Nascimento | 2026-11-13 |
 
-Propostas do agente, que passam a valer com a aprovação desta spec:
+Propostas do agente, aprovadas pelo dono junto com esta spec, em 2026-11-13:
 
 | # | Proposta | Motivo |
 | --- | --- | --- |

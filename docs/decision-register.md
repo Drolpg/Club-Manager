@@ -241,6 +241,11 @@ que não se sobrescrevem e liquidação imutável (APR-01 a APR-11).
 **Nota (2026-11-11):** a descoberta do domínio mudou as premissas: um só validador por solicitação, contestar como
 terceira decisão, e evento com custo como duas solicitações ligadas (`docs/domain/discovery/event-storming.md`).
 
+**Nota (2026-11-13):** modelagem proposta na technical-spec `aprovacoes/motor-de-solicitacoes`: o aggregate
+`Solicitacao` com versões e decisões imutáveis; tipos de solicitação registrados em código pelos módulos donos,
+cada um com o próprio tratador de mudanças; conteúdo em JSON validado pelo dono. Passa a Resolved com a aprovação
+da technical-spec.
+
 **Follow-up:** ADR na especificação do M5.
 
 ---

@@ -88,7 +88,7 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-030 | O usuário abre a caixa de entrada no site, com indicador de notificações novas | NOT-01 | Aprovado | — |
 | RF-031 | O usuário marca uma notificação como lida e vai dela para o item relacionado | NOT-03 | Aprovado | — |
 | RF-032 | O usuário ajusta como é alertado, sem desligar o registro da notificação | NOT-04 | Aprovado | — |
-| RF-119 | O sistema notifica o usuário quando mudam a classificação, o papel de admin ou as permissões individuais dele | Spec `notificacoes/caixa-e-email` **(novo)** | Proposto | — |
+| RF-119 | O sistema notifica o usuário quando mudam a classificação, o papel de admin ou as permissões individuais dele | Spec `notificacoes/caixa-e-email` **(novo)** | Aprovado | — |
 
 ### Aprovações (M5)
 
@@ -107,9 +107,9 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-043 | Quem pode ver a solicitação consulta todas as versões, decisões, motivos e mensagens | APR-08 | Aprovado | — |
 | RF-044 | O aprovador consulta a fila das solicitações que pode decidir | APR-11 | Aprovado | — |
 | RF-045 | O sistema notifica quem pode decidir quando uma solicitação é enviada ou reenviada, e notifica o solicitante de cada decisão, com um texto padrão e a mensagem do aprovador | NOT-06, H12 | Aprovado | — |
-| RF-120 | O solicitante retira da análise a própria solicitação, para corrigir e reenviar | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Proposto | — |
-| RF-121 | O sistema lembra quem pode decidir depois de 3 dias sem decisão, e avisa o admin depois de 7 | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Proposto | — |
-| RF-122 | O diretor com cargo lista as solicitações, com filtro por tipo, por situação e pelas próprias | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Proposto | — |
+| RF-120 | O solicitante retira da análise a própria solicitação, para corrigir e reenviar | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Aprovado | — |
+| RF-121 | O sistema lembra quem pode decidir depois de 3 dias sem decisão, e avisa o admin depois de 7 | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Aprovado | — |
+| RF-122 | O diretor com cargo lista as solicitações, com filtro por tipo, por situação e pelas próprias | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Aprovado | — |
 
 ### Financeiro — cobrança e recebimento (M6)
 
