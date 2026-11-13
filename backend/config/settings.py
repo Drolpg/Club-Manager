@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "drf_spectacular",
+    "drf_spectacular_sidecar",
     "kernel",
     "auditoria",
     "acesso",
@@ -169,7 +170,9 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API única do Club Manager, usada pelo site e, depois, pelo aplicativo.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+    # Os arquivos da página de documentação vêm da própria imagem, não de uma CDN.
+    "SWAGGER_UI_DIST": "SIDECAR",
+    "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
     "SCHEMA_PATH_PREFIX": "/api/v1",
 }
 

@@ -234,6 +234,17 @@ Testes novos: `backend/acesso/tests/test_google.py` (20), com o verificador fals
 adapter real é testado sem rede. O login com uma conta Google de verdade só pode ser conferido quando o dono criar o
 ID de cliente.
 
+### Checkpoint 9 — Documentação da API protegida (2026-11-12)
+
+```text
+uv run poe verify
+216 passed; import-linter: 1 contrato mantido; nenhuma migração pendente
+```
+
+Testes novos: `backend/acesso/tests/test_documentacao.py` (6). O teste antigo que esperava o contrato aberto a
+qualquer pessoa (`tests/test_contract.py`) foi substituído, porque a technical-spec aprovada mudou esse
+comportamento. Encerra a TD-001.
+
 ## Rollback ou recuperação
 
 Não há dado de produção. As migrações revertem com `python manage.py migrate <app> zero`; a versão anterior é a tag

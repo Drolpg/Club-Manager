@@ -1,20 +1,16 @@
-import pytest
-from rest_framework.test import APIClient
+"""O contrato da API é conferido em `acesso/tests/test_documentacao.py`, porque passou a exigir admin logado."""
 
 from config.celery import app as celery_app
-
-
-@pytest.mark.django_db
-def test_contrato_openapi_e_gerado_e_lista_o_health() -> None:
-    response = APIClient().get("/api/v1/schema/", headers={"Accept": "application/json"})
-
-    assert response.status_code == 200
-    schema = response.json()
-    assert schema["info"]["title"] == "Club Manager API"
-    assert "/api/v1/health/" in schema["paths"]
 
 
 def test_celery_le_a_configuracao_do_django() -> None:
     assert celery_app.main == "club_manager"
     assert celery_app.conf.task_always_eager is True
     assert celery_app.conf.timezone == "America/Sao_Paulo"
+
+
+def test_tarefa_agendada_de_descarte_esta_na_agenda() -> None:
+    agenda = celery_app.conf.beat_schedule
+
+    assert agenda["acesso.descartar_cadastros_vencidos"]["task"] == "acesso.descartar_cadastros_vencidos"
+    assert agenda["acesso.descartar_cadastros_vencidos"]["schedule"] == 60 * 60

@@ -1,6 +1,6 @@
 # TD 001: Contrato e documentação da API abertos e dependentes de CDN
 
-**Status:** Accepted  
+**Status:** Resolved  
 **Date:** 2026-11-12  
 **Reported by:** Revisão de segurança do M1  
 **Affected areas:** `backend/config` (rotas `/api/v1/schema/` e `/api/v1/docs/`)  
@@ -53,7 +53,13 @@ Opção A com a C, na especificação do M2, quando a autenticação for definid
 Nenhum enquanto o sistema não estiver publicado e só existir a rota de saúde. Não fazer deploy de produção com esta
 dívida aberta.
 
+## Resolução (2026-11-12)
+
+As rotas `schema/` e `docs/` passaram a exigir admin logado, e os arquivos da página de documentação são servidos
+pela própria imagem (`drf-spectacular-sidecar`). Opções A e C, na feature `acesso/identidade-e-acesso`, checkpoint 9.
+Testes: `backend/acesso/tests/test_documentacao.py`.
+
 ---
 
 **Last Updated:** 2026-11-12  
-**Status:** Accepted
+**Status:** Resolved
