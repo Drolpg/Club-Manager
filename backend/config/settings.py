@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import ParseResult, parse_qs, unquote, urlparse
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -188,11 +188,25 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = 200
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 
+def _starttls_da_url(parsed: ParseResult) -> bool:
+    """`?tls=0` desliga a criptografia, só para o servidor de e-mail de desenvolvimento (Mailpit).
+
+    Só vale em `smtp://`, e é a única opção aceita na consulta: um erro de digitação não pode virar um
+    servidor sem criptografia por engano.
+    """
+    if not parsed.query:
+        return True
+    if parsed.scheme != "smtp" or parse_qs(parsed.query, keep_blank_values=True) != {"tls": ["0"]}:
+        raise ImproperlyConfigured("EMAIL_URL só aceita ?tls=0 na consulta, e só em smtp://")
+    return False
+
+
 def _mailer_from_url(url: str) -> dict[str, object]:
     """`smtp://usuario:senha@host:porta` (STARTTLS) ou `smtps://…` (TLS direto)."""
     parsed = urlparse(url)
     if parsed.scheme not in ("smtp", "smtps"):
         raise ImproperlyConfigured("EMAIL_URL precisa ser smtp://usuario:senha@host:porta ou smtps://…")
+    starttls = _starttls_da_url(parsed)
     return {
         "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
         "OPTIONS": {
@@ -201,7 +215,7 @@ def _mailer_from_url(url: str) -> dict[str, object]:
             "username": unquote(parsed.username or ""),
             "password": unquote(parsed.password or ""),
             "use_ssl": parsed.scheme == "smtps",
-            "use_tls": parsed.scheme == "smtp",
+            "use_tls": parsed.scheme == "smtp" and starttls,
             "timeout": 10,
         },
     }

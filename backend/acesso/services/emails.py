@@ -31,26 +31,6 @@ def enviar_verificacao(usuario_id: uuid.UUID) -> None:
     )
 
 
-def avisar_admins_de_diretor_a_classificar(usuario_id: uuid.UUID) -> None:
-    """Aviso simples aos admins (funcional, P9). No M4 vira uma notificação registrada."""
-    usuario = Usuario.objects.filter(pk=usuario_id, situacao=Situacao.ATIVO).first()
-    if usuario is None:
-        return
-    admins = list(Usuario.objects.filter(admin=True, situacao=Situacao.ATIVO).values_list("email", flat=True))
-    if not admins:
-        return
-    send_mail(
-        subject="Novo diretor aguardando classificação",
-        message=(
-            f"{usuario.nome} ({usuario.nome_de_usuario}) concluiu o cadastro no Club Manager e aguarda a "
-            "classificação: cargo e setores.\n\n"
-            f"{settings.SITE_URL}/admin/usuarios"
-        ),
-        from_email=None,
-        recipient_list=admins,
-    )
-
-
 def enviar_recuperacao(usuario_id: uuid.UUID) -> None:
     from acesso.services.senha import gerar_token_de_recuperacao
 

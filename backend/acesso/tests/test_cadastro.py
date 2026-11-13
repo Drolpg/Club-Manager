@@ -11,9 +11,11 @@ from rest_framework.test import APIClient
 from acesso import tasks
 from acesso.domain.cadastro import cadastro_vencido
 from acesso.models import Convite, Situacao, Usuario
+from acesso.public import CadastroConcluido
 from acesso.services import cadastro
 from acesso.tests.conftest import SENHA, criar_diretor
 from auditoria import public as auditoria
+from kernel import events
 
 pytestmark = pytest.mark.django_db
 
@@ -108,7 +110,12 @@ def test_resposta_do_cadastro_nao_devolve_dados_nem_abre_sessao(token: str) -> N
     assert client.get(SESSAO).json() == {"usuario": None}
 
 
-def test_ca11_verificar_ativa_a_conta_sem_cargo_e_avisa_os_admins(token: str, admin: Usuario) -> None:
+def test_ca11_verificar_ativa_a_conta_sem_cargo_e_publica_o_cadastro_concluido(
+    token: str, admin: Usuario, tratadores_de_eventos: None
+) -> None:
+    events.unsubscribe_all_for_tests()  # só o tratador do teste: `acesso` não manda e-mail
+    publicados: list[CadastroConcluido] = []
+    events.subscribe(CadastroConcluido, publicados.append)
     criar_diretor("inativo.admin", Situacao.INATIVO)
     Usuario.objects.filter(nome_de_usuario="inativo.admin").update(admin=True)
     _cadastrar(token)
@@ -123,9 +130,9 @@ def test_ca11_verificar_ativa_a_conta_sem_cargo_e_avisa_os_admins(token: str, ad
     assert usuario.situacao == Situacao.ATIVO
     assert usuario.email_verificado_em is not None
     assert usuario.admin is False
-    assert [m.to for m in mail.outbox] == [[admin.email]]
-    assert "Caio Convidado" in mail.outbox[0].body
-    assert "classific" in mail.outbox[0].body.lower()
+    # Mudança de spec do M4 (CA-20): o e-mail simples aos admins virou o evento, tratado por `notificacoes`.
+    assert publicados == [CadastroConcluido(usuario_id=usuario.id)]
+    assert mail.outbox == []
     client = APIClient()
     assert client.post(SESSAO, {"identificador": "caio", "senha": SENHA}).status_code == 200
     assert client.get(SESSAO).json()["usuario"]["tem_cargo"] is False

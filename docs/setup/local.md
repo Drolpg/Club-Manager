@@ -39,7 +39,8 @@ Como verificar:
 | Site | <http://localhost:8080> | Tela "Entrar" |
 | Saúde da API | <http://localhost:8080/api/v1/health/> | `{"status":"ok","database":"ok"}` |
 | Documentação da API | <http://localhost:8080/api/v1/docs/> | Sem login, erro `NOT_AUTHENTICATED`; logado como admin, a página do Swagger |
-| Serviços | `docker compose ps` | Os cinco com estado `Up`; `db`, `redis` e `api` como `healthy` |
+| Serviços | `docker compose ps` | Os seis com estado `Up` (o sexto é o `mailpit`, só em desenvolvimento); `db`, `redis` e `api` como `healthy` |
+| E-mails de desenvolvimento | <http://localhost:8025> | A caixa do Mailpit, vazia no começo |
 | Worker | `docker compose logs worker` | Linha terminando em `ready.` |
 
 Para parar: `docker compose down`. Para apagar também os dados do banco local: `docker compose down --volumes`.
@@ -56,7 +57,9 @@ docker compose exec api python manage.py criar_admin
 Resultado esperado: `Admin <nome de usuário> criado.` O mesmo comando cria outro admin se todos perderem o
 acesso. O roteiro completo de teste do acesso está em [api/manual-testing.md](../api/manual-testing.md).
 
-Em desenvolvimento os e-mails não são enviados: saem no log do `worker` (`docker compose logs worker`).
+Em desenvolvimento os e-mails não saem para a internet: chegam ao Mailpit, que os mostra em <http://localhost:8025>,
+com o link já inteiro e clicável. O SMTP do Mailpit (porta 1025) fica só na rede interna do compose, e a página
+(8025) só responde em `127.0.0.1`. Em produção não há Mailpit: o `compose.yaml` não o contém.
 
 ## 4. Rodar os testes
 
@@ -103,5 +106,6 @@ O Vite abre em <http://localhost:5173> e repassa `/api` para a API em `127.0.0.1
 | `failed to connect to the docker API` | O Docker Desktop não está aberto | Abra o Docker Desktop, ou rode `docker desktop start` |
 | Testes do backend falham com erro de senha do banco | O volume do banco foi criado com outra senha | `docker compose down --volumes` e suba de novo |
 | Os testes do backend ficam parados, sem terminar | Algo aponta para `localhost`, que no Windows tenta IPv6 primeiro; as portas de desenvolvimento só atendem em `127.0.0.1` | Use `127.0.0.1` no `DATABASE_URL` e no `REDIS_URL` |
-| O link copiado do log do `worker` dá "link inválido" | No log, o e-mail aparece codificado e as linhas longas são quebradas com `=` no fim | Junte as linhas, tirando o `=` do fim de cada uma |
+| O link copiado do log do `worker` dá "link inválido" | Só sem o Mailpit (por exemplo, `docker compose -f compose.yaml up`): o e-mail sai no log, codificado, com as linhas longas quebradas com `=` no fim | Use o Mailpit (<http://localhost:8025>) ou junte as linhas, tirando o `=` do fim de cada uma |
+| O Mailpit não mostra o e-mail | O sistema subiu só com o `compose.yaml`, que não tem o Mailpit | Suba com `docker compose up -d` (aplica o `compose.override.yaml`); confira com `docker compose ps` |
 | O editor marca linhas com mais de 79 colunas | O linter padrão do editor não lê a configuração do projeto | O limite do projeto é 110 (Ruff, em `backend/pyproject.toml`); use a extensão do Ruff no editor |

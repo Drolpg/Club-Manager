@@ -361,7 +361,8 @@ describe('Google', () => {
     aoReceber({ credential: 'credencial-do-google' })
 
     expect(await screen.findByText(/aguarda a classificação/i)).toBeInTheDocument()
-    expect(chamadas.at(-1)).toMatchObject({
+    // Depois do login a moldura monta o sino, que consulta o resumo: o POST não é mais a última chamada.
+    expect(chamadas.find((c) => c.metodo === 'POST')).toMatchObject({
       caminho: '/acesso/sessao/google/',
       corpo: { credencial: 'credencial-do-google' },
     })

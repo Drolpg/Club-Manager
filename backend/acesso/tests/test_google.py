@@ -9,9 +9,11 @@ from rest_framework.test import APIClient
 
 from acesso.google import CredencialGoogleInvalida, VerificadorGoogleReal
 from acesso.models import Convite, Situacao, Usuario
+from acesso.public import CadastroConcluido
 from acesso.tests.conftest import SENHA, criar_diretor, entrar
 from acesso.tests.fakes import VerificadorGoogleFalso
 from auditoria import public as auditoria
+from kernel import events
 
 pytestmark = pytest.mark.django_db
 
@@ -60,7 +62,12 @@ def _entrar_com_google(credencial: str) -> Any:
     return APIClient().post(SESSAO_GOOGLE, {"credencial": credencial})
 
 
-def test_ca15_cadastro_pelo_google_ativa_a_conta_sem_link_de_verificacao(token: str, admin: Usuario) -> None:
+def test_ca15_cadastro_pelo_google_ativa_a_conta_sem_link_de_verificacao(
+    token: str, admin: Usuario, tratadores_de_eventos: None
+) -> None:
+    events.unsubscribe_all_for_tests()  # só o tratador do teste: `acesso` não manda e-mail
+    publicados: list[CadastroConcluido] = []
+    events.subscribe(CadastroConcluido, publicados.append)
     VerificadorGoogleFalso.aceitar("cred-caio", email="Caio@Gmail.com")
     mail.outbox.clear()
     client = APIClient()
@@ -76,9 +83,9 @@ def test_ca15_cadastro_pelo_google_ativa_a_conta_sem_link_de_verificacao(token: 
     assert usuario.admin is False
     assert not _convite_ativo(token)
     assert Convite.objects.get().usado_por == usuario
-    # Nenhum link de verificação; só o aviso aos admins.
-    assert [m.to for m in mail.outbox] == [[admin.email]]
-    assert "verificar" not in mail.outbox[0].body
+    # Nenhum e-mail do acesso: sem link de verificação, e o aviso aos admins virou o evento (CA-20, M4).
+    assert mail.outbox == []
+    assert publicados == [CadastroConcluido(usuario_id=usuario.id)]
     # Já sai logado.
     assert resposta.json()["usuario"]["id"] == str(usuario.id)
     assert client.get(SESSAO).json()["usuario"]["id"] == str(usuario.id)
@@ -142,7 +149,12 @@ def test_ca28_usuario_desativado_nao_entra_pelo_google(db: None) -> None:
     assert resposta.json()["error"]["code"] == "CREDENCIAIS_INVALIDAS"
 
 
-def test_entrar_pelo_google_verifica_a_conta_que_aguardava_verificacao(admin: Usuario) -> None:
+def test_entrar_pelo_google_verifica_a_conta_que_aguardava_verificacao(
+    admin: Usuario, tratadores_de_eventos: None
+) -> None:
+    events.unsubscribe_all_for_tests()  # só o tratador do teste: `acesso` não manda e-mail
+    publicados: list[CadastroConcluido] = []
+    events.subscribe(CadastroConcluido, publicados.append)
     pendente = criar_diretor("caio", Situacao.AGUARDANDO_VERIFICACAO)
     VerificadorGoogleFalso.aceitar("cred-caio", email="caio@exemplo.com")
     mail.outbox.clear()
@@ -153,7 +165,9 @@ def test_entrar_pelo_google_verifica_a_conta_que_aguardava_verificacao(admin: Us
     atual = Usuario.objects.get(pk=pendente.pk)
     assert atual.situacao == Situacao.ATIVO
     assert atual.email_verificado_em is not None
-    assert [m.to for m in mail.outbox] == [[admin.email]]
+    # Mudança de spec do M4 (CA-20): o e-mail aos admins virou o evento.
+    assert mail.outbox == []
+    assert publicados == [CadastroConcluido(usuario_id=pendente.id)]
     assert [r.acao for r in auditoria.historico_do_item("usuario", pendente.id)] == ["CADASTRO_CONCLUIDO"]
 
 

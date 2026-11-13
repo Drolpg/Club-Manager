@@ -55,7 +55,7 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-010 | O usuário recupera a senha pelo e-mail verificado | ACE-11 | Implementado | `acesso/identidade-e-acesso` |
 | RF-011 | O usuário encerra a própria sessão | ACE-13 (derivado) | Implementado | `acesso/identidade-e-acesso` |
 | RF-012 | O admin desativa e reativa um usuário; o desativado não entra | ACE-10 | Implementado | `acesso/identidade-e-acesso` |
-| RF-013 | O sistema avisa o admin quando um diretor conclui o cadastro | ACE-07 | Implementado | `acesso/identidade-e-acesso` |
+| RF-013 | O sistema avisa o admin quando um diretor conclui o cadastro | ACE-07 | Implementado | `acesso/identidade-e-acesso`; passa a ser notificação em `notificacoes/caixa-e-email` |
 | RF-014 | O primeiro admin é criado por um procedimento seguro, sem senha padrão | Seção 16, AD-019 | Implementado | `acesso/identidade-e-acesso` |
 | RF-116 | O admin dá e tira o papel de admin de outro usuário | Spec `acesso/identidade-e-acesso` **(novo)** | Implementado | `acesso/identidade-e-acesso` |
 | RF-117 | O admin consulta os convites e os usuários, com a situação de cada um | Spec `acesso/identidade-e-acesso` **(novo)** | Implementado | `acesso/identidade-e-acesso` |
@@ -83,12 +83,12 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Origem | Status | Feature |
 | --- | --- | --- | --- | --- |
-| RF-028 | O sistema registra toda notificação com destinatário, item relacionado e data e hora de envio e de leitura | NOT-03 | Aprovado | — |
-| RF-029 | O sistema envia a notificação por e-mail ao endereço cadastrado | NOT-01 | Aprovado | — |
-| RF-030 | O usuário abre a caixa de entrada no site, com indicador de notificações novas | NOT-01 | Aprovado | — |
-| RF-031 | O usuário marca uma notificação como lida e vai dela para o item relacionado | NOT-03 | Aprovado | — |
-| RF-032 | O usuário ajusta como é alertado, sem desligar o registro da notificação | NOT-04 | Aprovado | — |
-| RF-119 | O sistema notifica o usuário quando mudam a classificação, o papel de admin ou as permissões individuais dele | Spec `notificacoes/caixa-e-email` **(novo)** | Aprovado | — |
+| RF-028 | O sistema registra toda notificação com destinatário, item relacionado e data e hora de envio e de leitura | NOT-03 | Implementado | `notificacoes/caixa-e-email` |
+| RF-029 | O sistema envia a notificação por e-mail ao endereço cadastrado | NOT-01 | Implementado | `notificacoes/caixa-e-email` |
+| RF-030 | O usuário abre a caixa de entrada no site, com indicador de notificações novas | NOT-01 | Implementado | `notificacoes/caixa-e-email` |
+| RF-031 | O usuário marca uma notificação como lida e vai dela para o item relacionado | NOT-03 | Implementado | `notificacoes/caixa-e-email` |
+| RF-032 | O usuário ajusta como é alertado, sem desligar o registro da notificação | NOT-04 | Implementado | `notificacoes/caixa-e-email` |
+| RF-119 | O sistema notifica o usuário quando mudam a classificação, o papel de admin ou as permissões individuais dele | Spec `notificacoes/caixa-e-email` **(novo)** | Implementado | `notificacoes/caixa-e-email` |
 
 ### Aprovações (M5)
 
@@ -317,4 +317,4 @@ mesma regra de imutabilidade; "questionada" deixou de ser estado da cobrança.
 | 7 | E-mails caem em spam ou o provedor gratuito limita o envio | Pendente de análise | AD-012 |
 | 8 | "Nada é apagado" entra em conflito com direitos do titular na LGPD | Pendente de análise | AD-015; avaliar no M2 |
 | 9 | O escopo do M6 cresceu com inadimplência, renegociação, suspensão e Pix | Mitigado (dividir o marco em features menores) | `epics.md` |
-| 10 | Em desenvolvimento, os links dos e-mails saem no log quebrados pela codificação, o que atrapalha o teste manual | Mitigado (documentado; avaliar um servidor de e-mail de desenvolvimento no M4) | `docs/setup/local.md` |
+| 10 | Em desenvolvimento, os links dos e-mails saem no log quebrados pela codificação, o que atrapalha o teste manual | Mitigado (documentado; no M4, o Mailpit entra no compose de desenvolvimento e mostra o link inteiro em <http://localhost:8025>; o dono confirma ao aprovar o marco) | `docs/setup/local.md` |

@@ -146,3 +146,127 @@ td button {
   display: flex;
   justify-content: center;
 }
+
+/* Moldura das telas logadas, sino, caixa e aviso flutuante (M4). */
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  min-height: 3.5rem;
+  box-sizing: border-box;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--texto-suave);
+}
+
+.cabecalho-nome {
+  margin-right: auto;
+  font-weight: 600;
+}
+
+.cabecalho nav {
+  justify-content: flex-start;
+}
+
+.cabecalho + .pagina {
+  box-sizing: border-box;
+  min-height: calc(100vh - 3.5rem);
+}
+
+.sino {
+  position: relative;
+}
+
+.sino-botao {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.contador {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.45rem;
+  min-width: 1.1rem;
+  padding: 0 0.25rem;
+  border-radius: 0.6rem;
+  background: var(--erro);
+  color: var(--fundo);
+  font-size: 0.7rem;
+  line-height: 1.1rem;
+  text-align: center;
+}
+
+.caixa,
+.aviso-flutuante {
+  position: absolute;
+  right: 0;
+  z-index: 10;
+  box-sizing: border-box;
+  width: min(90vw, 24rem);
+  border: 1px solid var(--texto-suave);
+  border-radius: 0.5rem;
+  background: var(--fundo);
+  color: var(--texto);
+  text-align: left;
+}
+
+.caixa {
+  top: calc(100% + 0.5rem);
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.caixa header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.caixa h2 {
+  margin: 0 auto 0 0;
+  font-size: 1rem;
+}
+
+.caixa ul {
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.caixa li button {
+  display: grid;
+  width: 100%;
+  gap: 0.15rem;
+  text-align: left;
+}
+
+.caixa li[data-lida='false'] button {
+  border-color: var(--ok);
+  font-weight: 600;
+}
+
+.selo {
+  justify-self: start;
+  color: var(--ok);
+  font-size: 0.75rem;
+}
+
+.aviso-flutuante {
+  top: calc(100% + 0.5rem);
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.6rem 0.8rem;
+}
+
+.opcao {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ajuda {
+  margin: 0;
+  color: var(--texto-suave);
+}

@@ -25,6 +25,21 @@ class UsuarioInfo:
     ativo: bool
 
 
+@dataclass(frozen=True)
+class CadastroConcluido:
+    """Evento de integração: um diretor concluiu o cadastro (conta ativa, sem cargo)."""
+
+    usuario_id: uuid.UUID
+
+
+@dataclass(frozen=True)
+class PapelDeAdminAlterado:
+    """Evento de integração: o usuário ganhou (`admin=True`) ou perdeu (`admin=False`) o papel de admin."""
+
+    usuario_id: uuid.UUID
+    admin: bool
+
+
 def _info(usuario: Usuario) -> UsuarioInfo:
     return UsuarioInfo(
         id=usuario.id,
@@ -65,6 +80,8 @@ usuarios_com_cargo = portas.usuarios_com_cargo
 
 __all__ = (
     "Ator",
+    "CadastroConcluido",
+    "PapelDeAdminAlterado",
     "RegistroDoHistorico",
     "UsuarioInfo",
     "admins_ativos",

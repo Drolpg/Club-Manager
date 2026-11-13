@@ -4,14 +4,14 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from acesso import tasks
+from acesso import public, tasks
 from acesso.domain.cadastro import PRAZO_DE_VERIFICACAO, cadastro_vencido
 from acesso.domain.convite import SituacaoDoConvite
 from acesso.domain.identificacao import normalizar_email
 from acesso.models import Convite, Situacao, Usuario
 from acesso.services import convites, tokens, usuarios
 from auditoria import public as auditoria
-from kernel import rate_limit
+from kernel import events, rate_limit
 
 # Reenvio do link de verificação: 3 por hora por conta (technical-spec, "Limites").
 _LIMITE_DE_REENVIO = 3
@@ -59,12 +59,14 @@ def cadastrar(
 
 
 def concluir_cadastro(usuario: Usuario) -> None:
-    """Registra a conclusão e avisa os admins. O usuário já está ativo e salvo."""
+    """Registra a conclusão e publica `CadastroConcluido`. O usuário já está ativo e salvo.
+
+    Quem avisa os admins é `notificacoes`, que trata o evento na mesma transação (ADR-003).
+    """
     auditoria.registrar(
         ator_id=usuario.id, acao="CADASTRO_CONCLUIDO", item_tipo="usuario", item_id=usuario.id
     )
-    usuario_id = str(usuario.id)
-    transaction.on_commit(lambda: tasks.avisar_admins_de_diretor_a_classificar.delay(usuario_id))
+    events.publish(public.CadastroConcluido(usuario_id=usuario.id))
 
 
 @transaction.atomic

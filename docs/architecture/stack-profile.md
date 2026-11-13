@@ -34,7 +34,8 @@ As versões são as resolvidas em 2026-11-11; a fonte exata é `backend/uv.lock`
 | Senhas | Argon2 (`argon2-cffi`) | — | — | Nos testes, o mesmo algoritmo com custo mínimo (`tests/hashers.py`) |
 | Sessão | Sessões do Django no banco, com CSRF | — | — | ADR-008 |
 | Login com Google | `google-auth` | — | — | Atrás da port `VerificadorGoogle`; fake nos testes |
-| E-mail | `MAILERS` do Django 6.1, SMTP por `EMAIL_URL` | — | — | Sem `EMAIL_URL`, sai no log; nos testes, em memória |
+| E-mail | `MAILERS` do Django 6.1, SMTP por `EMAIL_URL` | — | — | Sem `EMAIL_URL`, sai no log; nos testes, em memória; em desenvolvimento, o Mailpit (`axllent/mailpit` v1.33.1, só no `compose.override.yaml`; `smtp://…?tls=0`) |
+| Eventos entre módulos | `kernel.events` (`subscribe` e `publish`), em processo e síncrono | — | — | ADR-003. Um módulo de baixo publica um evento definido no `public.py` dele; `notificacoes` registra os tratadores no `ready` |
 | Limite de tentativas | `kernel.rate_limit`, no cache (Redis) | — | — | Nos testes, cache em memória |
 
 ## Ferramentas do site

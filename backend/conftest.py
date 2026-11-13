@@ -40,3 +40,19 @@ def client_admin(admin: Usuario) -> APIClient:
 @pytest.fixture
 def client_diretor(diretor: Usuario) -> APIClient:
     return apoio.cliente_de(diretor)
+
+
+@pytest.fixture
+def tratadores_de_eventos() -> Iterator[None]:
+    """Guarda os tratadores de eventos registrados pelo sistema (no `ready`) e os devolve no fim.
+
+    Os testes que chamam `kernel.events.unsubscribe_all_for_tests()` ou registram tratadores próprios usam
+    esta fixture, para os testes seguintes não dependerem da ordem (mesmo padrão das fixtures de portas).
+    """
+    from kernel import events
+
+    guardados = events.copiar_registro()
+    try:
+        yield
+    finally:
+        events.restaurar_registro(guardados)

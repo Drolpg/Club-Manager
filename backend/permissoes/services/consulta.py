@@ -103,6 +103,11 @@ def permissoes_de(usuario_id: uuid.UUID) -> dict[str, list[Origem]]:
     return resolver_permissoes(fatos)
 
 
+def nome_da_permissao(codigo: str) -> str | None:
+    """O nome de uma permissão do catálogo, para quem monta um texto sobre ela. Desconhecida: `None`."""
+    return next((p.nome for p in catalogo.listar() if p.codigo == codigo), None)
+
+
 def pode(usuario_id: uuid.UUID, codigo: str) -> bool:
     return codigo in permissoes_de(usuario_id)
 

@@ -84,7 +84,14 @@ convite) ou não.
 | Catálogo e concessões | `GET permissoes/catalogo/`; `GET`, `POST permissoes/concessoes/` (201 se criou, 200 se já existia); `POST permissoes/concessoes/{id}/revogar/` | Admin |
 | Classificação e permissões de um usuário | `GET permissoes/usuarios/{id}/`; `PUT permissoes/usuarios/{id}/classificacao/` (`cargo_id` nulo tira o cargo e os setores) | Admin |
 | Minhas permissões | `GET permissoes/minhas/` | Logado: só as próprias |
+| Caixa de notificações | `GET notificacoes/` (`?antes=<id da última recebida>&limite=20`, de 1 a 50), `GET notificacoes/resumo/` (`nao_lidas` e `mais_recente_id`), `POST notificacoes/{id}/ler/`, `POST notificacoes/ler-todas/` (`marcadas`) | Logado: só as próprias. A de outro usuário responde 404 `NOT_FOUND`, inclusive para o admin |
+| Preferências de alerta | `GET`, `PUT notificacoes/preferencias/` (`aviso_na_tela`, `email_informativos`; só as chaves enviadas mudam, e só `true` ou `false`) | Logado: só as próprias |
 | Contrato | `GET schema/`, `GET docs/` | Admin |
+
+Notificação nunca é alterada nem apagada: não há rota `DELETE` nem preferência que desligue o registro; a rota `ler`
+só preenche `lida_em` na primeira leitura. A caixa vem da mais recente para a mais antiga, e `tem_mais` diz se há
+outras depois da última página; um `antes` que não é do usuário responde 400 `VALIDATION_ERROR`. Um item traz
+`id`, `tipo`, `pede_acao`, `titulo`, `texto`, `caminho`, `criada_em` e `lida_em`; o texto é sempre texto, nunca HTML.
 
 Cargo, setor e concessão nunca são apagados: não há rota `DELETE` para eles; só desativar ou revogar. O histórico
 de um item (`…/historico/`) vem do mais recente para o mais antigo, com `acao`, `ator` (`id` e `nome`, ou nulo
