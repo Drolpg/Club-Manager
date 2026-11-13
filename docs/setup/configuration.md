@@ -13,6 +13,10 @@ padrão. O modelo é o `.env.example`, na raiz.
 | `DJANGO_SECRET_KEY` | `api`, `worker` | Sim | — | Chave do Django; a aplicação não inicia sem ela |
 | `DJANGO_DEBUG` | `api`, `worker` | Não | `0` | `1` liga a depuração; nunca em produção |
 | `DJANGO_ALLOWED_HOSTS` | `api` | Em produção | `localhost,127.0.0.1` | Domínios aceitos, separados por vírgula |
+| `SITE_URL` | `api`, `worker` | Sim | `http://localhost:8080` no compose | Endereço público do site, usado nos links de convite e nos e-mails |
+| `EMAIL_URL` | `api`, `worker` | Em produção | vazio | Servidor SMTP: `smtp://usuário:senha@host:587` ou `smtps://…:465`. Vazio: os e-mails saem no log |
+| `DEFAULT_FROM_EMAIL` | `api`, `worker` | Em produção | `Club Manager <nao-responda@localhost>` | Remetente dos e-mails |
+| `GOOGLE_CLIENT_ID` | `api` | Não | vazio | ID de cliente do Google ([google.md](google.md)). Vazio: login com Google desligado |
 | `WEB_PORT` | `web` | Não | `8080` | Porta do site na máquina |
 | `IMAGE_TAG` | `api`, `worker`, `web` | Não | `dev` | Versão das imagens; em produção, a tag publicada |
 | `LOG_LEVEL` | `api`, `worker` | Não | `INFO` | Nível do log |
@@ -22,7 +26,7 @@ Montadas pelo `compose.yaml` a partir das de cima, e lidas pela aplicação:
 | Variável | Valor no compose | O que é |
 | --- | --- | --- |
 | `DATABASE_URL` | `postgres://<usuário>:<senha>@db:5432/<banco>` | Conexão com o banco; obrigatória para a aplicação |
-| `REDIS_URL` | `redis://redis:6379/0` | Fila do Celery |
+| `REDIS_URL` | `redis://redis:6379/0` | Fila do Celery e contadores de tentativas |
 
 Só no desenvolvimento do site:
 

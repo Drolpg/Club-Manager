@@ -1,40 +1,55 @@
-import { useEffect, useState } from 'react'
-import { apiGet } from './api/client'
+import type { ReactNode } from 'react'
+import { Navigate, Route, Routes } from 'react-router'
+import { CadastroPorConvite, Entrar, RecuperarSenha, RedefinirSenha, VerificarEmail } from './paginas/Acesso'
+import { Convites, Usuarios } from './paginas/Admin'
+import { Inicio } from './paginas/Inicio'
+import { ProvedorDeSessao, useSessao } from './sessao'
 
-type Situacao = 'verificando' | 'no-ar' | 'indisponivel'
-
-const TEXTO: Record<Situacao, string> = {
-  verificando: 'Verificando a API…',
-  'no-ar': 'API no ar',
-  indisponivel: 'API indisponível',
+// O site só decide o que mostrar. Quem pode o quê é sempre conferido pela API (RNF-01).
+function Protegida({ soAdmin = false, children }: { soAdmin?: boolean; children: ReactNode }) {
+  const { usuario } = useSessao()
+  if (usuario === undefined) return <p className="pagina">Carregando…</p>
+  if (usuario === null) return <Navigate to="/entrar" replace />
+  if (soAdmin && !usuario.admin) return <Navigate to="/" replace />
+  return children
 }
 
-// Esqueleto do M1: prova que o site fala com a API. As telas entram a partir do M2.
-// O sistema nasce sem marca de clube (BRD-01); a identidade visual é configurada no M11.
 function App() {
-  const [situacao, setSituacao] = useState<Situacao>('verificando')
-
-  useEffect(() => {
-    let ativo = true
-    apiGet<{ status: string }>('/health/')
-      .then((saude) => {
-        if (ativo) setSituacao(saude.status === 'ok' ? 'no-ar' : 'indisponivel')
-      })
-      .catch(() => {
-        if (ativo) setSituacao('indisponivel')
-      })
-    return () => {
-      ativo = false
-    }
-  }, [])
-
   return (
-    <main className="pagina">
-      <h1>Club Manager</h1>
-      <p role="status" data-situacao={situacao}>
-        {TEXTO[situacao]}
-      </p>
-    </main>
+    <ProvedorDeSessao>
+      <Routes>
+        <Route path="/entrar" element={<Entrar />} />
+        <Route path="/convite/:token" element={<CadastroPorConvite />} />
+        <Route path="/verificar/:token" element={<VerificarEmail />} />
+        <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+        <Route path="/redefinir-senha/:token" element={<RedefinirSenha />} />
+        <Route
+          path="/"
+          element={
+            <Protegida>
+              <Inicio />
+            </Protegida>
+          }
+        />
+        <Route
+          path="/admin/convites"
+          element={
+            <Protegida soAdmin>
+              <Convites />
+            </Protegida>
+          }
+        />
+        <Route
+          path="/admin/usuarios"
+          element={
+            <Protegida soAdmin>
+              <Usuarios />
+            </Protegida>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </ProvedorDeSessao>
   )
 }
 

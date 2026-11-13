@@ -29,6 +29,7 @@ os.environ.setdefault("REDIS_URL", "redis://127.0.0.1:6380/0")
 os.environ["DJANGO_SECRET_KEY"] = "so-para-testes"
 os.environ["DJANGO_DEBUG"] = "0"
 os.environ["DJANGO_ALLOWED_HOSTS"] = "testserver,localhost"
+os.environ["SITE_URL"] = "https://clube.exemplo"
 
 from config.settings import *
 
@@ -40,5 +41,11 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
+# Argon2 como em produção, mas com custo mínimo.
+PASSWORD_HASHERS = ["tests.hashers.FastArgon2PasswordHasher"]
+
+# Contadores em memória: os testes não dependem do Redis.
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
 # Os testes não servem arquivos estáticos.
 MIDDLEWARE = [item for item in MIDDLEWARE if "whitenoise" not in item]

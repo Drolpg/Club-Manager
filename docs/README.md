@@ -19,7 +19,7 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | [Requisitos](requirements/requirements.md) | O que o sistema faz, com IDs rastreáveis |
 | [Épicos](requirements/epics.md) | Como os requisitos se agrupam em marcos e do que cada um depende |
 | [Decisões arquiteturais](adr/) | Por que cada escolha estrutural foi feita |
-| [Segurança](security/) | Relatório de cada marco: achados de segurança e o tratamento de cada um; threat model no M2 |
+| [Segurança](security/) | Relatório de cada marco, [modelo de ameaças](security/threat-model.md) e [avaliação de LGPD](security/lgpd.md) |
 
 ## Para rodar o sistema
 
@@ -27,6 +27,7 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | --- | --- | --- |
 | [setup/local.md](setup/local.md) | Tutorial | Como subir o sistema localmente e rodar os testes |
 | [setup/configuration.md](setup/configuration.md) | Referência | Que variáveis existem e de onde vem cada valor |
+| [setup/google.md](setup/google.md) | Guia | Como ligar o login com o Google |
 | `operations/` (M12) | Guia | Deploy, backup e rollback na instância única |
 
 ## Para consumir a API
@@ -34,7 +35,8 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | Documento | Responde |
 | --- | --- |
 | `/api/v1/docs/` no sistema em execução | O contrato gerado pela aplicação, navegável |
-| `api/README.md` (M2) | Autenticação e recursos disponíveis |
+| [api/README.md](api/README.md) | Autenticação, erros e recursos disponíveis |
+| [api/manual-testing.md](api/manual-testing.md) | Como percorrer o fluxo de acesso manualmente |
 
 ## Para contribuir
 
@@ -42,7 +44,7 @@ Documentos marcados com "(rito N)" ou "(Mn)" ainda não existem: são criados no
 | --- | --- |
 | [AGENTS.md](../AGENTS.md) | Regras do projeto: arquitetura, SDD, testes, segurança, Git |
 | [Método](method.md) | Nível, estado dos ritos e dos marcos, mapa de artefatos |
-| Features, `features/` (rito 6 em diante) | O fluxo SDD e as specs de cada marco |
+| [Features](features/README.md) | O fluxo SDD e as specs de cada marco |
 | [Registro de decisões](decision-register.md) | Decisões em aberto e resolvidas (AD-NNN) |
 | [RFCs](rfc/) | Propostas discutidas antes da implementação |
 | [Auditorias](audits/) | Onde documentos e código divergiam ao fim de cada marco, e o que foi feito |

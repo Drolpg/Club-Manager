@@ -44,20 +44,20 @@ agente só recomenda.
 | AD-003 | Framework do backend: Django ou FastAPI | Resolved | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
 | AD-004 | Frontend web | Resolved | Arquitetura compartilhada | Leandro | Rito 7 (M1) |
 | AD-005 | Filas e tarefas agendadas | Resolved | Arquitetura compartilhada | Leandro | M4 |
-| AD-006 | Estratégia de autenticação e tokens para site e app | Pending | Arquitetura compartilhada | Leandro | M2 |
+| AD-006 | Estratégia de autenticação e tokens para site e app | Resolved | Arquitetura compartilhada | Leandro | M2 |
 | AD-007 | Modelagem das permissões (ação, recurso e escopo) | Pending | Arquitetura compartilhada | Leandro | M3 |
 | AD-008 | Modelagem do motor de aprovações e das versões de solicitação | Pending | Arquitetura compartilhada | Leandro | M5 |
-| AD-009 | Modelagem da trilha de auditoria | Pending | Arquitetura compartilhada | Leandro | M3 |
+| AD-009 | Modelagem da trilha de auditoria | Resolved | Arquitetura compartilhada | Leandro | M3 |
 | AD-010 | Estornos e cancelamentos como lançamentos ligados ao original | Pending | Arquitetura compartilhada | Leandro | M7 |
 | AD-011 | Armazenamento de anexos | Pending | Arquitetura compartilhada | Leandro | M6 (primeiro comprovante) |
-| AD-012 | Provedor de e-mail | Pending | Arquitetura compartilhada | Leandro | M2 (verificação de e-mail) |
+| AD-012 | Provedor de e-mail | Not Blocking | Arquitetura compartilhada | Leandro | M12 (produção) |
 | AD-013 | CI/CD, deploy e dimensionamento da instância única | Pending | Arquitetura compartilhada | Leandro | M1 (CI) e M12 (deploy) |
 | AD-014 | O que o painel do admin cria sozinho e o que exige programação | Pending | Dono do marco M3 | Leandro | M3 |
 | AD-015 | Adequação à LGPD | Pending | Arquitetura compartilhada | Leandro | M2 |
 | AD-016 | Itens do protótipo que o enunciado não cobre | Resolved | Escopo de entrega | Leandro | Rito 6 |
 | AD-017 | Tecnologia do aplicativo mobile | Deferred | Arquitetura compartilhada | Leandro | Nada na etapa 1 |
 | AD-018 | Multi-cliente: deploy por cliente ou SaaS com contas | Deferred | Arquitetura compartilhada | Leandro | Nada na etapa 1 |
-| AD-019 | Criação segura do primeiro admin | Pending | Dono do marco M2 | Leandro | M2 |
+| AD-019 | Criação segura do primeiro admin | Resolved | Dono do marco M2 | Leandro | M2 |
 
 As entradas abaixo trazem o problema e as opções que o enunciado já cita. Vantagens, desvantagens e a recomendação
 entram no rito indicado, quando a avaliação for feita.
@@ -180,7 +180,12 @@ workers cabem numa única instância do free tier (RNF-02).
 
 ### AD-006 — Como autenticar com Google e com usuário e senha, e que tokens servem site e app?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** sessão no servidor em cookie para o site; Google por token de identidade; token opaco para o
+aplicativo futuro.
+
+**Resolved on:** 2026-11-12, por Leandro Nascimento
 
 **Scope:** Arquitetura compartilhada
 
@@ -191,7 +196,10 @@ workers cabem numa única instância do free tier (RNF-02).
 
 **Options:** a levantar na especificação do M2 (sessão por cookie, JWT, tokens opacos).
 
-**Follow-up:** ADR na especificação do M2.
+**Nota (2026-11-12):** decidida na ADR-008 (Accepted): sessão no servidor em cookie para o site, token de identidade
+para o Google, token opaco para o aplicativo futuro.
+
+**Follow-up:** ADR-008.
 
 ---
 
@@ -230,7 +238,13 @@ terceira decisão, e evento com custo como duas solicitações ligadas (`docs/do
 
 ### AD-009 — Como modelar a trilha de auditoria?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** tabela só de inserção (`RegistroDeAuditoria`), com IDs e códigos, sem dado pessoal; o modelo recusa
+alterar e apagar, e um gatilho no banco recusa o mesmo por qualquer caminho. Escrita por `auditoria.public.registrar`,
+na transação do caso de uso.
+
+**Resolved on:** 2026-11-12, por Leandro Nascimento, na aprovação da technical-spec `acesso/identidade-e-acesso`
 
 **Scope:** Arquitetura compartilhada
 
@@ -238,7 +252,10 @@ terceira decisão, e evento com custo como duas solicitações ligadas (`docs/do
 
 **Problem:** toda ação relevante gera registro imutável (AUD-01), consultável no detalhe de cada item (AUD-03).
 
-**Follow-up:** ADR na especificação do M3.
+**Nota (2026-11-12):** modelagem proposta na technical-spec `acesso/identidade-e-acesso`: tabela só de inserção, com
+gatilho no banco que recusa alterar e apagar. A gravação entra no M2; a consulta, no M3.
+
+**Follow-up:** implementada no M2; a consulta nas telas (RF-027) entra no M3.
 
 ---
 
@@ -283,6 +300,9 @@ extensão para trocar de provedor (RNF-06, RNF-07).
 **Blocking:** M2 (verificação de e-mail) e M4.
 
 **Problem:** o envio precisa caber no custo mínimo, com ponto de extensão para trocar de provedor (RNF-06).
+
+**Nota (2026-11-12):** o sistema usa SMTP genérico pela abstração do Django, configurado por variável de ambiente. A
+escolha do provedor deixa de bloquear o M2 e fica para o M12.
 
 **Follow-up:** ADR antes do M2.
 
@@ -333,6 +353,9 @@ criado por programação (PER-05). O enunciado permite propor outra abordagem.
 
 **Problem:** o sistema guarda nome, telefone, e-mail e dados financeiros de diretores, sem CPF (RNF-07). Nada é
 apagado (AUD-04), o que precisa ser conciliado com os direitos do titular.
+
+**Nota (2026-11-12):** avaliação em `docs/security/lgpd.md` e modelo de ameaças em `docs/security/threat-model.md`.
+Ficam para o M12: confirmar a base legal, decidir a anonimização a pedido e o procedimento de incidente.
 
 **Follow-up:** avaliação junto com o threat model do M2 (`sdd-method:reviewing-security`).
 
@@ -399,7 +422,11 @@ portas.
 
 ### AD-019 — Como criar o primeiro admin de forma segura?
 
-**Status:** Pending
+**Status:** Resolved
+
+**Decision:** comando no servidor (`criar_admin`), que pede os dados na hora; pode haver vários admins.
+
+**Resolved on:** 2026-11-12, por Leandro Nascimento, na aprovação da spec funcional `acesso/identidade-e-acesso`
 
 **Scope:** Dono do marco M2
 
@@ -407,5 +434,7 @@ portas.
 
 **Problem:** o novo sistema começa vazio e o acesso é só por convite gerado pelo admin, então o primeiro admin
 precisa de outro caminho, sem senha padrão (seção 16 do enunciado).
+
+**Nota (2026-11-12):** o dono escolheu um comando no servidor, que pede os dados na hora; pode haver vários admins.
 
 **Follow-up:** especificação do M2.
