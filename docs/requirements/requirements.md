@@ -83,12 +83,12 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Origem | Status | Feature |
 | --- | --- | --- | --- | --- |
-| RF-028 | O sistema registra toda notificação com destinatário, item relacionado e data e hora de envio e de leitura | NOT-03 | Aprovado | `notificacoes/caixa-e-email` |
-| RF-029 | O sistema envia a notificação por e-mail ao endereço cadastrado | NOT-01 | Aprovado | `notificacoes/caixa-e-email` |
-| RF-030 | O usuário abre a caixa de entrada no site, com indicador de notificações novas | NOT-01 | Aprovado | `notificacoes/caixa-e-email` |
-| RF-031 | O usuário marca uma notificação como lida e vai dela para o item relacionado | NOT-03 | Aprovado | `notificacoes/caixa-e-email` |
-| RF-032 | O usuário ajusta como é alertado, sem desligar o registro da notificação | NOT-04 | Aprovado | `notificacoes/caixa-e-email` |
-| RF-119 | O sistema notifica o usuário quando mudam a classificação, o papel de admin ou as permissões individuais dele | Spec `notificacoes/caixa-e-email` **(novo)** | Aprovado | `notificacoes/caixa-e-email` |
+| RF-028 | O sistema registra toda notificação com destinatário, item relacionado e data e hora de envio e de leitura | NOT-03 | Implementado | `notificacoes/caixa-e-email` |
+| RF-029 | O sistema envia a notificação por e-mail ao endereço cadastrado | NOT-01 | Implementado | `notificacoes/caixa-e-email` |
+| RF-030 | O usuário abre a caixa de entrada no site, com indicador de notificações novas | NOT-01 | Implementado | `notificacoes/caixa-e-email` |
+| RF-031 | O usuário marca uma notificação como lida e vai dela para o item relacionado | NOT-03 | Implementado | `notificacoes/caixa-e-email` |
+| RF-032 | O usuário ajusta como é alertado, sem desligar o registro da notificação | NOT-04 | Implementado | `notificacoes/caixa-e-email` |
+| RF-119 | O sistema notifica o usuário quando mudam a classificação, o papel de admin ou as permissões individuais dele | Spec `notificacoes/caixa-e-email` **(novo)** | Implementado | `notificacoes/caixa-e-email` |
 
 ### Aprovações (M5)
 

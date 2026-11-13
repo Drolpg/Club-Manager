@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `notificacoes/caixa-e-email` |
-| Status | In Progress |
+| Status | Implemented |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
 | Especificação técnica | `./technical-spec.md` (aprovada em 2026-11-13) |
@@ -215,16 +215,18 @@ Não coberto por esta revisão: DAST (o perfil de stack deixa para o M12) e o re
 
 ## Definition of Done
 
-- [ ] Checkpoints concluídos, com evidência.
-- [ ] Todo CA com ao menos um teste.
-- [ ] Verificação completa com saída 0; cobertura dentro da meta.
-- [ ] Fronteiras de módulo verificadas.
-- [ ] Revisão de segurança registrada, sem achado crítico ou alto aberto.
-- [ ] Migration reversível; nenhum seed.
-- [ ] Contrato, `docs/api/` e guia de teste manual atualizados.
-- [ ] Registro de requisitos, decisões e riscos atualizados.
-- [ ] CI verde no GitHub.
-- [ ] Critérios de aceite validados e aprovados pelo dono.
+- [x] Checkpoints concluídos, com evidência.
+- [x] Todo CA com ao menos um teste.
+- [x] Verificação completa com saída 0; cobertura dentro da meta (backend 97%, site 95% das linhas).
+- [x] Fronteiras de módulo verificadas.
+- [x] Revisão de segurança registrada, sem achado crítico ou alto aberto.
+- [x] Migration reversível; nenhum seed.
+- [x] Contrato, `docs/api/` e guia de teste manual atualizados.
+- [x] Registro de requisitos, decisões e riscos atualizados.
+- [x] CI verde no GitHub (PR #3, workflows `backend` e `frontend`, 2026-11-13).
+- [x] Critérios de aceite validados e aprovados pelo dono (Leandro Nascimento, 2026-11-13). A
+      implementação foi feita por uma sessão executora e revisada por outra, contra a spec e este
+      plano, antes da aprovação.
 
 ## Evidências de verificação
 
