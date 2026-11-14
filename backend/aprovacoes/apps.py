@@ -6,7 +6,12 @@ class AprovacoesConfig(AppConfig):
     verbose_name = "Aprovações"
 
     def ready(self) -> None:
-        """Declara as permissões do motor no catálogo de `permissoes`, que inicia antes (INSTALLED_APPS)."""
+        """Declara as permissões do motor e os tipos de notificação dele.
+
+        `permissoes` e `notificacoes` iniciam antes (INSTALLED_APPS).
+        """
         from aprovacoes import tipos
+        from aprovacoes.services import avisos
 
         tipos.registrar_permissoes()
+        avisos.registrar_tipos()

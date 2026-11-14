@@ -15,6 +15,7 @@ from aprovacoes import tipos
 from aprovacoes.domain.decisores import avaliar
 from aprovacoes.domain.transicoes import Comando
 from aprovacoes.models import Solicitacao
+from aprovacoes.services import avisos
 from aprovacoes.services.autorizacao import exigir, fatos_de
 from aprovacoes.services.motivos import motivo_aplicado
 from aprovacoes.services.solicitacoes import (
@@ -107,6 +108,9 @@ def _decidir(
         },
     )
     avisar_o_dono(solicitacao, _ACONTECIMENTO[comando], ator_id, teto_sugerido)
+    avisos.decidida(solicitacao, decisao)
+    if propria:
+        avisos.aprovacao_propria(solicitacao, decisao)
     return solicitacao
 
 

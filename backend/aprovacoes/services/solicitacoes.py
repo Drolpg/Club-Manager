@@ -13,8 +13,9 @@ from django.db import transaction
 
 from aprovacoes import tipos
 from aprovacoes.domain.decisores import FatosDoEnvio, avaliar, avaliar_envio
-from aprovacoes.domain.transicoes import Comando
+from aprovacoes.domain.transicoes import Comando, Situacao
 from aprovacoes.models import Solicitacao
+from aprovacoes.services import avisos
 from aprovacoes.services.autorizacao import exigir, exigir_leitura_de_gestao, fatos_de
 from aprovacoes.tipos import Acontecimento, ConteudoPreparado, MudancaDeSolicitacao, TipoDeSolicitacao
 from auditoria import public as auditoria
@@ -118,6 +119,7 @@ def enviar(
     _auditar(ator_id, solicitacao, "SOLICITACAO_ENVIADA", tipo=definicao.codigo, versao=1)
     if indicado is not None:
         _auditar(ator_id, solicitacao, "APROVADOR_INDICADO", aprovador_indicado_id=str(indicado))
+    avisos.ao_enviar(solicitacao, ator_id=ator_id)
     return solicitacao
 
 
@@ -184,6 +186,7 @@ def retirar(*, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Solicitacao:
     solicitacao.retirar()
     _auditar(ator_id, solicitacao, "SOLICITACAO_RETIRADA", versao=solicitacao.numero_da_versao_atual)
     avisar_o_dono(solicitacao, Acontecimento.RETIRADA, ator_id)
+    avisos.saiu_da_fila(solicitacao, ator_id=ator_id, como="retirada")
     return solicitacao
 
 
@@ -196,6 +199,7 @@ def reenviar(*, ator_id: uuid.UUID, solicitacao_id: uuid.UUID, conteudo: Any) ->
     preparado = _preparar(tipo_de(solicitacao), conteudo, solicitacao.solicitante_id)
     solicitacao.reenviar(preparado, autor_id=ator_id)
     _auditar(ator_id, solicitacao, "SOLICITACAO_REENVIADA", versao=solicitacao.numero_da_versao_atual)
+    avisos.para_decidir(solicitacao, ator_id=ator_id, fato="reenviada")
     return solicitacao
 
 
@@ -223,6 +227,7 @@ def reabrir(
         versao=solicitacao.numero_da_versao_atual,
     )
     avisar_o_dono(solicitacao, Acontecimento.REABERTA, ator_id)
+    avisos.para_decidir(solicitacao, ator_id=ator_id, fato="reaberta")
     return solicitacao
 
 
@@ -245,6 +250,7 @@ def editar(
         versao=solicitacao.numero_da_versao_atual,
     )
     avisar_o_dono(solicitacao, Acontecimento.EDITADA, ator_id)
+    avisos.para_decidir(solicitacao, ator_id=ator_id, fato="editada")
     return solicitacao
 
 
@@ -254,6 +260,7 @@ def cancelar(*, ator_id: uuid.UUID, solicitacao_id: uuid.UUID, motivo: str) -> S
     motivo = texto_obrigatorio("motivo", motivo)
     solicitacao = bloquear(ator_id, solicitacao_id)
     exigir(avaliar(Comando.CANCELAR, fatos_de(solicitacao, ator_id)))
+    estava_na_fila = solicitacao.situacao == Situacao.EM_ANALISE
     solicitacao.cancelar()
     _auditar(
         ator_id,
@@ -263,4 +270,6 @@ def cancelar(*, ator_id: uuid.UUID, solicitacao_id: uuid.UUID, motivo: str) -> S
         versao=solicitacao.numero_da_versao_atual,
     )
     avisar_o_dono(solicitacao, Acontecimento.CANCELADA, ator_id)
+    if estava_na_fila:
+        avisos.saiu_da_fila(solicitacao, ator_id=ator_id, como="cancelada")
     return solicitacao

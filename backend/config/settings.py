@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from urllib.parse import ParseResult, parse_qs, unquote, urlparse
 
+from celery.schedules import crontab
 from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -233,6 +234,11 @@ CELERY_BEAT_SCHEDULE = {
     "acesso.descartar_cadastros_vencidos": {
         "task": "acesso.descartar_cadastros_vencidos",
         "schedule": 60 * 60,
+    },
+    # Uma vez por dia, de manhã (adendo 1 da spec do motor, A10).
+    "aprovacoes.lembrar_solicitacoes_paradas": {
+        "task": "aprovacoes.lembrar_solicitacoes_paradas",
+        "schedule": crontab(minute=0, hour=8),
     },
 }
 

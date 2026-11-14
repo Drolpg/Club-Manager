@@ -231,6 +231,15 @@ Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `bac
 | CA-33 (execução e encerramento) | `aprovacoes/tests/test_execucao.py::test_o_modulo_dono_poe_a_aprovada_em_execucao`, `::test_o_modulo_dono_encerra_a_aprovada_ou_em_execucao`, `::test_sem_ator_a_execucao_fica_registrada_como_do_sistema` |
 | INV-SOL-08 (encerramento) | `aprovacoes/tests/test_execucao.py::test_inv_sol_08_so_aprovada_ou_em_execucao_encerra` |
 | `iniciar_execucao` só de aprovada | `aprovacoes/tests/test_execucao.py::test_so_a_aprovada_entra_em_execucao` |
+| CA-01 (notificação) e linha 1 da tabela | `aprovacoes/tests/test_notificacoes.py::test_ca01_o_envio_notifica_quem_pode_decidir_e_pede_acao`, `::test_a_versao_nova_notifica_quem_pode_decidir_de_novo` (reenviada, reaberta, editada), `::test_o_solicitante_com_auto_aprovacao_tambem_e_avisado_porque_pode_decidir` |
+| CA-03 (notificação) e linha 2 | `aprovacoes/tests/test_notificacoes.py::test_ca03_a_decisao_notifica_o_solicitante_sem_pedir_acao` (aprovada e recusada) |
+| CA-07 (notificação) e linha 3 | `aprovacoes/tests/test_notificacoes.py::test_ca07_a_contestacao_notifica_o_solicitante_com_texto_padrao_mensagem_e_teto` |
+| CA-21 (notificação), linha 4 e A6 | `aprovacoes/tests/test_notificacoes.py::test_ca21_a6_o_indicado_recebe_so_o_aviso_de_indicacao_e_o_admin_e_informado`, `::test_a6_nas_versoes_seguintes_o_indicado_recebe_o_aviso_de_decidir` |
+| CA-23 (notificação), linha 5 e A5 | `aprovacoes/tests/test_notificacoes.py::test_ca23_a_aprovacao_propria_avisa_os_admins`, `::test_a5_a_aprovacao_propria_de_um_admin_avisa_os_outros_admins`, `::test_a5_sem_outro_admin_fica_so_a_auditoria` |
+| CA-32, linhas 6 e 7 e A10 | `aprovacoes/tests/test_lembretes.py::test_ca32_antes_de_3_dias_ninguem_e_lembrado`, `::test_ca32_aos_3_dias_corridos_quem_pode_decidir_e_lembrado`, `::test_ca32_aos_7_dias_o_admin_e_avisado`, `::test_ca32_rodar_de_novo_nao_repete_nenhum_dos_dois`, `::test_ca32_a_versao_nova_zera_a_contagem`, `::test_so_a_solicitacao_em_analise_e_lembrada`, `::test_a10_a_tarefa_roda_uma_vez_por_dia_de_manha` |
+| Linha 8 e A7 | `aprovacoes/tests/test_notificacoes.py::test_retirada_ou_cancelada_em_analise_avisa_quem_podia_decidir`, `::test_a7_cancelada_fora_da_analise_nao_avisa_que_saiu_da_fila` |
+| A11 (texto da notificação) | `aprovacoes/tests/test_notificacoes.py::test_a11_o_texto_da_notificacao_e_cortado_para_caber` |
+| Chave impede duplicata | `aprovacoes/tests/test_notificacoes.py::test_a_notificacao_nao_se_repete_para_o_mesmo_fato` |
 
 ## Revisão de segurança
 
@@ -345,6 +354,27 @@ Preenchida no checkpoint 9.
 - `iniciar_execucao`, `encerrar` e `situacao_de` na API pública, sem rota; recebem `ator_id` opcional (adendo 1)
   e não avisam o módulo dono de volta, porque foi ele quem pediu a mudança. A API pública devolve `None` ou a
   `Situacao`, e não o modelo.
+- Nenhum teste anterior a esta branch alterado.
+
+### Checkpoint 6 — Notificações e lembretes (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 1013 testes (978 + 35 novos), cobertura 97,67%, contratos do
+  import-linter 1 mantido, 0 quebrados; nenhuma migração pendente.
+- Duas verificações falharam antes desta, por motivos diferentes e corrigidos: (1) o teste da agenda importava
+  `config.celery`, e `aprovacoes` não pode importar `config` (contrato de camadas); passou a ler
+  `settings.CELERY_BEAT_SCHEDULE`, que é de onde o Celery tira a agenda; (2) `test_ca32_a_versao_nova_zera_a_contagem`
+  passava sozinho e falhava na suíte, porque o reenvio usava o relógio real, que andou uns 90 segundos desde a
+  importação do módulo; o relógio passou a ser fixado também no reenvio.
+- Os nove tipos de notificação se registram no `ready`. A chave é `<tipo>:<solicitação>:<número da versão>`.
+  Os testes leem as notificações pela caixa de cada destinatário (`GET notificacoes/`), sem importar os internos
+  de `notificacoes`.
+- "Quem pode decidir" usa a mesma função pura da decisão (`pode_decidir`) e exige a leitura de gestão (A2): quem
+  tem a permissão e não tem cargo não é avisado, porque não pode decidir.
+- O aviso de "saiu da fila" não vai para quem fez a retirada ou o cancelamento.
+- Lembretes: serviço `lembrar_paradas(agora)`, uma transação por solicitação, com a linha bloqueada; a tarefa
+  `aprovacoes.lembrar_solicitacoes_paradas` só chama o serviço, e a agenda a roda às 8h (America/Sao_Paulo).
+- O teste de concorrência agora também dispara as notificações e o e-mail depois do commit: 5 de 5 verdes
+  rodado em sequência.
 - Nenhum teste anterior a esta branch alterado.
 
 ## Rollback ou recuperação
