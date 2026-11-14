@@ -13,10 +13,14 @@ from rest_framework.views import APIView
 from aprovacoes import tipos
 from aprovacoes.http.permissions import EhAdmin, LeGestao
 from aprovacoes.http.serializers import (
+    CancelamentoSerializer,
     ConsultaDeMotivosSerializer,
+    ConteudoSerializer,
+    EdicaoSerializer,
     EnvioSerializer,
     MotivoSerializer,
     NovoMotivoSerializer,
+    ReaberturaSerializer,
     SolicitacaoSerializer,
     TextoDoMotivoSerializer,
     TipoDeDecisaoSerializer,
@@ -112,3 +116,61 @@ class SolicitacoesView(APIView):
             aprovador_indicado_id=dados["aprovador_indicado_id"],
         )
         return Response(SolicitacaoSerializer(solicitacao).data, status=201)
+
+
+def _retirar(request: Request, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Any:
+    return solicitacoes.retirar(ator_id=ator_id, solicitacao_id=solicitacao_id)
+
+
+def _reenviar(request: Request, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Any:
+    dados = _validar(ConteudoSerializer, request.data)
+    return solicitacoes.reenviar(ator_id=ator_id, solicitacao_id=solicitacao_id, conteudo=dados["conteudo"])
+
+
+def _reabrir(request: Request, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Any:
+    dados = _validar(ReaberturaSerializer, request.data)
+    return solicitacoes.reabrir(
+        ator_id=ator_id,
+        solicitacao_id=solicitacao_id,
+        justificativa=dados["justificativa"],
+        conteudo=dados["conteudo"],
+    )
+
+
+def _editar(request: Request, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Any:
+    dados = _validar(EdicaoSerializer, request.data)
+    return solicitacoes.editar(
+        ator_id=ator_id,
+        solicitacao_id=solicitacao_id,
+        conteudo=dados["conteudo"],
+        justificativa=dados["justificativa"],
+    )
+
+
+def _cancelar(request: Request, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Any:
+    dados = _validar(CancelamentoSerializer, request.data)
+    return solicitacoes.cancelar(ator_id=ator_id, solicitacao_id=solicitacao_id, motivo=dados["motivo"])
+
+
+def _view_de_acao(acao: str, executar: Any, entrada: type[Any] | None, resumo: str) -> type[APIView]:
+    """Uma view por comando, para o contrato mostrar a entrada de cada um. Quem pode, o serviço confere."""
+
+    class AcaoView(APIView):
+        permission_classes = (LeGestao,)
+
+        @extend_schema(summary=resumo, request=entrada, responses=SolicitacaoSerializer)
+        def post(self, request: Request, solicitacao_id: uuid.UUID) -> Response:
+            solicitacao = executar(request, _ator_id(request), solicitacao_id)
+            return Response(SolicitacaoSerializer(solicitacao).data)
+
+    AcaoView.__name__ = AcaoView.__qualname__ = f"{acao.capitalize()}View"
+    return AcaoView
+
+
+VIEWS_DO_SOLICITANTE: dict[str, type[APIView]] = {
+    "retirar": _view_de_acao("retirar", _retirar, None, "Retirar da análise"),
+    "reenviar": _view_de_acao("reenviar", _reenviar, ConteudoSerializer, "Reenviar com o conteúdo corrigido"),
+    "reabrir": _view_de_acao("reabrir", _reabrir, ReaberturaSerializer, "Reabrir a solicitação recusada"),
+    "editar": _view_de_acao("editar", _editar, EdicaoSerializer, "Editar a solicitação aprovada"),
+    "cancelar": _view_de_acao("cancelar", _cancelar, CancelamentoSerializer, "Cancelar a solicitação"),
+}

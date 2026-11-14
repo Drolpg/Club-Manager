@@ -46,3 +46,21 @@ class SolicitacaoSerializer(serializers.Serializer[Any]):
     numero_da_versao_atual = serializers.IntegerField()
     criada_em = serializers.DateTimeField()
     atualizada_em = serializers.DateTimeField()
+
+
+class ConteudoSerializer(serializers.Serializer[Any]):
+    conteudo = serializers.JSONField()
+
+
+class ReaberturaSerializer(serializers.Serializer[Any]):
+    justificativa = serializers.CharField(max_length=1000)
+    conteudo = serializers.JSONField(required=False, default=None)
+
+
+class EdicaoSerializer(serializers.Serializer[Any]):
+    conteudo = serializers.JSONField()
+    justificativa = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+class CancelamentoSerializer(serializers.Serializer[Any]):
+    motivo = serializers.CharField(max_length=1000)

@@ -11,7 +11,14 @@ from typing import Any, NoReturn
 from django.db import models
 from django.db.models.functions import Lower
 
-from aprovacoes.domain.transicoes import Situacao
+from aprovacoes.domain.transicoes import (
+    ERRO_DE_SITUACAO,
+    Comando,
+    Situacao,
+    situacao_apos,
+    transicao_permitida,
+)
+from aprovacoes.erros import erro
 from aprovacoes.tipos import ConteudoPreparado
 
 
@@ -66,6 +73,57 @@ class Solicitacao(models.Model):
         )
         Versao.criar(solicitacao, numero=1, preparado=preparado, autor_id=solicitante_id)
         return solicitacao
+
+    @property
+    def versao_atual(self) -> Versao:
+        return self.versoes.get(numero=self.numero_da_versao_atual)
+
+    def retirar(self) -> None:
+        """INV-SOL-12: só em análise, e sem versão nova. Quem retira é conferido pelo serviço."""
+        self._executar(Comando.RETIRAR)
+        self._gravar()
+
+    def reenviar(self, preparado: ConteudoPreparado, *, autor_id: uuid.UUID) -> None:
+        """INV-SOL-13: contestada ou retirada; nasce a versão seguinte, em análise."""
+        self._executar(Comando.REENVIAR)
+        self._acrescentar_versao(preparado, autor_id=autor_id)
+
+    def reabrir(self, preparado: ConteudoPreparado, *, autor_id: uuid.UUID, justificativa: str) -> None:
+        self._executar(Comando.REABRIR)
+        self._acrescentar_versao(preparado, autor_id=autor_id, justificativa=justificativa)
+
+    def editar(self, preparado: ConteudoPreparado, *, autor_id: uuid.UUID, justificativa: str = "") -> None:
+        """Só aprovada e antes da execução (INV-SOL-09). A aprovação anterior não vale para a versão nova."""
+        self._executar(Comando.EDITAR)
+        self._acrescentar_versao(preparado, autor_id=autor_id, justificativa=justificativa)
+
+    def cancelar(self) -> None:
+        self._executar(Comando.CANCELAR)
+        self._gravar()
+
+    def _executar(self, comando: Comando) -> None:
+        """Toda mudança de situação passa pela tabela de transições (INV-SOL-08, INV-SOL-09)."""
+        atual = Situacao(self.situacao)
+        if not transicao_permitida(atual, comando):
+            raise erro(ERRO_DE_SITUACAO[comando])
+        self.situacao = situacao_apos(atual, comando)
+
+    def _acrescentar_versao(
+        self, preparado: ConteudoPreparado, *, autor_id: uuid.UUID, justificativa: str = ""
+    ) -> None:
+        """INV-SOL-05 e INV-SOL-06: versões só são acrescentadas, e cada uma volta à análise sem decisão."""
+        self.numero_da_versao_atual += 1
+        Versao.criar(
+            self,
+            numero=self.numero_da_versao_atual,
+            preparado=preparado,
+            autor_id=autor_id,
+            justificativa=justificativa,
+        )
+        self._gravar()
+
+    def _gravar(self) -> None:
+        self.save(update_fields=["situacao", "numero_da_versao_atual", "atualizada_em"])
 
 
 # Os únicos campos da versão que podem ser gravados depois da criação.

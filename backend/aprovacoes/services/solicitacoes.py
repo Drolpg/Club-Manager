@@ -12,17 +12,21 @@ from typing import Any
 from django.db import transaction
 
 from aprovacoes import tipos
-from aprovacoes.domain.decisores import FatosDoEnvio, avaliar_envio
+from aprovacoes.domain.decisores import FatosDoEnvio, avaliar, avaliar_envio
+from aprovacoes.domain.transicoes import Comando
 from aprovacoes.models import Solicitacao
-from aprovacoes.services.autorizacao import exigir
-from aprovacoes.tipos import ConteudoPreparado, TipoDeSolicitacao
+from aprovacoes.services.autorizacao import exigir, exigir_leitura_de_gestao, fatos_de
+from aprovacoes.tipos import Acontecimento, ConteudoPreparado, MudancaDeSolicitacao, TipoDeSolicitacao
 from auditoria import public as auditoria
+from kernel.dinheiro import Dinheiro
 from kernel.errors import BusinessError
 from permissoes import public as permissoes
 
 ITEM_DA_AUDITORIA = "solicitacao"
 LIMITE_DO_CONTEUDO = 64 * 1024
 LIMITE_DO_RESUMO = 200
+# Mensagem, justificativa e complemento do motivo (adendo 1, A11).
+LIMITE_DO_TEXTO = 1000
 
 
 def _invalido(campo: str, mensagem: str) -> BusinessError:
@@ -114,4 +118,149 @@ def enviar(
     _auditar(ator_id, solicitacao, "SOLICITACAO_ENVIADA", tipo=definicao.codigo, versao=1)
     if indicado is not None:
         _auditar(ator_id, solicitacao, "APROVADOR_INDICADO", aprovador_indicado_id=str(indicado))
+    return solicitacao
+
+
+# --- comandos sobre uma solicitação que já existe ---
+
+
+def texto_obrigatorio(campo: str, texto: str | None) -> str:
+    limpo = (texto or "").strip()
+    if not limpo:
+        raise _invalido(campo, "Este campo é obrigatório.")
+    return texto_opcional(campo, limpo)
+
+
+def texto_opcional(campo: str, texto: str | None) -> str:
+    limpo = (texto or "").strip()
+    if len(limpo) > LIMITE_DO_TEXTO:
+        raise _invalido(campo, f"Use no máximo {LIMITE_DO_TEXTO} caracteres.")
+    return limpo
+
+
+def bloquear(ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Solicitacao:
+    """Leitura de gestão (403) antes da existência (404), e a linha bloqueada até o fim da transação."""
+    exigir_leitura_de_gestao(ator_id)
+    solicitacao = Solicitacao.objects.select_for_update().filter(pk=solicitacao_id).first()
+    if solicitacao is None:
+        raise BusinessError("NOT_FOUND", "Solicitação não encontrada.", status=404)
+    return solicitacao
+
+
+def tipo_de(solicitacao: Solicitacao) -> TipoDeSolicitacao:
+    definicao = tipos.obter_tipo(solicitacao.tipo)
+    if definicao is None:
+        # Só acontece se o módulo que registrou o tipo deixou de registrá-lo: é erro de configuração.
+        raise RuntimeError(f"Tipo de solicitação {solicitacao.tipo!r} não está registrado.")
+    return definicao
+
+
+def avisar_o_dono(
+    solicitacao: Solicitacao,
+    acontecimento: Acontecimento,
+    ator_id: uuid.UUID | None,
+    teto_sugerido: Dinheiro | None = None,
+) -> None:
+    """O aviso ao módulo dono, na mesma transação: um erro nele desfaz a ação (ADR-003)."""
+    versao = solicitacao.versao_atual
+    tipo_de(solicitacao).ao_mudar(
+        MudancaDeSolicitacao(
+            solicitacao_id=solicitacao.id,
+            tipo=solicitacao.tipo,
+            acontecimento=acontecimento,
+            versao=versao.numero,
+            valor=Dinheiro(versao.valor) if versao.valor is not None else None,
+            ator_id=ator_id,
+            teto_sugerido=teto_sugerido,
+        )
+    )
+
+
+@transaction.atomic
+def retirar(*, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Solicitacao:
+    """RF-120: o solicitante tira da análise para corrigir; ela sai da fila e só volta por reenvio."""
+    solicitacao = bloquear(ator_id, solicitacao_id)
+    exigir(avaliar(Comando.RETIRAR, fatos_de(solicitacao, ator_id)))
+    solicitacao.retirar()
+    _auditar(ator_id, solicitacao, "SOLICITACAO_RETIRADA", versao=solicitacao.numero_da_versao_atual)
+    avisar_o_dono(solicitacao, Acontecimento.RETIRADA, ator_id)
+    return solicitacao
+
+
+@transaction.atomic
+def reenviar(*, ator_id: uuid.UUID, solicitacao_id: uuid.UUID, conteudo: Any) -> Solicitacao:
+    """RF-039: contestada ou retirada, corrigida, volta à análise como versão nova."""
+    conteudo = _conferir_formato(conteudo)
+    solicitacao = bloquear(ator_id, solicitacao_id)
+    exigir(avaliar(Comando.REENVIAR, fatos_de(solicitacao, ator_id)))
+    preparado = _preparar(tipo_de(solicitacao), conteudo, solicitacao.solicitante_id)
+    solicitacao.reenviar(preparado, autor_id=ator_id)
+    _auditar(ator_id, solicitacao, "SOLICITACAO_REENVIADA", versao=solicitacao.numero_da_versao_atual)
+    return solicitacao
+
+
+@transaction.atomic
+def reabrir(
+    *, ator_id: uuid.UUID, solicitacao_id: uuid.UUID, justificativa: str, conteudo: Any = None
+) -> Solicitacao:
+    """RF-040. Sem conteúdo novo, a versão nova copia a anterior; nos dois casos o conteúdo passa de novo pela
+    validação do tipo, em nome do solicitante original, e o autor da versão é quem reabriu (adendo 1, A4).
+    """
+    justificativa = texto_obrigatorio("justificativa", justificativa)
+    if conteudo is not None:
+        conteudo = _conferir_formato(conteudo)
+    solicitacao = bloquear(ator_id, solicitacao_id)
+    exigir(avaliar(Comando.REABRIR, fatos_de(solicitacao, ator_id)))
+    if conteudo is None:
+        conteudo = solicitacao.versao_atual.conteudo
+    preparado = _preparar(tipo_de(solicitacao), conteudo, solicitacao.solicitante_id)
+    solicitacao.reabrir(preparado, autor_id=ator_id, justificativa=justificativa)
+    _auditar(
+        ator_id,
+        solicitacao,
+        "SOLICITACAO_REABERTA",
+        justificativa=justificativa,
+        versao=solicitacao.numero_da_versao_atual,
+    )
+    avisar_o_dono(solicitacao, Acontecimento.REABERTA, ator_id)
+    return solicitacao
+
+
+@transaction.atomic
+def editar(
+    *, ator_id: uuid.UUID, solicitacao_id: uuid.UUID, conteudo: Any, justificativa: str | None = None
+) -> Solicitacao:
+    """RF-041: a aprovada, antes da execução, volta à análise como versão nova; o dono é avisado."""
+    justificativa = texto_opcional("justificativa", justificativa)
+    conteudo = _conferir_formato(conteudo)
+    solicitacao = bloquear(ator_id, solicitacao_id)
+    exigir(avaliar(Comando.EDITAR, fatos_de(solicitacao, ator_id)))
+    preparado = _preparar(tipo_de(solicitacao), conteudo, solicitacao.solicitante_id)
+    solicitacao.editar(preparado, autor_id=ator_id, justificativa=justificativa)
+    _auditar(
+        ator_id,
+        solicitacao,
+        "SOLICITACAO_EDITADA",
+        justificativa=justificativa,
+        versao=solicitacao.numero_da_versao_atual,
+    )
+    avisar_o_dono(solicitacao, Acontecimento.EDITADA, ator_id)
+    return solicitacao
+
+
+@transaction.atomic
+def cancelar(*, ator_id: uuid.UUID, solicitacao_id: uuid.UUID, motivo: str) -> Solicitacao:
+    """RF-042: com motivo, enquanto a execução não começou. Cancelada, não aceita mais nada."""
+    motivo = texto_obrigatorio("motivo", motivo)
+    solicitacao = bloquear(ator_id, solicitacao_id)
+    exigir(avaliar(Comando.CANCELAR, fatos_de(solicitacao, ator_id)))
+    solicitacao.cancelar()
+    _auditar(
+        ator_id,
+        solicitacao,
+        "SOLICITACAO_CANCELADA",
+        justificativa=motivo,
+        versao=solicitacao.numero_da_versao_atual,
+    )
+    avisar_o_dono(solicitacao, Acontecimento.CANCELADA, ator_id)
     return solicitacao

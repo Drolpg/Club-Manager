@@ -185,6 +185,24 @@ Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `bac
 | Adendo 1, A1 (serviço) | `aprovacoes/tests/test_envio.py::test_a1_indicar_sem_precisar_e_recusado` |
 | Adendo 1, A3 (serviço) | `aprovacoes/tests/test_envio.py::test_a3_tipo_com_permissao_de_enviar_exige_a_permissao_e_o_cargo` |
 | `registrar_tipo` (adendo 1) | `aprovacoes/tests/test_envio.py::test_registrar_tipo_*`, `::test_tipo_com_valor_que_nao_devolve_valor_e_erro_de_programacao` |
+| CA-09 | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca09_a_contestada_reenviada_vira_a_versao_seguinte_e_a_anterior_continua` |
+| CA-10 | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca10_a_recusada_reaberta_com_justificativa_vira_versao_nova_por_varias_rodadas`, `::test_ca10_reabrir_sem_justificativa_e_recusado` |
+| CA-11 | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca11_so_o_admin_ou_quem_tem_a_permissao_reabre_a_de_outra_pessoa` |
+| CA-12 (checkpoint 3b; a fila entra no 7) | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca12_o_solicitante_retira_a_solicitacao_em_analise`, `::test_ca12_a_retirada_volta_por_reenvio_como_versao_nova` |
+| CA-13 | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca13_ninguem_alem_do_solicitante_retira` |
+| CA-14 | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca14_a_aprovada_editada_vira_versao_nova_em_analise_e_o_dono_e_avisado` |
+| CA-15 (editar, retirar e cancelar) | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca15_em_execucao_nao_edita_nao_retira_nem_cancela` |
+| CA-16 | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca16_o_solicitante_cancela_com_motivo`, `::test_ca16_cancelar_sem_motivo_e_recusado`, `::test_ca16_inv_sol_08_cancelada_e_encerrada_nao_aceitam_mais_nada` |
+| CA-17 | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca17_so_o_admin_ou_quem_tem_a_permissao_cancela_a_de_outra_pessoa` |
+| CA-33 (ações do solicitante) | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca33_cada_acao_do_solicitante_gera_registro_de_auditoria` |
+| INV-SOL-05 e INV-SOL-13 (serviço) | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca09_a_contestada_reenviada_vira_a_versao_seguinte_e_a_anterior_continua`, `::test_inv_sol_13_so_se_reenvia_contestada_ou_retirada` |
+| INV-SOL-06 | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_inv_sol_06_a_versao_nova_da_editada_nao_tem_decisao` |
+| INV-SOL-08 (serviço) | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca16_inv_sol_08_cancelada_e_encerrada_nao_aceitam_mais_nada` |
+| INV-SOL-09 (serviço) | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_ca15_em_execucao_nao_edita_nao_retira_nem_cancela` |
+| INV-SOL-12 (serviço) | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_inv_sol_12_a_retirada_nao_cria_versao`, `::test_inv_sol_12_so_se_retira_em_analise` |
+| Adendo 1, A4 | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_a4_reabrir_sem_conteudo_copia_a_anterior_valida_em_nome_do_solicitante_e_o_autor_e_quem_reabriu` |
+| Adendo 1, A11 (textos do solicitante) | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_textos_livres_ate_1000_caracteres` |
+| Erro no módulo dono desfaz a ação | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_o_erro_no_aviso_ao_modulo_dono_desfaz_a_acao` |
 
 ## Revisão de segurança
 
@@ -252,6 +270,21 @@ Preenchida no checkpoint 9.
 - A rota declara `LeGestao`, como as demais do projeto, e por isso quem não lê gestão recebe 403 antes da
   validação da entrada (400). A ordem do adendo (entrada → leitura) vale para quem passa pela rota; o ponto que
   ela protege, a leitura antes da existência, continua valendo. Relatado ao dono no checkpoint 4.
+- Nenhum teste existente alterado.
+
+### Checkpoint 3b — Retirar, reenviar, reabrir, editar e cancelar (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 883 testes (833 + 50 novos), cobertura 97,68%, contratos do
+  import-linter 1 mantido, 0 quebrados; nenhuma migração pendente.
+- Cinco rotas, uma view por comando (para o contrato mostrar a entrada de cada um). Os serviços seguem a ordem
+  do adendo: entrada → leitura de gestão → existência (com a linha bloqueada) → `avaliar` → `preparar` →
+  método do aggregate → auditoria → aviso ao módulo dono. A autorização (`avaliar`) fica separada da mudança de
+  estado (método do aggregate), que confere a transição de novo.
+- Os códigos de erro e as mensagens foram para `aprovacoes/erros.py`, usado pelo aggregate e pelos serviços.
+- O reenvio não avisa o módulo dono: `REENVIADA` não está na lista de acontecimentos da technical-spec (o aviso
+  no envio e no reenvio ficou para o M7 e o M8, adendo 1).
+- Nos testes deste checkpoint, contestada, recusada, aprovada, em execução e encerrada são postas direto no banco
+  para montar o cenário, porque as decisões e a execução só entram nos checkpoints 4 e 5.
 - Nenhum teste existente alterado.
 
 ## Rollback ou recuperação
