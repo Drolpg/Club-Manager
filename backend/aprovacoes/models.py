@@ -12,6 +12,7 @@ from django.db import models
 from django.db.models.functions import Lower
 
 from aprovacoes.domain.transicoes import Situacao
+from aprovacoes.tipos import ConteudoPreparado
 
 
 class Imutavel(Exception):
@@ -45,6 +46,26 @@ class Solicitacao(models.Model):
 
     def delete(self, *args: Any, **kwargs: Any) -> NoReturn:
         raise Imutavel("Solicitação não pode ser apagada; cancele.")
+
+    @classmethod
+    def abrir(
+        cls,
+        *,
+        tipo: str,
+        solicitante_id: uuid.UUID,
+        aprovador_indicado_id: uuid.UUID | None,
+        preparado: ConteudoPreparado,
+    ) -> Solicitacao:
+        """Enviar: nasce em análise, com a versão 1. Quem pode enviar é conferido pelo serviço."""
+        solicitacao = cls.objects.create(
+            tipo=tipo,
+            solicitante_id=solicitante_id,
+            aprovador_indicado_id=aprovador_indicado_id,
+            situacao=Situacao.EM_ANALISE,
+            numero_da_versao_atual=1,
+        )
+        Versao.criar(solicitacao, numero=1, preparado=preparado, autor_id=solicitante_id)
+        return solicitacao
 
 
 # Os únicos campos da versão que podem ser gravados depois da criação.
@@ -95,6 +116,27 @@ class Versao(models.Model):
         for campo in campos:
             if gravada[campo] != getattr(self, campo):
                 raise Imutavel(f"O campo {campo!r} da versão não pode ser alterado.")
+
+    @classmethod
+    def criar(
+        cls,
+        solicitacao: Solicitacao,
+        *,
+        numero: int,
+        preparado: ConteudoPreparado,
+        autor_id: uuid.UUID,
+        justificativa: str = "",
+    ) -> Versao:
+        """Só o aggregate cria versões. O conteúdo já vem validado e normalizado pelo módulo dono."""
+        return cls.objects.create(
+            solicitacao=solicitacao,
+            numero=numero,
+            conteudo=preparado.conteudo,
+            valor=preparado.valor.quantia if preparado.valor is not None else None,
+            resumo=preparado.resumo,
+            autor_id=autor_id,
+            justificativa=justificativa,
+        )
 
 
 class TipoDaDecisao(models.TextChoices):

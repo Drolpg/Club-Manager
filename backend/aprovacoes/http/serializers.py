@@ -28,3 +28,21 @@ class NovoMotivoSerializer(TextoDoMotivoSerializer):
 class TipoDeDecisaoSerializer(serializers.Serializer[Any]):
     codigo = serializers.CharField()
     nome = serializers.CharField()
+
+
+class EnvioSerializer(serializers.Serializer[Any]):
+    tipo = serializers.CharField(max_length=80)
+    # O formato é do módulo dono; o serviço confere que é um objeto de até 64 KB.
+    conteudo = serializers.JSONField()
+    aprovador_indicado_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+
+
+class SolicitacaoSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    tipo = serializers.CharField()
+    situacao = serializers.CharField()
+    solicitante_id = serializers.UUIDField()
+    aprovador_indicado_id = serializers.UUIDField(allow_null=True)
+    numero_da_versao_atual = serializers.IntegerField()
+    criada_em = serializers.DateTimeField()
+    atualizada_em = serializers.DateTimeField()

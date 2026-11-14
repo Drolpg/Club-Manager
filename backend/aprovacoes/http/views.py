@@ -14,12 +14,14 @@ from aprovacoes import tipos
 from aprovacoes.http.permissions import EhAdmin, LeGestao
 from aprovacoes.http.serializers import (
     ConsultaDeMotivosSerializer,
+    EnvioSerializer,
     MotivoSerializer,
     NovoMotivoSerializer,
+    SolicitacaoSerializer,
     TextoDoMotivoSerializer,
     TipoDeDecisaoSerializer,
 )
-from aprovacoes.services import motivos
+from aprovacoes.services import motivos, solicitacoes
 
 
 def _ator_id(request: Request) -> uuid.UUID:
@@ -89,3 +91,24 @@ class TiposDeDecisaoView(APIView):
     @extend_schema(summary="Tipos de decisão", responses=TipoDeDecisaoSerializer(many=True))
     def get(self, request: Request) -> Response:
         return Response(TipoDeDecisaoSerializer(tipos.listar_tipos_de_decisao(), many=True).data)
+
+
+class SolicitacoesView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Enviar solicitação",
+        description="Cria a solicitação em análise, com a versão 1. O conteúdo é validado pelo módulo dono "
+        "do tipo. Quem pode aprovar o tipo e não tem auto-aprovação indica outro aprovador.",
+        request=EnvioSerializer,
+        responses={201: SolicitacaoSerializer},
+    )
+    def post(self, request: Request) -> Response:
+        dados = _validar(EnvioSerializer, request.data)
+        solicitacao = solicitacoes.enviar(
+            ator_id=_ator_id(request),
+            tipo=dados["tipo"],
+            conteudo=dados["conteudo"],
+            aprovador_indicado_id=dados["aprovador_indicado_id"],
+        )
+        return Response(SolicitacaoSerializer(solicitacao).data, status=201)

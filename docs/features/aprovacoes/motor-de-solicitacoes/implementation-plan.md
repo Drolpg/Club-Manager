@@ -175,6 +175,16 @@ Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `bac
 | INV-SOL-05 (modelo e banco, checkpoint 2) | `aprovacoes/tests/test_modelos.py::test_inv_sol_05_versao_nao_muda`, `::test_banco_recusa_alterar_e_apagar_versao` |
 | INV-SOL-14 | `aprovacoes/tests/test_modelos.py::test_inv_sol_14_uma_decisao_por_versao_no_banco` |
 | Imutabilidade da decisão (adendo 1) | `aprovacoes/tests/test_modelos.py::test_decisao_nao_muda`, `::test_banco_recusa_alterar_e_apagar_decisao`, `::test_nada_e_apagado` |
+| CA-01 (envio, checkpoint 3a; a notificação entra no 6) | `aprovacoes/tests/test_envio.py::test_ca01_envio_valido_fica_em_analise_com_a_versao_1`, `::test_ca01_o_modulo_dono_envia_pela_api_publica` |
+| CA-02 | `aprovacoes/tests/test_envio.py::test_ca02_tipo_desconhecido_nao_cria_nada`, `::test_ca02_conteudo_recusado_pelo_modulo_dono_nao_cria_nada` |
+| CA-20 | `aprovacoes/tests/test_envio.py::test_ca20_*` (sem indicar, a si mesmo, inativo, sem cargo, inexistente) |
+| CA-21 (envio, checkpoint 3a) | `aprovacoes/tests/test_envio.py::test_ca21_a_indicacao_valida_fica_na_solicitacao_e_no_historico` |
+| CA-24 (envio, checkpoint 3a) | `aprovacoes/tests/test_envio.py::test_ca24_acesso_total_sem_auto_aprovacao_precisa_indicar` |
+| CA-33 (envio, checkpoint 3a) | `aprovacoes/tests/test_envio.py::test_ca33_o_envio_gera_registro_de_auditoria` |
+| INV-SOL-10 e INV-SOL-15 (serviço, checkpoint 3a) | os `test_ca20_*` e `test_ca21_*` acima |
+| Adendo 1, A1 (serviço) | `aprovacoes/tests/test_envio.py::test_a1_indicar_sem_precisar_e_recusado` |
+| Adendo 1, A3 (serviço) | `aprovacoes/tests/test_envio.py::test_a3_tipo_com_permissao_de_enviar_exige_a_permissao_e_o_cargo` |
+| `registrar_tipo` (adendo 1) | `aprovacoes/tests/test_envio.py::test_registrar_tipo_*`, `::test_tipo_com_valor_que_nao_devolve_valor_e_erro_de_programacao` |
 
 ## Revisão de segurança
 
@@ -227,6 +237,21 @@ Preenchida no checkpoint 9.
   `remover_permissao_de_teste` (os testes de `aprovacoes` não importam os internos de `permissoes`).
 - Rotas novas: `motivos/` (lista e criação), `motivos/{id}/editar|desativar|reativar/` e `tipos-de-decisao/`
   (adendo 1). `?todos=1` de quem não é admin responde 403, em vez de ser ignorado.
+- Nenhum teste existente alterado.
+
+### Checkpoint 3a — Tipos de solicitação e envio (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 833 testes (806 + 27 novos), cobertura 97,81%, contratos do
+  import-linter 1 mantido, 0 quebrados; nenhuma migração pendente.
+- `registrar_tipo`, `enviar`, `ConteudoPreparado`, `MudancaDeSolicitacao` e `Acontecimento` na API pública;
+  rota `POST solicitacoes/`. As permissões `solicitacoes.auto_aprovar` (fora do acesso total),
+  `solicitacoes.reabrir` e `solicitacoes.cancelar` entram no catálogo no `ready`.
+- `registrar_tipo` falha se a permissão de aprovar ou de enviar não está no catálogo; o `preparar` roda dentro da
+  transação do serviço, e o que ele devolve é conferido (valor de acordo com `tem_valor`; resumo cortado em 200
+  com reticências).
+- A rota declara `LeGestao`, como as demais do projeto, e por isso quem não lê gestão recebe 403 antes da
+  validação da entrada (400). A ordem do adendo (entrada → leitura) vale para quem passa pela rota; o ponto que
+  ela protege, a leitura antes da existência, continua valendo. Relatado ao dono no checkpoint 4.
 - Nenhum teste existente alterado.
 
 ## Rollback ou recuperação

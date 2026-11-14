@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from acesso.models import Situacao, Usuario
 from acesso.services import usuarios
+from aprovacoes import tipos as tipos_de_solicitacao
 from permissoes import catalogo
 from permissoes.models import AlvoDaConcessao, Cargo, Classificacao, Concessao
 
@@ -75,6 +76,11 @@ def remover_permissao_de_teste(codigo: str) -> None:
     catalogo.remover_para_testes(codigo)
 
 
+def remover_tipo_de_solicitacao_de_teste(codigo: str) -> None:
+    """Desfaz o `aprovacoes.public.registrar_tipo` de um teste."""
+    tipos_de_solicitacao.remover_tipo_para_testes(codigo)
+
+
 __all__ = (
     "SENHA",
     "Situacao",
@@ -87,4 +93,5 @@ __all__ = (
     "entrar",
     "registrar_permissao_de_teste",
     "remover_permissao_de_teste",
+    "remover_tipo_de_solicitacao_de_teste",
 )
