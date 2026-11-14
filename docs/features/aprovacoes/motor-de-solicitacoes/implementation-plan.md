@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `aprovacoes/motor-de-solicitacoes` |
-| Status | Draft |
+| Status | In Progress |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
 | Especificação técnica | `./technical-spec.md` (aprovada em 2026-11-13) |
@@ -151,8 +151,22 @@ Se um teste parecer errado ou a spec não cobrir um caso, pare e pergunte. Não 
 
 ## Matriz critério de aceite → teste
 
+Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `backend/`.
+
 | Critério | Teste |
 | --- | --- |
+| INV-SOL-02 (função pura, checkpoint 1) | `aprovacoes/tests/test_decisores.py::test_inv_sol_02_*` (8 casos: com e sem permissão, auto-aprovação, solicitante indicado) |
+| INV-SOL-08 (tabela, checkpoint 1) | `aprovacoes/tests/test_transicoes.py::test_inv_sol_08_encerrada_e_cancelada_nao_aceitam_nenhum_comando` |
+| INV-SOL-09 (tabela, checkpoint 1) | `aprovacoes/tests/test_transicoes.py::test_inv_sol_09_em_execucao_nao_edita_nao_cancela_nem_retira` |
+| INV-SOL-10 (função pura, checkpoint 1) | `aprovacoes/tests/test_decisores.py::test_inv_sol_10_precisa_indicar_so_quem_aprovaria_o_proprio_pedido_sem_auto_aprovacao`, `::test_inv_sol_10_quem_aprovaria_o_proprio_pedido_precisa_indicar`, `::test_inv_sol_10_com_indicacao_valida_envia` |
+| INV-SOL-11 (função pura, checkpoint 1) | `aprovacoes/tests/test_decisores.py::test_inv_sol_11_o_indicado_decide_sem_a_permissao_do_tipo`, `::test_inv_sol_11_o_indicado_de_outro_pedido_nao_decide_este` |
+| INV-SOL-12 (função pura, checkpoint 1) | `aprovacoes/tests/test_decisores.py::test_inv_sol_12_retirar_so_em_analise` |
+| INV-SOL-13 (função pura, checkpoint 1) | `aprovacoes/tests/test_decisores.py::test_inv_sol_13_reenviar_so_contestada_ou_retirada` |
+| INV-SOL-15 (função pura, checkpoint 1) | `aprovacoes/tests/test_decisores.py::test_inv_sol_15_nao_indica_a_si_mesmo`, `::test_inv_sol_15_o_indicado_precisa_ler_gestao` |
+| Adendo 1, A1 (função pura, checkpoint 1) | `aprovacoes/tests/test_decisores.py::test_indicacao_de_quem_nao_precisa_indicar_e_recusada` |
+| Adendo 1, A3 (função pura, checkpoint 1) | `aprovacoes/tests/test_decisores.py::test_envio_exige_leitura_de_gestao_e_a_permissao_de_enviar` |
+| Tabela de transições (checkpoint 1) | `aprovacoes/tests/test_transicoes.py::test_cada_par_situacao_e_comando` (80 pares, contra tabela escrita no teste), `::test_codigo_de_erro_de_situacao_de_cada_comando` |
+| `Dinheiro` (checkpoint 1) | `kernel/tests/test_dinheiro.py` |
 
 ## Revisão de segurança
 
@@ -177,6 +191,21 @@ Preenchida no checkpoint 9.
 
 ## Evidências de verificação
 
+### Checkpoint 1 — Domínio puro (2026-11-13)
+
+- Ponto de partida (`dev` em `baccaa2`): `uv run poe verify` em `backend/`, saída 0, 576 testes;
+  `npm run verify` em `frontend/`, saída 0, 129 testes.
+- `uv run poe verify` em `backend/`: saída 0, 751 testes (576 + 175 novos), cobertura 97,97%, contratos do
+  import-linter 1 mantido, 0 quebrados; nenhuma migração pendente.
+- Nenhum teste existente alterado.
+- Além do que o plano lista, já aqui (adendo 1 da technical-spec): `avaliar(comando, fatos)`, `avaliar_envio`,
+  `acoes_disponiveis` e o mapa comando → código de erro de situação (`ERRO_DE_SITUACAO`).
+- O solicitante com auto-aprovação só decide o próprio pedido se também tiver a permissão de aprovar o tipo: a
+  auto-aprovação é exceção à regra do próprio pedido, e o adendo 1 (A2) exige a permissão de aprovar para decidir.
+  O admin tem as duas pelo catálogo.
+- Reabrir e cancelar de outra pessoa sem a permissão respondem `PERMISSION_DENIED`; `SO_O_SOLICITANTE` fica para
+  retirar, reenviar e editar, que só o solicitante faz.
+
 ## Rollback ou recuperação
 
-As migrações revertem com `python manage.py migrate aprovacoes zero`. A versão anterior é a tag do M4.
+As migrações revertem com `python manage.py migrate aprovacoes zero`. A versão anterior é o commit de merge do M4 na `dev` (`ca84df0`).
