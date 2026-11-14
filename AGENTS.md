@@ -81,7 +81,7 @@ Fonte: `docs/domain/strategic-design.md`, `docs/domain/context-map.md` e `docs/a
 | Identidade e Permissões | Supporting | `acesso`, `permissoes` | `auditoria` |
 | Notificações | Generic | `notificacoes` | `permissoes`, `acesso`, `auditoria` |
 | Marca | Generic | `marca` | `permissoes`, `auditoria` |
-| Aprovações | Core | `aprovacoes` | `permissoes`, `notificacoes`, `auditoria` |
+| Aprovações | Core | `aprovacoes` | `notificacoes`, `permissoes`, `acesso`, `auditoria` |
 | Financeiro | Core | `financeiro` | `aprovacoes` e os de cima |
 | Eventos | Core | `eventos` | `financeiro`, `aprovacoes` e os de cima |
 | Comunicação | Supporting | `comunicacao` | `permissoes`, `notificacoes`, `auditoria` |

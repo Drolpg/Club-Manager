@@ -301,4 +301,36 @@ Propostas do agente, aprovadas pelo dono junto com esta spec, em 2026-11-13:
 
 ## Adendos
 
-Nenhum.
+### Adendo 1 — Casos que a spec não cobria
+
+| Campo | Valor |
+| --- | --- |
+| Status | Draft |
+| Motivo | A conferência do plano contra o código, antes da implementação, achou casos sem resposta |
+| Aprovado por | — |
+| Aprovado em | — |
+
+Decisões do dono (Leandro Nascimento, 2026-11-13):
+
+| # | Caso | Decisão |
+| --- | --- | --- |
+| A1 | Quem não é obrigado a indicar um aprovador indica um mesmo assim | O sistema recusa. A indicação só existe para quem aprovaria o próprio pedido e não tem auto-aprovação (cenário 7) |
+| A2 | Decidir uma solicitação e ver a fila de decisão sem ter cargo | Exigem a permissão de aprovar do tipo **e** ler os dados de gestão (admin ativo, ou ativo com cargo ativo) |
+
+Propostas do agente, que passam a valer com a aprovação deste adendo:
+
+| # | Caso | Regra |
+| --- | --- | --- |
+| A3 | Tipo que define uma permissão de enviar | Enviar exige a permissão e o cargo, os dois |
+| A4 | Reabrir sem conteúdo novo, ou reaberta pelo admin | A versão nova copia o conteúdo da anterior e passa de novo pela validação do tipo, em nome do solicitante original; o autor da versão é quem reabriu |
+| A5 | Aprovação própria feita por um admin (CA-25) | São notificados os outros admins. Se não houver outro, fica só o registro de auditoria |
+| A6 | Envio com aprovador indicado | O indicado recebe só o aviso de que foi indicado, e não também o aviso geral de "para decidir" |
+| A7 | Aviso de "saiu da fila" ao cancelar (P9) | Só quando a solicitação estava em análise; cancelada em outra situação, ela já não estava na fila |
+| A8 | Motivo novo com o texto de um motivo inativo | Recusado como repetido: a unicidade conta ativos e inativos, e o caminho é reativar |
+| A9 | Ordem da fila e da lista | A fila mostra primeiro a que espera há mais tempo, contando da versão atual; a lista, da mais recente para a mais antiga |
+| A10 | Contagem dos lembretes de 3 e 7 dias | Três e sete dias corridos desde a criação da versão atual; a conferência roda uma vez por dia, de manhã |
+| A11 | Tamanho dos textos livres (mensagem, justificativa, complemento do motivo) | Limitados; o texto que vai na notificação é cortado para caber nela |
+| A12 | Teto sugerido maior que o valor pedido | Sem regra: a spec não pede, e o aprovador pode sugerir qualquer valor maior que zero |
+
+Fica fora do M5, registrado no backlog: avisar o admin quando o aprovador indicado é desativado. O aviso dos 7
+dias ao admin já cobre o pedido que ficou parado por isso.

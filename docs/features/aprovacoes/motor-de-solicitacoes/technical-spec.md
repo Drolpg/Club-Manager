@@ -228,4 +228,60 @@ critério de aceite CA-01 a CA-34 tem ao menos um teste; a matriz fica no plano.
 
 ## Adendos
 
-Nenhum.
+### Adendo 1 — Ajustes da conferência do plano contra o código
+
+| Campo | Valor |
+| --- | --- |
+| Status | Draft |
+| Motivo | Esta spec foi escrita antes de o M3 e o M4 serem implementados; a conferência do plano contra o código, antes da implementação, pediu os ajustes abaixo. Acompanha o adendo 1 da funcional |
+| Aprovado por | — |
+| Aprovado em | — |
+
+**API pública (`aprovacoes/public.py`).** Além do que a seção "Estrutura" lista:
+
+| Função | Por quê |
+| --- | --- |
+| `enviar(...)`, que devolve o ID da solicitação | O mapa de contextos já prometia "abrir solicitação de um tipo registrado"; o complemento (M7) e o orçamento de evento (M8) são abertos pelo módulo dono, e não pela rota genérica |
+| `registrar_tipo_de_decisao(codigo, nome)` | O Financeiro (M6) declara os próprios tipos de decisão (RN-011) |
+
+`iniciar_execucao` e `encerrar` ganham `ator_id` opcional (nulo quando é o sistema). `registrar_tipo` falha ao
+iniciar se a permissão informada não está no catálogo. `preparar` roda dentro da transação do serviço.
+
+**Autorização num lugar só.** Uma função pura `avaliar(comando, fatos)` em `aprovacoes/domain/` devolve se o ator
+pode, o código de erro e se é aprovação própria; `pode_decidir` e `precisa_indicar_aprovador` são usadas por ela. Os
+serviços levantam o erro que ela devolve e o campo `acoes` do detalhe é calculado com ela. Os serviços mantêm a
+autorização separada da mudança de estado, para que um caminho "o módulo dono já autorizou" possa ser acrescentado
+depois sem reescrevê-los.
+
+**Ordem das conferências:** entrada (400) → leitura de gestão (403) → existência (404) → quem pode (403) →
+situação (422). A leitura vem antes da existência para que quem não lê os dados não descubra quais IDs existem.
+
+**Códigos de erro de situação.** Vale a tabela desta spec; o canvas do aggregate é alinhado a ela. Para o que a
+tabela não trazia: `iniciar_execucao` → `NAO_ESTA_APROVADA`; `encerrar` → `NAO_PODE_ENCERRAR`; indicação por quem
+não precisa indicar → `APROVADOR_INVALIDO`.
+
+**Rota nova:** `GET tipos-de-decisao/`, só leitura, para o admin: a tela de motivos precisa da lista.
+
+**Imutabilidade também no banco** (decisão do dono, 2026-11-13; substitui a linha "Imutabilidade" da tabela de
+segurança). Além de `save` e `delete` recusarem no modelo, um gatilho no banco, no padrão do de `auditoria`:
+`Decisao` recusa alteração e exclusão; `Versao` recusa exclusão e só aceita alterar `lembrete_em` e
+`aviso_ao_admin_em`. O gatilho entra numa migração própria, reversível, com teste por SQL direto.
+
+**Tipo de demonstração** (decisão do dono, 2026-11-13; substitui "sem configuração nova"). A variável
+`APROVACOES_TIPO_DE_DEMONSTRACAO` liga, no `ready`, o tipo `demonstracao.pedido` (com valor) e a permissão
+`demonstracao.aprovar`. Só vale com `DEBUG` ligado: com `DEBUG` desligado ela é ignorada, mesmo definida, e isso
+tem teste. Fica desligada por padrão, entra no `.env.example` e em `docs/setup/configuration.md`, e não aparece no
+compose de produção. É o que permite percorrer o ciclo no navegador antes do M7.
+
+**Limites de texto:** mensagem, justificativa e complemento do motivo até 1000 caracteres; resumo da versão até
+200. O texto da notificação é cortado para caber nos limites de `notificacoes` (título 120, texto 500).
+
+**Dependências do módulo.** `aprovacoes` importa `acesso.public` (dados básicos do usuário, admins ativos e
+histórico com nomes), além de `permissoes.public`, `notificacoes.public` e `auditoria.public`. As classes de
+permissão das rotas e a conferência de admin são do próprio módulo, escritas sobre essas APIs públicas.
+
+**Fora deste adendo, para o refinamento do M7 e do M8.** A conferência mostrou que a API pública ainda não basta
+para: avisar o Eventos quando muda um orçamento, que é um tipo do Financeiro (hoje só o dono do tipo é avisado);
+cancelar ou editar uma solicitação por decisão do módulo dono, quando quem age não é o solicitante; e avisar o
+dono do tipo no envio e no reenvio. São acréscimos à API, sem mudança no que este marco entrega, e cada um entra
+por adendo na especificação técnica do marco que precisar dele.
