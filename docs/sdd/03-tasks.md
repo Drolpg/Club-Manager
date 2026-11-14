@@ -56,7 +56,7 @@ contexto (M6 a M9, consumidas no M10); configuração de marca (M11).
 - [x] Descoberta do domínio: histórias, eventos e pontos em aberto
 - [x] Desenho estratégico: contextos, mapa de contextos e linguagem ubíqua
 - [x] Desenho tático dos três módulos core
-- [x] Avaliação de arquitetura e decisão de estilo (DEC-01)
+- [x] Avaliação de arquitetura e decisão de estilo (ADR-001)
 - [x] Requisitos numerados e Definition of Ready e Done ([spec](01-spec.md))
 
 ### M1 — Fundação
@@ -124,7 +124,7 @@ notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 - [ ] Atraso, questionamento e isenção (RF-060 a RF-063)
 - [ ] Inadimplência: convocação, perdão e renegociação (RF-066 a RF-070)
 - [ ] Entradas sem devedor (RF-071, RF-072)
-- [ ] Decidir o armazenamento de anexos (DEC-14) antes do primeiro comprovante
+- [ ] Decidir o armazenamento de anexos (ADR-014) antes do primeiro comprovante
 - [ ] Reavaliar a LGPD com os comprovantes, que podem conter dados bancários de terceiros
 - [ ] Testar o Pix copia e cola em aplicativos de banco reais (risco 3)
 - [ ] Revisão de segurança e auditoria de coerência do marco
@@ -134,7 +134,7 @@ notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 - [ ] Solicitação de gasto como tipo do motor (RF-073, RF-074)
 - [ ] Envio do recurso e prestação de contas (RF-075 a RF-077, RF-080)
 - [ ] Devolução da diferença e complemento (RF-078, RF-079, RF-128)
-- [ ] Liquidação (RF-081), cancelamento (RF-082) e estorno (RF-083, DEC-13)
+- [ ] Liquidação (RF-081), cancelamento (RF-082) e estorno (RF-083, ADR-013)
 - [ ] Lembretes e visão de comprometido (RF-126, RF-127)
 - [ ] Revisão de segurança e auditoria de coerência do marco
 
@@ -173,10 +173,10 @@ notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 
 ### M12 — Produção
 
-- [ ] Deploy na instância única, HTTPS e publicação das imagens (DEC-16)
+- [ ] Deploy na instância única, HTTPS e publicação das imagens (ADR-016)
 - [ ] Backup e rollback ensaiados (RNF-05)
 - [ ] Medir a memória na instância (risco 1) e conferir o free tier (risco 2)
-- [ ] Escolher o provedor de e-mail e configurar SPF e DKIM (DEC-15)
+- [ ] Escolher o provedor de e-mail e configurar SPF e DKIM (ADR-015)
 - [ ] Testes de ponta a ponta dos fluxos críticos (RNF-14)
 - [ ] Avaliar DAST (D-03) e configurar o login do Google em produção (D-02)
 - [ ] LGPD: confirmar a base legal, decidir a anonimização a pedido e o procedimento de incidente
@@ -189,9 +189,9 @@ notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 | Pendência | Quando | Dono |
 | --- | --- | --- |
 | IDs dos cartões do board para cada marco | Antes de abrir o M6 | Dono do projeto |
-| Armazenamento de anexos (DEC-14) | Spec técnica do M6 | Dono do projeto |
-| Estornos e cancelamentos como lançamentos ligados (DEC-13) | Spec técnica do M7 | Dono do projeto |
-| Provedor de e-mail (DEC-15) | M12 | Dono do projeto |
-| CI/CD, deploy e dimensionamento da instância (DEC-16) | M12 | Dono do projeto |
+| Armazenamento de anexos (ADR-014) | Spec técnica do M6 | Dono do projeto |
+| Estornos e cancelamentos como lançamentos ligados (ADR-013) | Spec técnica do M7 | Dono do projeto |
+| Provedor de e-mail (ADR-015) | M12 | Dono do projeto |
+| CI/CD, deploy e dimensionamento da instância (ADR-016) | M12 | Dono do projeto |
 | Base legal da LGPD confirmada por alguém qualificado | Antes da produção | Dono do projeto |
 | Decisões do enunciado ainda abertas para os marcos M6 a M11 | Refinamento de cada marco | Dono do projeto |

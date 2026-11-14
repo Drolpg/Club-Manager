@@ -163,14 +163,14 @@ Uma feature só termina quando:
 - [ ] a auditoria de coerência entre documentos e código foi feita e as divergências foram resolvidas ou registradas;
 - [ ] o dono aprovou o marco, com data, em [03-tasks](03-tasks.md);
 - [ ] o sistema foi subido de verdade (contêineres) e percorrido, porque o CI não sobe os contêineres;
-- [ ] a `dev` foi integrada à `main` com autorização do dono, e a versão foi marcada com tag.
+- [ ] o marco está integrado na `dev`; a `main` e a tag só entram na entrega final da etapa (ver Git).
 
 ## 9. Convenções de Git
 
 **Branches** — modelo `main` + `dev`:
 
-- `main`: só recebe merge com autorização explícita do dono, quando a etapa 1 estiver pronta; é dela que sai o
-  deploy de produção. Nunca se faz push ou merge nela sem autorização.
+- `main`: recebe um único merge, o final, quando a etapa 1 estiver pronta e com autorização explícita do dono;
+  é dela que sai o deploy de produção. Nunca por marco, e nunca push ou merge sem autorização.
 - `dev`: branch de integração; toda feature nasce dela e volta para ela depois do checkpoint.
 - Nome: `<tipo>/<escopo>-<descricao-curta>`, tudo minúsculo. Ex.: `feat/financeiro-validacao-de-pagamento`.
 
@@ -197,6 +197,14 @@ Refs: RF-NN
 **Pull requests** — o título segue o formato de commit; a checklist de `.github/pull_request_template.md` é
 conferida antes de cada merge na `dev` e na `main`. Merge por merge commit, para preservar um commit por ciclo verde;
 a branch é apagada depois.
+
+**Revisão** — o revisor sênior entra só em mudança brusca (contrato, arquitetura ou rumo) e no PR final da
+entrega. A cada PR avalia-se se ele merece uma revisão mais cuidadosa, e a decisão é do dono.
+
+**Documentação** — `docs/sdd/` e o README são a versão definitiva e acompanham o código: mudou o comportamento,
+muda primeiro a spec, depois o teste, depois o código; mudou a arquitetura, o ciclo de vida ou o modelo de dados,
+atualizam-se também o README e os diagramas. Nenhum nome de pessoa (usam-se papéis), dado pessoal real, segredo,
+nem registro de processo entra no repositório.
 
 **Versões** — tag SemVer na `main`, só para mudança de versão do sistema pronto. A etapa 1 inteira é a `v1.0.0`: os
 marcos são integrados na `dev`, sem tag e sem merge na `main`. As tags `v0.1.0` (M1) e `v0.2.0` (M2) já existiam
