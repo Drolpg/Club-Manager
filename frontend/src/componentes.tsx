@@ -56,7 +56,7 @@ export function Selecao({ rotulo, aoMudar, children, ...resto }: SelecaoProps) {
   )
 }
 
-/** Texto aprovado em docs/security/lgpd.md. */
+/** Texto aprovado em docs/sdd/04-seguranca.md. */
 export function AvisoDePrivacidade() {
   return (
     <section className="aviso">

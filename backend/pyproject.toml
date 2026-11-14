@@ -121,7 +121,7 @@ root_packages = [
     "relatorios",
 ]
 
-# A ordem é a do context map (docs/domain/context-map.md): cada módulo só importa
+# A ordem é a do context map (docs/sdd/02-plan.md): cada módulo só importa
 # os que estão abaixo dele. "|" separa módulos do mesmo nível, que não se importam.
 [[tool.importlinter.contracts]]
 name = "Um modulo so importa os que estao abaixo dele no context map"

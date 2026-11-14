@@ -2,7 +2,7 @@
 
     {"error": {"code": "NAO_ESTA_EM_ANALISE", "message": "...", "details": null}}
 
-Nunca sai stack trace, SQL nem mensagem interna (AGENTS.md).
+Nunca sai stack trace, SQL nem mensagem interna (docs/sdd/00-constitution.md).
 """
 
 import logging

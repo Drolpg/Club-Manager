@@ -1,7 +1,7 @@
 """API pública do módulo `permissoes`.
 
 É o único arquivo deste módulo que outros módulos podem importar
-(docs/architecture/project-structure.md). Só devolve dataclasses, nunca modelos.
+(docs/sdd/02-plan.md). Só devolve dataclasses, nunca modelos.
 
 - `pode(usuario_id, codigo)` e `quem_pode(codigo)`: quem tem uma permissão do catálogo.
 - `le_gestao(usuario_id)`: lê os dados de gestão (admin ativo, ou ativo com cargo ativo).

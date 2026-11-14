@@ -52,7 +52,7 @@ if "DATABASE_URL" not in os.environ:
 DATABASES = {"default": _database_from_url(os.environ["DATABASE_URL"])}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Um módulo por bounded context (docs/domain/strategic-design.md).
+# Um módulo por bounded context (docs/sdd/02-plan.md).
 INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.auth",

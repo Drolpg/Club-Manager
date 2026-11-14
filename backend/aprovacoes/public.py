@@ -1,7 +1,7 @@
 """API pública do módulo `aprovacoes`.
 
 É o único arquivo deste módulo que outros módulos podem importar
-(docs/architecture/project-structure.md).
+(docs/sdd/02-plan.md).
 
 - `registrar_tipo(...)`: um módulo registra um tipo de solicitação ao iniciar, com a permissão de quem decide,
   se tem valor, o `preparar` que valida o conteúdo e o `ao_mudar` que recebe cada `MudancaDeSolicitacao`.
