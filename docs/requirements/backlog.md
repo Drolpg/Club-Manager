@@ -32,3 +32,4 @@ em aberto (escolha que bloqueia trabalho).
 | Juros e multa em cobrança atrasada | Spec `financeiro/cobrancas-e-recebimentos` | Não pedido | Pedido do dono | 2026-11-13 |
 | Bloquear novos pedidos de quem tem prestação de contas atrasada; reembolso de gasto sem pedido prévio | Spec `financeiro/gastos-e-prestacao-de-contas` | Não pedido | Pedido do dono | 2026-11-13 |
 | Evento recorrente; lista de presença marcada pelo organizador; lembrete a quem confirmou presença; aprovação diferente por categoria de evento | Spec `eventos/eventos-e-calendario` | Fora do mínimo escolhido pelo dono | Pedido do dono | 2026-11-13 |
+| Avisar o admin quando o aprovador indicado de uma solicitação é desativado | Canvas `docs/domain/aggregates/solicitacao.md` (policy) | O aviso dos 7 dias ao admin já cobre o pedido parado | Pedido do dono | 2026-11-13 |
