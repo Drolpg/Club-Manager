@@ -116,6 +116,25 @@ Todas rodam em `uv run poe verify`, na máquina e no CI.
 - **Nos testes**, quem limpa os tratadores (`kernel.events.unsubscribe_all_for_tests()`) usa a fixture
   `tratadores_de_eventos` (`backend/conftest.py`), que os devolve no fim.
 
+### Como um módulo registra um tipo de solicitação (motor de aprovações)
+
+- **Registrar:** no `ready`, depois de declarar a permissão de quem decide, o módulo dono chama
+  `aprovacoes.public.registrar_tipo(codigo=..., nome=..., permissao_de_aprovar=..., tem_valor=..., preparar=...,
+  ao_mudar=..., permissao_de_enviar=None)`. O código tem o formato `<modulo>.<tipo>`. O registro falha ao iniciar
+  se a permissão não está no catálogo.
+- **`preparar(conteudo, solicitante_id)`:** valida e normaliza o conteúdo e devolve `ConteudoPreparado(conteudo,
+  valor, resumo)`, com `valor` em `Dinheiro` (ou `None` se o tipo não tem valor). Recusa com `BusinessError`
+  `VALIDATION_ERROR`, com os campos em `details`. Roda dentro da transação do motor: pode travar as próprias linhas.
+- **`ao_mudar(mudanca)`:** recebe um `MudancaDeSolicitacao` a cada aprovação, contestação, recusa, edição,
+  reabertura, retirada e cancelamento, na mesma transação; um erro nele desfaz a ação. Cada tipo recebe só os
+  avisos dele.
+- **Abrir e comandar em processo:** `aprovacoes.public.enviar(...)` devolve o ID; `iniciar_execucao(id, ator_id=...)`
+  e `encerrar(id, ator_id=...)` só o módulo dono chama, e não há rota para eles; `situacao_de(id)` responde a
+  situação. Tipos de decisão próprios (por exemplo, validar pagamento) entram com `registrar_tipo_de_decisao`, e
+  o texto do motivo a copiar vem de `motivo_aplicado(motivo_id, tipo_de_decisao)`.
+- **Nos testes**, o tipo e a permissão de teste são registrados numa fixture e removidos no fim, com
+  `tests.apoio.remover_tipo_de_solicitacao_de_teste` e `remover_permissao_de_teste`.
+
 Regras ainda sem verificação automática, conferidas na revisão de cada feature:
 
 - views e serializers sem regra de negócio, e escrita sempre por um serviço (ADR-004);

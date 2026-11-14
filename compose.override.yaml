@@ -21,10 +21,13 @@ services:
       - "127.0.0.1:8000:8000"
     environment:
       EMAIL_URL: smtp://mailpit:1025?tls=0
+      # Tipo de solicitação de demonstração: só em desenvolvimento, e só vale com DJANGO_DEBUG=1.
+      APROVACOES_TIPO_DE_DEMONSTRACAO: ${APROVACOES_TIPO_DE_DEMONSTRACAO:-0}
 
   worker:
     environment:
       EMAIL_URL: smtp://mailpit:1025?tls=0
+      APROVACOES_TIPO_DE_DEMONSTRACAO: ${APROVACOES_TIPO_DE_DEMONSTRACAO:-0}
 
   # Imagem fixada na versão atual (v1.33.1, publicada em 2026-11-07). O SMTP (1025) fica só na rede interna
   # do compose; só a página (8025) aparece na máquina, e só em 127.0.0.1.

@@ -10,8 +10,10 @@ class AprovacoesConfig(AppConfig):
 
         `permissoes` e `notificacoes` iniciam antes (INSTALLED_APPS).
         """
-        from aprovacoes import tipos
+        from aprovacoes import demonstracao, tipos
         from aprovacoes.services import avisos
 
         tipos.registrar_permissoes()
         avisos.registrar_tipos()
+        # Só com DEBUG ligado e a variável definida (adendo 1): em produção, nunca.
+        demonstracao.registrar_se_ligado()

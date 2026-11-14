@@ -20,6 +20,7 @@ padrão. O modelo é o `.env.example`, na raiz.
 | `WEB_PORT` | `web` | Não | `8080` | Porta do site na máquina |
 | `IMAGE_TAG` | `api`, `worker`, `web` | Não | `dev` | Versão das imagens; em produção, a tag publicada |
 | `LOG_LEVEL` | `api`, `worker` | Não | `INFO` | Nível do log |
+| `APROVACOES_TIPO_DE_DEMONSTRACAO` | `api`, `worker`, só em desenvolvimento | Não | `0` | `1` registra o tipo de solicitação `demonstracao.pedido` e a permissão `demonstracao.aprovar`, para percorrer o ciclo de aprovação no navegador antes de existir um tipo de verdade (M7). Só vale com `DJANGO_DEBUG=1`; com `DJANGO_DEBUG=0` é ignorada, mesmo definida. Só o `compose.override.yaml` a repassa aos contêineres; o `compose.yaml` (produção) não. Para usar: dê a permissão a um diretor no painel de permissões e envie a solicitação pela API (`POST /api/v1/aprovacoes/solicitacoes/`, com `tipo` `demonstracao.pedido` e `conteudo` `{"descricao": …, "valor": "150.00"}`) ou pelo shell do Django (`aprovacoes.public.enviar`) |
 
 Montadas pelo `compose.yaml` a partir das de cima, e lidas pela aplicação:
 

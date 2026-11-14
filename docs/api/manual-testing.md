@@ -100,3 +100,29 @@ preferências). Nenhum passo foi conferido por outra pessoa.
 
 Não conferido: o N9; o aviso flutuante no navegador (os testes automáticos o cobrem com o relógio simulado); as
 telas do admin (N2) e o sino do diretor logo após entrar (N5), vistos só pela API; e a falha real de SMTP.
+
+## Aprovações (M5)
+
+Com o sistema no ar em desenvolvimento e o tipo de demonstração ligado (`DJANGO_DEBUG=1
+APROVACOES_TIPO_DE_DEMONSTRACAO=1 docker compose up -d --build`), a caixa do Mailpit em <http://localhost:8025> e
+quatro usuários: um admin; Bia, diretora com cargo; Dora e Caio, diretores com cargo e a permissão
+`demonstracao.aprovar`. Em 2026-11-14, os passos A1, A6, A7, A8 e A10 foram executados pela API, atrás do proxy do
+compose; A2 a A5 e A9 no Chrome; os e-mails, lidos pela API do Mailpit. Nenhum passo foi conferido por outra pessoa.
+
+| # | Passo | Resultado esperado |
+| --- | --- | --- |
+| A1 | Como Bia: `POST aprovacoes/solicitacoes/` com `tipo` `demonstracao.pedido` e `conteudo` `{"descricao": "Coletes de treino", "valor": "320.00"}` | 201, em análise, versão 1 |
+| A2 | Como Dora: abrir "Fila de pendências" e o sino | A fila mostra o pedido, com tipo, solicitante, R$ 320,00 e "Aguardando desde"; o sino tem "Solicitação para decidir"; abrir a notificação leva ao detalhe |
+| A3 | No detalhe, "Contestar": motivo "Valor acima do necessário", mensagem e teto R$ 250,00 | Situação "Contestada"; a versão 1 mostra a decisão com motivo, mensagem e teto; o histórico ganha "Contestada"; a Dora fica sem ações |
+| A4 | Como Bia: abrir o sino e a notificação "Solicitação contestada"; "Reenviar" com o conteúdo editado (`"valor": "240.00"`) | O aviso traz o texto padrão, o motivo, o teto e a mensagem; as ações eram só "Reenviar" e "Cancelar"; nasce a versão 2, em análise, e a versão 1 continua com a contestação |
+| A5 | Como Dora: "Aprovar" com motivo "Dentro do orçamento" e um texto | Situação "Aprovada"; a versão 2 mostra a aprovação; o histórico tem as quatro ações |
+| A6 | Como Caio: enviar sem indicar aprovador | 422 `APROVADOR_NAO_INDICADO` |
+| A7 | Como Caio: enviar indicando a Dora, e tentar aprovar o próprio pedido | 201; depois 403 `SOLICITANTE_NAO_DECIDE`; o `acoes` do Caio é só `retirar` e `cancelar` |
+| A8 | No contêiner do `worker`: `lembretes.lembrar_paradas` com o relógio 3 dias à frente, duas vezes; depois 7 dias à frente | 1, 0 e 1 avisos: o lembrete não se repete |
+| A9 | Como Dora: abrir o sino | "Solicitação esperando decisão" para o pedido do Caio; pela indicação, só o aviso de indicação, sem o "para decidir" daquele pedido (A6 do adendo) |
+| A10 | No Mailpit | E-mails de cada aviso, ao destinatário certo: "Solicitação contestada" e "aprovada" à Bia; nenhum ao Caio sobre o próprio pedido; "Aprovador indicado", "Solicitação esperando decisão" e "Solicitação parada há 7 dias" ao admin. O corpo traz o texto e o link `…/solicitacoes/<id>`, sem token |
+| A11 | No contêiner da `api`, com `DJANGO_DEBUG=0` e a variável ligada | O tipo e a permissão de demonstração não existem |
+
+Não conferido: a recusa, a retirada, a reabertura, a edição e o cancelamento no navegador (cobertos pelos testes
+automáticos do site e da API); a tela de motivos no navegador; o aviso de "saiu da fila"; e a tarefa agendada
+disparada pelo próprio agendador às 8h (a validação chamou o serviço com o relógio adiantado).

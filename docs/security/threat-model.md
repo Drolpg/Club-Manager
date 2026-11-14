@@ -105,3 +105,32 @@ em processo, as preferências de alerta, o sino e o aviso flutuante no site, e o
 | Tratador com erro desfaz a operação | Tratadores curtos e testados | Mitigada (risco 4) | ADR-003 |
 | Intervalo real entre as tentativas de e-mail não testado | Configuração conferida no teste; o modo imediato dos testes o ignora | Aceita | Rever ao ver um e-mail atrasar em produção |
 | Aviso flutuante e preferência não conferidos por outra pessoa no navegador | Testes automáticos com relógio simulado; conferência manual parcial | Aceita | Conferir na validação do dono |
+
+## M5: motor de aprovações
+
+Elementos novos: o motor de solicitações (rotas de envio, comandos, decisões e consultas), o registro de tipos em
+processo, os motivos de decisão, a tarefa diária de lembretes e o tipo de demonstração (só em desenvolvimento).
+
+| Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
+| --- | --- | --- | --- | --- | --- | --- |
+| Decisões (`aprovar`, `contestar`, `recusar`) | Decidir em nome de outro → a decisão grava o ator da sessão; não há campo de aprovador na entrada | **Decisão sobre versão antiga:** a decisão vale só para a versão vigente e só em análise; a linha fica bloqueada, e o índice único por versão é a segunda barreira | Negar uma decisão → a decisão é imutável no modelo e no banco, com aprovador, motivo e momento, e a auditoria registra o mesmo na transação | — | Duas decisões ao mesmo tempo → a segunda espera o bloqueio e recebe `NAO_ESTA_EM_ANALISE` | **Decidir o próprio pedido por atalho:** uma função pura só (`avaliar`) responde em todos os caminhos; o solicitante só decide com a auto-aprovação, que fica fora do acesso total; acesso total, admin, indicado e quem não tem cargo testados um a um |
+| Indicação de aprovador | — | Trocar o indicado depois → não há rota para isso | A indicação fica no histórico e o admin é avisado | — | — | **Indicação abusiva:** só indica quem aprovaria o próprio pedido; o indicado precisa ser outro diretor ativo com cargo; decide só aquela solicitação, sem ganhar permissão; quem não precisa indicar é recusado (A1) |
+| Envio e conteúdo | — | **Conteúdo malicioso:** objeto JSON de até 64 KB, validado pelo módulo dono; o site o mostra como texto, nunca como HTML (com teste) | — | — | Conteúdo enorme → limite de 64 KB; textos livres até 1000 caracteres | Enviar tipo de quem não pode → leitura de gestão e, se o tipo pede, a permissão de enviar |
+| Consultas (lista, fila, detalhe, histórico) | — | — | — | **Enumeração de IDs:** a leitura de gestão vem antes da existência; quem não lê recebe 403 sem saber se o ID existe. Diretor sem cargo não lê nada | Lista e caixa paginadas (até 50) | `acoes` é só conveniência do site: cada rota confere de novo, e um teste de paridade compara as duas por papel e situação |
+| Versões e motivos | — | **Alterar versão, decisão ou motivo usado:** gatilho no banco recusa alterar decisão e versão (só as datas de lembrete mudam) e apagar as duas; motivos e solicitações nunca são apagados; a decisão guarda o texto do motivo | Motivos editados → auditados; a decisão antiga mantém o texto | — | — | Manter motivos sem ser admin → rotas e serviço exigem admin |
+| Registro de tipos e execução | Módulo que se passa por dono de outro tipo → o registro é código do sistema, no `ready`; um código registrado com outra definição falha ao iniciar | — | Execução e encerramento auditados, com o ator do módulo dono ou nulo (sistema) | — | — | Usuário pôr em execução ou encerrar → não existe rota (teste) |
+| Tarefa de lembretes | — | — | — | Texto do lembrete com dado sensível → resumo e tipo, sem valores de contato | Tarefa repetida → idempotente pela data na versão e pela chave da notificação | — |
+| Tipo de demonstração | — | — | — | — | — | **Tipo e permissão de demonstração em produção:** só existem com `DJANGO_DEBUG=1` e a variável ligada; com `DEBUG` desligado a variável é ignorada (teste); o `compose.yaml` de produção não a repassa |
+
+| Ameaça | Mitigação | Status | Registro |
+| --- | --- | --- | --- |
+| Decidir o próprio pedido por atalho | `avaliar` em todos os caminhos; auto-aprovação fora do acesso total | Implementada (M5) | INV-SOL-02; CA-19, CA-22 a CA-25 |
+| Decisão sobre versão antiga, ou duas decisões | Só em análise, versão vigente, bloqueio da linha, índice único | Implementada (M5) | INV-SOL-01, INV-SOL-14; CA-06 |
+| Indicação abusiva | Só quem precisa; indicado ativo com cargo; vale só para aquela solicitação | Implementada (M5) | INV-SOL-10, 11, 15; A1 |
+| Conteúdo malicioso | 64 KB, validado pelo dono, mostrado como texto | Implementada (M5) | `frontend/src/aprovacoes.test.tsx` |
+| Enumeração de IDs | Leitura antes da existência | Implementada (M5) | `aprovacoes/tests/test_consultas.py` |
+| Versão ou decisão alterada por fora do modelo | Gatilho no banco | Implementada (M5) | `aprovacoes/tests/test_modelos.py` |
+| Tipo de demonstração em produção | Só com `DEBUG` ligado | Implementada (M5) | `aprovacoes/tests/test_demonstracao.py` |
+| `acoes` e as rotas divergirem | A mesma função pura; teste de paridade | Implementada (M5) | `test_acoes_do_detalhe_coincidem_com_o_que_as_rotas_aceitam` |
+| Aprovador indicado desativado deixa o pedido parado | O aviso de 7 dias ao admin; os demais aprovadores e o admin continuam decidindo | Aceita | Backlog (aviso ao admin na desativação) |
+| O módulo dono não é avisado do envio e do reenvio | Fora do M5, por decisão do adendo 1 | Aceita | M7 e M8, por adendo |

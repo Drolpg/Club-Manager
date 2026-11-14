@@ -256,13 +256,27 @@ Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `bac
 | CA-03, CA-07, CA-08 (site) | `frontend/src/aprovacoes.test.tsx` — "aprova com o motivo escolhido…", "contesta com motivo, mensagem e teto sugerido", "sem valor no tipo, a contestação não pede teto", "recusa com o motivo da lista de recusa", "mostra o erro da API e os erros por campo", "mostra a recusa de quem não pode decidir" |
 | CA-09, CA-10, CA-12, CA-14, CA-16 (site) | `frontend/src/aprovacoes.test.tsx` — "retira com uma confirmação", "cancela com motivo e reabre com justificativa", "reenvia o conteúdo editado…", "conteúdo que não é JSON não é enviado" |
 | CA-29 a CA-31 (site) | `frontend/src/aprovacoes.test.tsx` — "motivos de decisão" (5 testes: lista por tipo com inativos, criar, editar/desativar/reativar, repetido, não admin) |
+| Tipo de demonstração (adendo 1) | `aprovacoes/tests/test_demonstracao.py` (com `DEBUG` desligado a variável é ignorada; com `DEBUG` ligado e sem a variável, nada; com os dois, o tipo existe e funciona) |
 
 ## Revisão de segurança
 
-Preenchida no checkpoint 9.
-
 | Item | Achado | Mitigação | Status |
 | --- | --- | --- | --- |
+| Decidir o próprio pedido (INV-SOL-02) | Seis caminhos (sem permissão, com permissão, indicado, acesso total, auto-aprovação, admin) passam pela mesma função pura | Testes por caminho; `acoes` e rotas com teste de paridade | Sem achado aberto |
+| Elevação pela indicação | Quem não precisa indicar poderia escolher quem decide | Recusado (A1); o indicado decide só aquela solicitação, sem ganhar permissão | Sem achado aberto |
+| Decisão sem cargo | Quem tem a permissão por concessão individual e não tem cargo | Decidir e ver a fila exigem a leitura de gestão (A2) | Sem achado aberto |
+| Enumeração de IDs | Uma solicitação inexistente responderia 404 a quem não lê | Leitura de gestão antes da existência; 403 igual nos dois casos | Sem achado aberto |
+| Concorrência | Duas decisões na mesma versão | Bloqueio da linha; índice único; teste com duas threads | Sem achado aberto |
+| Imutabilidade | Versão e decisão alteradas por `QuerySet.update` ou SQL | Gatilho no banco, com teste por SQL direto | Sem achado aberto |
+| Conteúdo do tipo | JSON livre vindo do cliente | Objeto de até 64 KB, validado pelo módulo dono, mostrado como texto (teste com HTML) | Sem achado aberto |
+| Textos livres e notificação | Mensagem longa estoura o limite da notificação | Até 1000 caracteres na entrada; corte na notificação (A11) | Sem achado aberto |
+| Tipo de demonstração | Existir em produção | Só com `DEBUG` ligado (teste e conferência no contêiner); fora do `compose.yaml` | Sem achado aberto |
+| Logs | Dado pessoal no log | O aviso do tipo de demonstração loga só ID e código; nenhum outro log novo | Sem achado aberto |
+| Aprovador indicado desativado | O pedido pode ficar parado | Os demais aprovadores e o admin decidem; aviso de 7 dias ao admin | Aceito (backlog) |
+| Dependências | Nenhuma dependência nova | — | Sem achado |
+
+Modelo de ameaças: seção "M5: motor de aprovações" em `docs/security/threat-model.md`. Nenhum achado crítico ou
+alto aberto. Não rodei SCA, SAST nem DAST neste marco.
 
 ## Definition of Done
 
@@ -443,6 +457,31 @@ Preenchida no checkpoint 9.
   "Administração", pelo mesmo motivo do 8a).
 - Linhas de até 110 colunas em tudo o que este marco escreveu no site. Duas linhas anteriores ao marco passam
   disso (`App.tsx:23`, `Moldura.tsx:14`) e ficaram como estavam.
+- Nenhum teste existente alterado.
+
+### Checkpoint 9 — Tipo de demonstração, validação final e documentação (2026-11-14)
+
+- `uv run poe verify` em `backend/`: saída 0, 1093 testes (1082 + 11 novos), cobertura 97,82%, contratos do
+  import-linter 1 mantido, 0 quebrados; nenhuma migração pendente. O site não mudou neste checkpoint: vale a
+  verificação do 8b (saída 0, 160 testes).
+- Tipo de demonstração: `aprovacoes/demonstracao.py`, registrado no `ready` só com `DEBUG` ligado e
+  `APROVACOES_TIPO_DE_DEMONSTRACAO=1`; a variável entrou no `.env.example`, em `docs/setup/configuration.md` e só no
+  `compose.override.yaml` (desenvolvimento), para a `api` e o `worker`.
+- Sistema de verdade: `DJANGO_DEBUG=1 APROVACOES_TIPO_DE_DEMONSTRACAO=1 docker compose up -d --build`, saída 0;
+  migrações `aprovacoes` 0001 a 0003 aplicadas; o tipo registrado na `api` e no `worker`. Ciclo percorrido como
+  descrito em `docs/api/manual-testing.md`, seção "Aprovações (M5)": envio pela API; fila, sino, contestação com
+  teto, reenvio e aprovação no Chrome; aprovação própria recusada (403 `SOLICITANTE_NAO_DECIDE`) e envio sem
+  indicação recusado (422) pela API; lembrete de 3 dias (uma vez, sem repetir) e aviso de 7 dias; e-mails
+  conferidos no Mailpit. Com `DJANGO_DEBUG=0`, o tipo não existe no contêiner, mesmo com a variável ligada.
+- Achado na validação e corrigido depois dela: o título da notificação ao indicado era "Você foi indicado…",
+  com o gênero de quem recebe. Passou a "Indicação para decidir uma solicitação". As notificações já gravadas
+  na validação ficaram com o título antigo (notificação não muda), e os contêineres rodaram o texto anterior.
+- Usuários de validação criados só no banco local, pelo shell, com senha gerada na hora e guardada fora do git.
+- Documentação: `docs/api/README.md` (erros e rotas), `docs/api/manual-testing.md`,
+  `docs/architecture/project-structure.md` (como registrar um tipo), `docs/security/threat-model.md` (seção do M5) e o canvas
+  `docs/domain/aggregates/solicitacao.md` (códigos de erro alinhados ao código e coluna "Teste" preenchida).
+  Não alterei `domain-events.md` nem `domain-model.md`, que a technical-spec também lista: o canvas era o único
+  documento de domínio liberado.
 - Nenhum teste existente alterado.
 
 ## Rollback ou recuperação

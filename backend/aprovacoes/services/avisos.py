@@ -34,7 +34,7 @@ TIPOS: dict[str, tuple[bool, str]] = {
     ),
     DECIDIDA: (False, "A sua solicitação foi aprovada ou recusada."),
     CONTESTADA: (True, "A sua solicitação foi contestada: corrija e reenvie."),
-    APROVADOR_INDICADO: (True, "Você foi indicado para decidir uma solicitação."),
+    APROVADOR_INDICADO: (True, "Indicação para decidir uma solicitação, no lugar de quem a enviou."),
     INDICACAO_FEITA: (False, "Um solicitante indicou outro diretor para decidir o próprio pedido."),
     APROVACAO_PROPRIA: (False, "Alguém decidiu a própria solicitação, com a permissão de auto-aprovação."),
     LEMBRETE: (True, "Uma solicitação está há 3 dias em análise, esperando decisão."),
@@ -160,7 +160,7 @@ def ao_enviar(solicitacao: Solicitacao, *, ator_id: uuid.UUID) -> None:
         APROVADOR_INDICADO,
         {indicado},
         solicitacao,
-        titulo="Você foi indicado para decidir uma solicitação",
+        titulo="Indicação para decidir uma solicitação",
         texto=f"{nome} indicou você para decidir a solicitação “{resumo}”.",
     )
     _notificar(
