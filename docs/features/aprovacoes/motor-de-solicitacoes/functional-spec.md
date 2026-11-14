@@ -305,10 +305,10 @@ Propostas do agente, aprovadas pelo dono junto com esta spec, em 2026-11-13:
 
 | Campo | Valor |
 | --- | --- |
-| Status | Draft |
+| Status | Approved |
 | Motivo | A conferência do plano contra o código, antes da implementação, achou casos sem resposta |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 
 Decisões do dono (Leandro Nascimento, 2026-11-13):
 

@@ -232,10 +232,10 @@ critério de aceite CA-01 a CA-34 tem ao menos um teste; a matriz fica no plano.
 
 | Campo | Valor |
 | --- | --- |
-| Status | Draft |
+| Status | Approved |
 | Motivo | Esta spec foi escrita antes de o M3 e o M4 serem implementados; a conferência do plano contra o código, antes da implementação, pediu os ajustes abaixo. Acompanha o adendo 1 da funcional |
-| Aprovado por | — |
-| Aprovado em | — |
+| Aprovado por | Leandro Nascimento |
+| Aprovado em | 2026-11-13 |
 
 **API pública (`aprovacoes/public.py`).** Além do que a seção "Estrutura" lista:
 
