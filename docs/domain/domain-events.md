@@ -132,3 +132,15 @@ Recalculado em: `rejeitar_pagamento`.
 "Inadimplente" não é um estado gravado: é a consulta das cobranças `ATRASADA` de um diretor. Cobranças `ISENTA`,
 `PERDOADA`, `CANCELADA` e `RENEGOCIADA` não contam. Se a cobrança com questionamento aberto conta ou não é pendência
 do M6 (hipótese do enunciado: não conta).
+
+## Como o motor de aprovações entrega as mudanças (M5)
+
+Os eventos `Solicitacao…` das tabelas acima não são classes separadas no código. O motor entrega um
+`MudancaDeSolicitacao` (em `aprovacoes.public`) ao `ao_mudar` do tipo de solicitação, na mesma transação, com o
+acontecimento: `APROVADA`, `CONTESTADA`, `RECUSADA`, `EDITADA`, `REABERTA`, `RETIRADA` ou `CANCELADA`. Cada tipo
+tem um só `ao_mudar`, que é do módulo dono do tipo.
+
+Limite conhecido, registrado no adendo 1 da especificação técnica do motor: o orçamento de um evento é um tipo do
+Financeiro, então só o Financeiro é avisado, e o Eventos precisa de um caminho para saber da mudança. O envio e o
+reenvio também não avisam o dono do tipo. Os dois pontos são resolvidos no refinamento do M7 e do M8.
+

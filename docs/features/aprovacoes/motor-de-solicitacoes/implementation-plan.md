@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `aprovacoes/motor-de-solicitacoes` |
-| Status | In Progress |
+| Status | Implemented |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
 | Especificação técnica | `./technical-spec.md` (aprovada em 2026-11-13) |
@@ -280,17 +280,20 @@ alto aberto. Não rodei SCA, SAST nem DAST neste marco.
 
 ## Definition of Done
 
-- [ ] Checkpoints concluídos, com evidência.
-- [ ] Todo CA com ao menos um teste; INV-SOL-01 a INV-SOL-15, cada uma com teste, e a coluna "Teste" do canvas
+- [x] Checkpoints concluídos, com evidência.
+- [x] Todo CA com ao menos um teste; INV-SOL-01 a INV-SOL-15, cada uma com teste, e a coluna "Teste" do canvas
       preenchida.
-- [ ] Verificação completa com saída 0; cobertura dentro da meta.
-- [ ] Fronteiras de módulo verificadas.
-- [ ] Revisão de segurança registrada, sem achado crítico ou alto aberto.
-- [ ] Migrations reversíveis; dados iniciais classificados.
-- [ ] Contrato, `docs/api/` e guia de teste manual atualizados.
-- [ ] Registro de requisitos, decisões e riscos atualizados.
-- [ ] CI verde no GitHub.
-- [ ] Critérios de aceite validados e aprovados pelo dono.
+- [x] Verificação completa com saída 0; cobertura dentro da meta (backend 97,8%; site com 160 testes).
+- [x] Fronteiras de módulo verificadas.
+- [x] Revisão de segurança registrada, sem achado crítico ou alto aberto.
+- [x] Migrations reversíveis; dados iniciais classificados.
+- [x] Contrato, `docs/api/` e guia de teste manual atualizados.
+- [x] Registro de requisitos, decisões e riscos atualizados.
+- [x] CI verde no GitHub (PR #4, workflows `backend` e `frontend`, 2026-11-14).
+- [x] Critérios de aceite validados e aprovados pelo dono (Leandro Nascimento, 2026-11-14). A
+      implementação foi feita por uma sessão executora e revisada por outra em dois momentos (depois
+      do checkpoint 4 e no fim), contra a spec, os adendos e este plano. A revisão final leu o backend;
+      o código das telas do site não foi lido, só exercitado.
 
 ## Evidências de verificação
 

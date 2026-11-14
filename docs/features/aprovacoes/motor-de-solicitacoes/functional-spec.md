@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `aprovacoes/motor-de-solicitacoes` |
-| Status | Approved |
+| Status | Implemented |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
 | Aprovado por | Leandro Nascimento |
@@ -315,7 +315,7 @@ Decisões do dono (Leandro Nascimento, 2026-11-13):
 | # | Caso | Decisão |
 | --- | --- | --- |
 | A1 | Quem não é obrigado a indicar um aprovador indica um mesmo assim | O sistema recusa. A indicação só existe para quem aprovaria o próprio pedido e não tem auto-aprovação (cenário 7) |
-| A2 | Decidir uma solicitação e ver a fila de decisão sem ter cargo | Exigem a permissão de aprovar do tipo **e** ler os dados de gestão (admin ativo, ou ativo com cargo ativo) |
+| A2 | Decidir uma solicitação e ver a fila de decisão sem ter cargo | Exigem ler os dados de gestão (admin ativo, ou ativo com cargo ativo) **e** poder decidir: ter a permissão de aprovar do tipo ou ser o aprovador indicado daquela solicitação (CA-21). A auto-aprovação não dá o direito de decidir o tipo: só libera o próprio pedido de quem já tem a permissão de aprovar. (Redação esclarecida em 2026-11-14, com o aceite do dono; a regra não mudou) |
 
 Propostas do agente, que passam a valer com a aprovação deste adendo:
 

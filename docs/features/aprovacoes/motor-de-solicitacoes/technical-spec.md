@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | `aprovacoes/motor-de-solicitacoes` |
-| Status | Approved |
+| Status | Implemented |
 | Responsável | Leandro Nascimento |
 | Atualizado em | 2026-11-13 |
 | Aprovado por | Leandro Nascimento |
@@ -117,7 +117,7 @@ texto a copiar, ou recusa (motivo inexistente, inativo ou de outro tipo): é o q
 | `POST solicitacoes/{id}/aprovar/` | Quem pode decidir | `motivo_id`, `texto` | |
 | `POST solicitacoes/{id}/contestar/` | Quem pode decidir | `motivo_id`, `mensagem`, `texto`, `teto_sugerido` | |
 | `POST solicitacoes/{id}/recusar/` | Quem pode decidir | `motivo_id`, `texto` | |
-| `GET fila/` | Logado | — | Em análise que quem pergunta pode decidir, da mais antiga para a mais nova |
+| `GET fila/` | Lê gestão (adendo 1 da funcional, A2) | — | Em análise que quem pergunta pode decidir, da mais antiga para a mais nova |
 | `GET motivos/` | Quem lê gestão | `?tipo_de_decisao=` | Os ativos; o admin vê também os inativos com `?todos=1` |
 | `POST motivos/`, `POST motivos/{id}/editar/`, `…/desativar/`, `…/reativar/` | Admin | `tipo_de_decisao`, `texto` | |
 
