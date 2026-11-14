@@ -61,6 +61,14 @@ Em `VALIDATION_ERROR`, `details` traz os motivos por campo.
 | `USUARIO_NAO_ESTA_ATIVO` | 422 | Também ao classificar usuário que não está ativo |
 | `ACESSO_TOTAL_SO_PARA_USUARIO` | 422 | Conceder o acesso total a cargo ou setor |
 | `CONCESSAO_JA_REVOGADA` | 422 | Revogar uma concessão já revogada |
+| `SO_O_SOLICITANTE` | 403 | Retirar, reenviar ou editar a solicitação de outra pessoa |
+| `SOLICITANTE_NAO_DECIDE` | 403 | O solicitante tenta decidir o próprio pedido sem a auto-aprovação |
+| `APROVADOR_NAO_INDICADO` | 422 | Quem aprovaria o próprio pedido envia sem indicar outro aprovador |
+| `APROVADOR_INVALIDO` | 422 | O indicado é o próprio solicitante, inativo, sem cargo ou inexistente; ou indica quem não precisa indicar |
+| `NAO_ESTA_EM_ANALISE` | 422 | Retirar, aprovar, contestar ou recusar fora da análise |
+| `NAO_ESTA_CONTESTADA_NEM_RETIRADA`, `NAO_ESTA_RECUSADA`, `NAO_PODE_EDITAR`, `NAO_PODE_CANCELAR` | 422 | Reenviar, reabrir, editar ou cancelar fora da situação certa |
+| `TETO_SEM_VALOR` | 422 | Teto sugerido numa solicitação cujo tipo não tem valor |
+| `MOTIVO_JA_EXISTE` | 409 | Motivo com o texto de outro do mesmo tipo de decisão, ativo ou inativo (sem diferenciar maiúsculas) |
 | `INTERNAL_ERROR` | 500 | Erro inesperado; o detalhe fica só no log, com o `X-Request-ID` da resposta |
 
 Login, recuperação de senha, reenvio de verificação e convite inválido respondem do mesmo jeito exista a conta (ou o
@@ -86,6 +94,15 @@ convite) ou não.
 | Minhas permissões | `GET permissoes/minhas/` | Logado: só as próprias |
 | Caixa de notificações | `GET notificacoes/` (`?antes=<id da última recebida>&limite=20`, de 1 a 50), `GET notificacoes/resumo/` (`nao_lidas` e `mais_recente_id`), `POST notificacoes/{id}/ler/`, `POST notificacoes/ler-todas/` (`marcadas`) | Logado: só as próprias. A de outro usuário responde 404 `NOT_FOUND`, inclusive para o admin |
 | Preferências de alerta | `GET`, `PUT notificacoes/preferencias/` (`aviso_na_tela`, `email_informativos`; só as chaves enviadas mudam, e só `true` ou `false`) | Logado: só as próprias |
+| Tipos de solicitação | `GET aprovacoes/tipos/` (`codigo`, `nome`, `tem_valor`) | Admin ou diretor ativo com cargo |
+| Solicitações | `GET aprovacoes/solicitacoes/` (`?tipo=`, `?situacao=`, `?minhas=1`, `?antes=<id>`, `?limite=` de 1 a 50); `GET aprovacoes/solicitacoes/{id}/` (versões, decisões, indicação e `acoes`); `GET …/{id}/historico/` | Admin ou diretor ativo com cargo |
+| Enviar | `POST aprovacoes/solicitacoes/` (`tipo`, `conteudo`, `aprovador_indicado_id`) | Quem lê gestão e, se o tipo pede, tem a permissão de enviar |
+| Comandos do solicitante | `POST aprovacoes/solicitacoes/{id}/retirar/`, `…/reenviar/` (`conteudo`), `…/editar/` (`conteudo`, `justificativa`) | O solicitante |
+| Reabrir e cancelar | `POST …/{id}/reabrir/` (`justificativa`, `conteudo` opcional), `…/cancelar/` (`motivo`) | O solicitante, o admin ou quem tem `solicitacoes.reabrir` ou `solicitacoes.cancelar` |
+| Decisões | `POST …/{id}/aprovar/`, `…/recusar/` (`motivo_id`, `texto`); `…/contestar/` (`motivo_id`, `mensagem`, `texto`, `teto_sugerido`) | Quem lê gestão e tem a permissão de aprovar o tipo, ou o indicado; o solicitante só com `solicitacoes.auto_aprovar` |
+| Fila de pendências | `GET aprovacoes/fila/` | Admin ou diretor ativo com cargo: só o que ele pode decidir |
+| Motivos de decisão | `GET aprovacoes/motivos/` (`?tipo_de_decisao=`; `?todos=1` traz os inativos, só para o admin) | Admin ou diretor ativo com cargo |
+| | `POST aprovacoes/motivos/`; `POST …/{id}/editar/`, `…/desativar/`, `…/reativar/`; `GET aprovacoes/tipos-de-decisao/` | Admin |
 | Contrato | `GET schema/`, `GET docs/` | Admin |
 
 Notificação nunca é alterada nem apagada: não há rota `DELETE` nem preferência que desligue o registro; a rota `ler`
@@ -98,5 +115,7 @@ de um item (`…/historico/`) vem do mais recente para o mais antigo, com `acao`
 para o sistema), `justificativa` e `criado_em`.
 
 O token de convite, de verificação e de recuperação vai sempre no corpo, nunca na URL da API.
+
+Solicitação, versão, decisão e motivo nunca são apagados, e versão e decisão nunca mudam (também no banco). A ordem das conferências em toda rota de solicitação é: leitura de gestão (403), entrada (400), existência (404), quem pode (403) e situação (422); quem não lê gestão recebe 403 sem saber se o ID existe. Dinheiro vai e volta como texto com duas casas (`"150.00"`). O `conteudo` de cada versão é do módulo dono do tipo (um objeto JSON de até 64 KB) e o site o mostra como texto. O campo `acoes` do detalhe diz o que quem pergunta pode fazer agora; ele é conveniência do site, e a API confere de novo em cada comando. Não há rota para pôr em execução nem encerrar: isso é do módulo dono do tipo, pela API pública em processo.
 
 Teste manual do fluxo completo: [manual-testing.md](manual-testing.md).

@@ -61,7 +61,7 @@
 | 5 | Desenho tático | Sim, só `aprovacoes`, `financeiro` e `eventos` | Concluído | 2026-11-11 | Leandro Nascimento | `docs/domain/aggregates/`, `docs/domain/domain-events.md`, `docs/domain/domain-model.md` |
 | 6 | Especificação | Sim | Concluído (registro de requisitos; as specs de feature são escritas marco a marco, no rito 8) | 2026-11-11 | Leandro Nascimento | `docs/requirements/requirements.md`, `epics.md`, `definition-of-ready-done.md`, `backlog.md` |
 | 7 | Arquitetura base | Sim | Concluído | 2026-11-12 | Leandro Nascimento | `backend/`, `frontend/`, `compose.yaml`, `.github/workflows/`, `docs/architecture/`, `docs/setup/`, ADR-004 a ADR-007; CI verde na `dev` (execuções `backend` e `frontend` de 2026-11-12) |
-| 8 | Entrega incremental | Contínuo | Em andamento: M0 a M4 concluídos; próximo: M5 | | | |
+| 8 | Entrega incremental | Contínuo | Em andamento: M0 a M5 concluídos; próximo: M6 | | | |
 
 Status: `Pendente`, `Em andamento`, `Concluído`, `Não se aplica (estilo)`, `Simplificado (<motivo>)`,
 `Pulado (<motivo>)`.
@@ -85,7 +85,7 @@ validação), com revisão de segurança e auditoria de coerência ao fim.
 | M2 Identidade e acesso | E3 | Concluído (`v0.2.0`) | 2026-11-13 | Leandro Nascimento |
 | M3 Permissões e auditoria | E4 | Concluído (na `dev`) | 2026-11-13 | Leandro Nascimento |
 | M4 Notificações | E5 | Concluído (na `dev`) | 2026-11-13 | Leandro Nascimento |
-| M5 Motor de aprovações | E6 | Especificado; aguardando implementação | | |
+| M5 Motor de aprovações | E6 | Concluído (na `dev`) | 2026-11-14 | Leandro Nascimento |
 | M6 Financeiro: entradas | E7 | Funcional aprovada (2026-11-13) | | |
 | M7 Financeiro: saídas | E8 | Funcional aprovada (2026-11-13) | | |
 | M8 Eventos | E9 | Funcional aprovada (2026-11-13) | | |
@@ -100,8 +100,9 @@ Links para o board seguem sempre `<URL do board>/?moveToWidget=<ID>`; trocar de 
 
 Board: <https://miro.com/app/board/uXjVEOVNIIY=/>, criado em 2026-11-13 por uma sessão dedicada, a partir dos documentos abaixo. O board
 espelha a documentação e não a substitui: se os dois divergirem, vale o documento. Os frames resumem as
-fontes (o que ficou de fora está no relato da criação, em `docs/_local/`), e ainda não foram conferidos
-visualmente pela sessão revisora.
+fontes (o que ficou de fora está no relato da criação, em `docs/_local/`), e foram conferidos
+visualmente em 2026-11-13: os frames 1, 2 e 6 estão bons, o 3 foi visto só em visão geral, e os frames 4 e 5
+têm ajustes pedidos (relações e rótulos).
 
 | Frame | ID | Espelha | Tipo |
 | --- | --- | --- | --- |

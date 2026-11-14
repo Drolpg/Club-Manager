@@ -94,22 +94,22 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Origem | Status | Feature |
 | --- | --- | --- | --- | --- |
-| RF-033 | O admin cadastra e desativa motivos de decisão, por tipo de decisão | H04, H07 **(novo)** | Aprovado | — |
-| RF-034 | O solicitante envia uma solicitação de um tipo registrado | APR-01 | Aprovado | — |
-| RF-035 | O solicitante que poderia decidir o próprio pedido indica outro diretor como aprovador daquele pedido; a indicação fica no histórico e o admin é notificado | H19, H26 **(alterado: APR-02)** | Aprovado | — |
-| RF-036 | O aprovador aprova a solicitação, com um motivo de decisão e texto opcional | APR-01, APR-05, H07 **(alterado)** | Aprovado | — |
-| RF-037 | O aprovador contesta a solicitação para ajustes, com motivo, mensagem e, se houver custo, um teto sugerido | H12, H21 **(novo)** | Aprovado | — |
-| RF-038 | O aprovador recusa a solicitação, com um motivo de decisão e texto opcional | APR-04, APR-05 | Aprovado | — |
-| RF-039 | O solicitante corrige e reenvia uma solicitação contestada, criando nova versão | H12, APR-08 **(novo)** | Aprovado | — |
-| RF-040 | O solicitante, o admin ou quem tem a permissão reabre uma solicitação recusada, com justificativa, criando nova versão | APR-06 | Aprovado | — |
-| RF-041 | O solicitante edita uma solicitação aprovada, que volta à análise como nova versão | APR-07 | Aprovado | — |
-| RF-042 | O solicitante, o admin ou quem tem a permissão cancela uma solicitação, com motivo | APR-10 | Aprovado | — |
-| RF-043 | Quem pode ver a solicitação consulta todas as versões, decisões, motivos e mensagens | APR-08 | Aprovado | — |
-| RF-044 | O aprovador consulta a fila das solicitações que pode decidir | APR-11 | Aprovado | — |
-| RF-045 | O sistema notifica quem pode decidir quando uma solicitação é enviada ou reenviada, e notifica o solicitante de cada decisão, com um texto padrão e a mensagem do aprovador | NOT-06, H12 | Aprovado | — |
-| RF-120 | O solicitante retira da análise a própria solicitação, para corrigir e reenviar | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Aprovado | — |
-| RF-121 | O sistema lembra quem pode decidir depois de 3 dias sem decisão, e avisa o admin depois de 7 | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Aprovado | — |
-| RF-122 | O diretor com cargo lista as solicitações, com filtro por tipo, por situação e pelas próprias | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Aprovado | — |
+| RF-033 | O admin cadastra e desativa motivos de decisão, por tipo de decisão | H04, H07 **(novo)** | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-034 | O solicitante envia uma solicitação de um tipo registrado | APR-01 | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-035 | O solicitante que poderia decidir o próprio pedido indica outro diretor como aprovador daquele pedido; a indicação fica no histórico e o admin é notificado | H19, H26 **(alterado: APR-02)** | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-036 | O aprovador aprova a solicitação, com um motivo de decisão e texto opcional | APR-01, APR-05, H07 **(alterado)** | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-037 | O aprovador contesta a solicitação para ajustes, com motivo, mensagem e, se houver custo, um teto sugerido | H12, H21 **(novo)** | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-038 | O aprovador recusa a solicitação, com um motivo de decisão e texto opcional | APR-04, APR-05 | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-039 | O solicitante corrige e reenvia uma solicitação contestada, criando nova versão | H12, APR-08 **(novo)** | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-040 | O solicitante, o admin ou quem tem a permissão reabre uma solicitação recusada, com justificativa, criando nova versão | APR-06 | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-041 | O solicitante edita uma solicitação aprovada, que volta à análise como nova versão | APR-07 | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-042 | O solicitante, o admin ou quem tem a permissão cancela uma solicitação, com motivo | APR-10 | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-043 | Quem pode ver a solicitação consulta todas as versões, decisões, motivos e mensagens | APR-08 | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-044 | O aprovador consulta a fila das solicitações que pode decidir | APR-11 | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-045 | O sistema notifica quem pode decidir quando uma solicitação é enviada ou reenviada, e notifica o solicitante de cada decisão, com um texto padrão e a mensagem do aprovador | NOT-06, H12 | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-120 | O solicitante retira da análise a própria solicitação, para corrigir e reenviar | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-121 | O sistema lembra quem pode decidir depois de 3 dias sem decisão, e avisa o admin depois de 7 | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Implementado | `aprovacoes/motor-de-solicitacoes` |
+| RF-122 | O diretor com cargo lista as solicitações, com filtro por tipo, por situação e pelas próprias | Spec `aprovacoes/motor-de-solicitacoes` **(novo)** | Implementado | `aprovacoes/motor-de-solicitacoes` |
 
 ### Financeiro — cobrança e recebimento (M6)
 

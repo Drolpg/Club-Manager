@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from 'react-router'
 import { CadastroPorConvite, Entrar, RecuperarSenha, RedefinirSenha, VerificarEmail } from './paginas/Acesso'
 import { Moldura } from './Moldura'
 import { Convites, Usuarios } from './paginas/Admin'
+import { DetalheDeSolicitacao, FilaDePendencias, ListaDeSolicitacoes } from './paginas/Aprovacoes'
+import { MotivosDeDecisao } from './paginas/Motivos'
 import { Inicio } from './paginas/Inicio'
 import { CargosESetores, Permissoes, UsuarioDetalhe } from './paginas/Permissoes'
 import { Preferencias } from './paginas/Preferencias'
@@ -25,6 +27,15 @@ function ProtegidaDeConvites({ children }: { children: ReactNode }) {
   if (usuario === undefined || carregando) return <p className="pagina">Carregando…</p>
   if (usuario === null) return <Navigate to="/entrar" replace />
   if (!usuario.admin && !temPermissao(detalhe, CONVITES_GERENCIAR)) return <Navigate to="/" replace />
+  return children
+}
+
+// Solicitações são lidas pelo admin e por quem tem cargo (regra 18). A API confere de novo a cada chamada.
+function ProtegidaDeGestao({ children }: { children: ReactNode }) {
+  const { usuario } = useSessao()
+  if (usuario === undefined) return <p className="pagina">Carregando…</p>
+  if (usuario === null) return <Navigate to="/entrar" replace />
+  if (!usuario.admin && !usuario.tem_cargo) return <Navigate to="/" replace />
   return children
 }
 
@@ -91,6 +102,38 @@ function App() {
             element={
               <Protegida soAdmin>
                 <Permissoes />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/solicitacoes"
+            element={
+              <ProtegidaDeGestao>
+                <ListaDeSolicitacoes />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/solicitacoes/:id"
+            element={
+              <ProtegidaDeGestao>
+                <DetalheDeSolicitacao />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/fila"
+            element={
+              <ProtegidaDeGestao>
+                <FilaDePendencias />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/admin/motivos"
+            element={
+              <Protegida soAdmin>
+                <MotivosDeDecisao />
               </Protegida>
             }
           />

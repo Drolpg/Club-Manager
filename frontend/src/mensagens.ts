@@ -119,3 +119,40 @@ const ACAO_AUDITADA: Record<string, string> = {
 export function rotuloDaAcao(acao: string): string {
   return ACAO_AUDITADA[acao] ?? acao
 }
+
+export const SITUACAO_DA_SOLICITACAO: Record<string, string> = {
+  EM_ANALISE: 'Em análise',
+  RETIRADA: 'Retirada',
+  CONTESTADA: 'Contestada',
+  RECUSADA: 'Recusada',
+  APROVADA: 'Aprovada',
+  EM_EXECUCAO: 'Em execução',
+  ENCERRADA: 'Encerrada',
+  CANCELADA: 'Cancelada',
+}
+
+export const DECISAO_DA_SOLICITACAO: Record<string, string> = {
+  APROVAR: 'Aprovada',
+  CONTESTAR: 'Contestada',
+  RECUSAR: 'Recusada',
+}
+
+// O que cada registro do histórico de uma solicitação quer dizer.
+const ACAO_NA_SOLICITACAO: Record<string, string> = {
+  SOLICITACAO_ENVIADA: 'Enviada',
+  APROVADOR_INDICADO: 'Aprovador indicado',
+  SOLICITACAO_RETIRADA: 'Retirada',
+  SOLICITACAO_REENVIADA: 'Reenviada',
+  SOLICITACAO_REABERTA: 'Reaberta',
+  SOLICITACAO_EDITADA: 'Editada',
+  SOLICITACAO_CANCELADA: 'Cancelada',
+  SOLICITACAO_APROVADA: 'Aprovada',
+  SOLICITACAO_CONTESTADA: 'Contestada',
+  SOLICITACAO_RECUSADA: 'Recusada',
+  SOLICITACAO_EM_EXECUCAO: 'Em execução',
+  SOLICITACAO_ENCERRADA: 'Encerrada',
+}
+
+export function rotuloDaAcaoNaSolicitacao(acao: string): string {
+  return ACAO_NA_SOLICITACAO[acao] ?? acao
+}
