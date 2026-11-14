@@ -5,9 +5,18 @@ from collections.abc import Iterator
 import pytest
 
 from permissoes import catalogo
+from permissoes.models import Concessao
 
 SENSIVEL = "teste.sensivel"
 COMUM = "teste.comum"
+
+
+@pytest.fixture(autouse=True)
+def _sem_concessoes_de_outros_modulos(request: pytest.FixtureRequest) -> None:
+    """Isola a suíte de `permissoes` (M3) das concessões semeadas pelos módulos de negócio."""
+    if request.node.get_closest_marker("django_db") is not None:
+        request.getfixturevalue("db")
+        Concessao.objects.all().delete()
 
 
 @pytest.fixture

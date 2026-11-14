@@ -24,6 +24,7 @@ from permissoes.services.consulta import (
     permissoes_de,
     pode,
     quem_pode,
+    usuarios_ativos_com_cargo,
 )
 
 
@@ -57,4 +58,5 @@ __all__ = (
     "pode",
     "quem_pode",
     "registrar_permissao",
+    "usuarios_ativos_com_cargo",
 )
