@@ -248,6 +248,10 @@ Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `bac
 | CA-33 (histórico com todas as ações) | `aprovacoes/tests/test_consultas.py::test_ca28_e_ca33_o_historico_traz_todas_as_acoes_com_os_nomes` |
 | Paridade entre `acoes` e as rotas | `aprovacoes/tests/test_consultas.py::test_acoes_do_detalhe_coincidem_com_o_que_as_rotas_aceitam` (6 papéis × 8 situações × 8 comandos) |
 | Tipos registrados | `aprovacoes/tests/test_consultas.py::test_quem_le_gestao_ve_os_tipos_registrados`, `::test_os_tipos_exigem_leitura_de_gestao` |
+| Site: menu e guarda (checkpoint 8a) | `frontend/src/aprovacoes.test.tsx` — "menu e guarda das telas de aprovações" (3 testes) |
+| CA-27 (site) | `frontend/src/aprovacoes.test.tsx` — "lista de solicitações" (situação, valor, solicitante; filtros; carregar mais; erro) |
+| CA-26 (site) | `frontend/src/aprovacoes.test.tsx` — "fila de pendências" (ordem da API; fila vazia) |
+| CA-28 (site) | `frontend/src/aprovacoes.test.tsx` — "detalhe da solicitação" (cabeçalho e versões; decisão; conteúdo genérico como texto; histórico; 404) |
 
 ## Revisão de segurança
 
@@ -402,6 +406,20 @@ Preenchida no checkpoint 9.
   conferir a falha pelo motivo certo, tirei o código de lado e rodei: 68 de 69 falharam (rotas inexistentes);
   depois o devolvi.
 - Nenhum teste anterior a esta branch alterado.
+
+### Checkpoint 8a — Site: cliente, guarda, menu, lista, fila e detalhe (2026-11-14)
+
+- `npm run verify` em `frontend/`: saída 0, 143 testes (129 + 14 novos), cobertura de linhas 95,38%
+  (`Aprovacoes.tsx` 96,1%); lint e build sem aviso. O backend não mudou neste checkpoint.
+- Os atalhos ficam num menu próprio, "Aprovações" (Fila de pendências, Solicitações), para quem tem cargo e
+  para o admin. Não entraram no menu "Administração", porque um teste existente
+  (`notificacoes.test.tsx`, "mostra o nome, o menu do admin…") fixa a lista exata dos links dele. A moldura
+  não ganhou consulta nova: o menu depende só da sessão (`admin`, `tem_cargo`).
+- Guarda `ProtegidaDeGestao`: sem cargo e sem ser admin, volta à página inicial; sem sessão, vai para entrar.
+- Dinheiro chega da API como texto e é formatado em reais só mexendo no texto (`formatos.reais`), sem passar
+  por ponto flutuante. O conteúdo de cada versão é mostrado de forma genérica (chave e valor, listas e objetos
+  aninhados), sempre como texto.
+- Nenhum teste existente alterado.
 
 ## Rollback ou recuperação
 
