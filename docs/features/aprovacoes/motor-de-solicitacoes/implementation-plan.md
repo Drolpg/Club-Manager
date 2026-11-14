@@ -167,6 +167,14 @@ Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `bac
 | Adendo 1, A3 (função pura, checkpoint 1) | `aprovacoes/tests/test_decisores.py::test_envio_exige_leitura_de_gestao_e_a_permissao_de_enviar` |
 | Tabela de transições (checkpoint 1) | `aprovacoes/tests/test_transicoes.py::test_cada_par_situacao_e_comando` (80 pares, contra tabela escrita no teste), `::test_codigo_de_erro_de_situacao_de_cada_comando` |
 | `Dinheiro` (checkpoint 1) | `kernel/tests/test_dinheiro.py` |
+| CA-29 | `aprovacoes/tests/test_motivos.py::test_ca29_o_sistema_nasce_com_motivos_sugeridos` |
+| CA-30 | `aprovacoes/tests/test_motivos.py::test_ca30_o_admin_cria_edita_e_desativa_e_a_lista_de_opcoes_muda`, `::test_ca30_a_decisao_antiga_continua_com_o_texto_que_tinha` |
+| CA-31 | `aprovacoes/tests/test_motivos.py::test_ca31_quem_nao_e_admin_nao_altera_motivo`, `::test_ca31_quem_nao_e_admin_nao_cria_motivo`, `::test_ca31_o_servico_confere_o_admin_de_novo` |
+| CA-33 (motivos, checkpoint 2) | `aprovacoes/tests/test_motivos.py::test_ca33_cada_acao_sobre_o_motivo_gera_registro_de_auditoria` |
+| Adendo 1, A8 | `aprovacoes/tests/test_motivos.py::test_a8_motivo_com_o_texto_de_um_inativo_e_recusado` |
+| INV-SOL-05 (modelo e banco, checkpoint 2) | `aprovacoes/tests/test_modelos.py::test_inv_sol_05_versao_nao_muda`, `::test_banco_recusa_alterar_e_apagar_versao` |
+| INV-SOL-14 | `aprovacoes/tests/test_modelos.py::test_inv_sol_14_uma_decisao_por_versao_no_banco` |
+| Imutabilidade da decisão (adendo 1) | `aprovacoes/tests/test_modelos.py::test_decisao_nao_muda`, `::test_banco_recusa_alterar_e_apagar_decisao`, `::test_nada_e_apagado` |
 
 ## Revisão de segurança
 
@@ -205,6 +213,21 @@ Preenchida no checkpoint 9.
   O admin tem as duas pelo catálogo.
 - Reabrir e cancelar de outra pessoa sem a permissão respondem `PERMISSION_DENIED`; `SO_O_SOLICITANTE` fica para
   retirar, reenviar e editar, que só o solicitante faz.
+
+### Checkpoint 2 — Modelos, motivos e imutabilidade (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 806 testes (751 + 55 novos), cobertura 97,79%, contratos do
+  import-linter 1 mantido, 0 quebrados; `migrations-check` sem pendência.
+- Migrações: `0001_solicitacao_versao_decisao_motivo`, `0002_motivos_iniciais` (referência obrigatória; a
+  reversão remove só os que nenhuma decisão usa) e `0003_versao_e_decisao_imutaveis` (gatilhos). Reversão e
+  reaplicação testadas (`test_migracoes_revertem_e_reaplicam_com_os_motivos_iniciais`).
+- O gatilho da versão compara a linha inteira, menos as duas datas de lembrete (`to_jsonb(NEW) - ...`): uma
+  coluna nova também fica protegida sem mudar o gatilho.
+- `tests/apoio.py` ganhou `dar_cargo`, `conceder`, `registrar_permissao_de_teste` e
+  `remover_permissao_de_teste` (os testes de `aprovacoes` não importam os internos de `permissoes`).
+- Rotas novas: `motivos/` (lista e criação), `motivos/{id}/editar|desativar|reativar/` e `tipos-de-decisao/`
+  (adendo 1). `?todos=1` de quem não é admin responde 403, em vez de ser ignorado.
+- Nenhum teste existente alterado.
 
 ## Rollback ou recuperação
 
