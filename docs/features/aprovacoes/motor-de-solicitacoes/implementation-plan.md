@@ -225,6 +225,12 @@ Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `bac
 | Adendo 1, A11 (textos da decisão) | `aprovacoes/tests/test_decisoes.py::test_a11_textos_da_decisao_ate_1000_caracteres` |
 | Adendo 1, A12 | `aprovacoes/tests/test_decisoes.py::test_adendo_a12_teto_maior_que_o_valor_pedido_e_aceito` |
 | Erro no módulo dono desfaz a decisão | `aprovacoes/tests/test_decisoes.py::test_o_erro_no_aviso_ao_modulo_dono_desfaz_a_decisao` |
+| CA-15 (pelo caminho real, checkpoint 5) | `aprovacoes/tests/test_execucao.py::test_ca15_inv_sol_09_depois_de_iniciada_a_execucao_nao_edita_nao_retira_nem_cancela` |
+| CA-18 | `aprovacoes/tests/test_execucao.py::test_ca18_nenhuma_rota_poe_em_execucao_ou_encerra`, `::test_ca18_nenhum_nome_de_rota_fala_de_execucao_ou_encerramento` |
+| CA-34 | `aprovacoes/tests/test_execucao.py::test_ca34_com_dois_tipos_cada_modulo_recebe_so_os_avisos_do_seu`, `::test_ca34_o_motor_nao_importa_financeiro_nem_eventos`; `tests/test_architecture.py` |
+| CA-33 (execução e encerramento) | `aprovacoes/tests/test_execucao.py::test_o_modulo_dono_poe_a_aprovada_em_execucao`, `::test_o_modulo_dono_encerra_a_aprovada_ou_em_execucao`, `::test_sem_ator_a_execucao_fica_registrada_como_do_sistema` |
+| INV-SOL-08 (encerramento) | `aprovacoes/tests/test_execucao.py::test_inv_sol_08_so_aprovada_ou_em_execucao_encerra` |
+| `iniciar_execucao` só de aprovada | `aprovacoes/tests/test_execucao.py::test_so_a_aprovada_entra_em_execucao` |
 
 ## Revisão de segurança
 
@@ -320,6 +326,26 @@ Preenchida no checkpoint 9.
 - A auditoria da decisão leva no `justificativa` o texto do motivo, e em `dados` a versão, a decisão, o motivo e
   a marca de aprovação própria.
 - Nenhum teste existente alterado.
+
+### Checkpoint 5 — Execução, encerramento e isolamento entre tipos (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 978 testes (948 + 30 novos), cobertura 97,72%, contratos do
+  import-linter 1 mantido, 0 quebrados; nenhuma migração pendente.
+- Ajuste pedido na revisão dos checkpoints 1 a 4: os testes do 3b e do 4 deixaram de gravar a situação direto no
+  banco. O cenário é montado por `levar_a` (em `aprovacoes/tests/conftest.py`), que leva a solicitação da análise
+  até a situação pedida pelos serviços reais: decisões por um aprovador de cenário, retirar e cancelar pelo
+  solicitante, e `public.iniciar_execucao` e `public.encerrar`. Os avisos ao módulo dono gerados pelo cenário são
+  tirados da lista do tipo de teste, e por isso as asserções sobre `ao_mudar` ficaram as mesmas. Duas mudanças de
+  seleção, sem mudar o que se espera: a auditoria do `test_ca33` do 3b passou a filtrar as ações do solicitante
+  (as decisões do cenário são de outro ator), e o `test_ca05` do 4 passou de "nenhuma decisão existe" para
+  "nenhuma decisão nova", porque a aprovada, a contestada e a recusada agora têm a decisão que as levou até ali.
+- Ainda criam linhas direto pelo ORM só `test_modelos.py` e `test_motivos.py::_decisao_com`: eles testam a
+  persistência (imutabilidade no modelo e no banco, unicidade, a cópia do texto do motivo) e não passam pelo
+  ciclo; nenhum deles grava uma situação diferente de `EM_ANALISE`.
+- `iniciar_execucao`, `encerrar` e `situacao_de` na API pública, sem rota; recebem `ator_id` opcional (adendo 1)
+  e não avisam o módulo dono de volta, porque foi ele quem pediu a mudança. A API pública devolve `None` ou a
+  `Situacao`, e não o modelo.
+- Nenhum teste anterior a esta branch alterado.
 
 ## Rollback ou recuperação
 

@@ -1,7 +1,7 @@
 """Retirar, reenviar, reabrir, editar e cancelar (CA-09 a CA-17; INV-SOL-05, 06, 08, 09, 12 e 13; A4).
 
-As decisões entram no checkpoint 4: aqui, as situações que dependem delas (contestada, recusada, aprovada, em
-execução) são postas direto no banco, só para preparar o cenário.
+As situações de partida (contestada, recusada, aprovada, em execução, encerrada) são montadas pelos serviços,
+com `levar_a`, e nunca gravadas direto no banco.
 """
 
 import uuid
@@ -21,6 +21,8 @@ from aprovacoes.tests.conftest import (
     TIPO,
     TipoDeTeste,
     com_cargo,
+    enviada,
+    levar_a,
     pedido,
     preparar_pedido,
 )
@@ -38,19 +40,6 @@ def _erro(resposta: Any) -> tuple[int, str]:
     return resposta.status_code, resposta.json()["error"]["code"]
 
 
-def _enviada(solicitante: Usuario, tipo: str = TIPO) -> Solicitacao:
-    return Solicitacao.objects.get(
-        pk=public.enviar(tipo=tipo, conteudo=pedido(), solicitante_id=solicitante.id)
-    )
-
-
-def _na_situacao(solicitacao: Solicitacao, situacao: str) -> Solicitacao:
-    # Só prepara o cenário: no sistema, a situação muda pelos métodos do aggregate.
-    Solicitacao.objects.filter(pk=solicitacao.pk).update(situacao=situacao)
-    solicitacao.refresh_from_db()
-    return solicitacao
-
-
 def _acao(client: APIClient, solicitacao: Solicitacao, acao: str, **corpo: Any) -> Any:
     return client.post(f"{SOLICITACOES}{solicitacao.id}/{acao}/", corpo, format="json")
 
@@ -60,7 +49,12 @@ def _versoes(solicitacao: Solicitacao) -> list[tuple[int, str, uuid.UUID, str]]:
 
 
 def _acoes_auditadas(solicitacao: Solicitacao) -> list[str]:
-    return [r.acao for r in auditoria.historico_do_item("solicitacao", solicitacao.id)]
+    """As ações do solicitante. As decisões que montam o cenário são de outro ator."""
+    return [
+        r.acao
+        for r in auditoria.historico_do_item("solicitacao", solicitacao.id)
+        if r.ator_id == solicitacao.solicitante_id
+    ]
 
 
 @pytest.fixture
@@ -79,7 +73,7 @@ def client_solicitante(solicitante: Usuario) -> APIClient:
 def test_ca12_o_solicitante_retira_a_solicitacao_em_analise(
     solicitante: Usuario, client_solicitante: APIClient, tipo_de_teste: TipoDeTeste
 ) -> None:
-    solicitacao = _enviada(solicitante)
+    solicitacao = enviada(solicitante)
 
     resposta = _acao(client_solicitante, solicitacao, "retirar")
 
@@ -96,7 +90,7 @@ def test_ca12_o_solicitante_retira_a_solicitacao_em_analise(
 
 
 def test_inv_sol_12_a_retirada_nao_cria_versao(solicitante: Usuario, client_solicitante: APIClient) -> None:
-    solicitacao = _enviada(solicitante)
+    solicitacao = enviada(solicitante)
 
     _acao(client_solicitante, solicitacao, "retirar")
 
@@ -108,7 +102,7 @@ def test_inv_sol_12_a_retirada_nao_cria_versao(solicitante: Usuario, client_soli
 def test_ca12_a_retirada_volta_por_reenvio_como_versao_nova(
     solicitante: Usuario, client_solicitante: APIClient
 ) -> None:
-    solicitacao = _enviada(solicitante)
+    solicitacao = enviada(solicitante)
     _acao(client_solicitante, solicitacao, "retirar")
 
     resposta = _acao(client_solicitante, solicitacao, "reenviar", conteudo=pedido("Bolas oficiais", "180"))
@@ -118,13 +112,13 @@ def test_ca12_a_retirada_volta_por_reenvio_como_versao_nova(
 
 
 def test_inv_sol_12_so_se_retira_em_analise(solicitante: Usuario, client_solicitante: APIClient) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "CONTESTADA")
+    solicitacao = levar_a(enviada(solicitante), "CONTESTADA")
 
     assert _erro(_acao(client_solicitante, solicitacao, "retirar")) == (422, "NAO_ESTA_EM_ANALISE")
 
 
 def test_ca13_ninguem_alem_do_solicitante_retira(solicitante: Usuario, client_admin: APIClient) -> None:
-    solicitacao = _enviada(solicitante)
+    solicitacao = enviada(solicitante)
     aprovador = apoio.cliente_de(com_cargo("dora", APROVAR_TESTE, CANCELAR))
 
     assert _erro(_acao(aprovador, solicitacao, "retirar")) == (403, "SO_O_SOLICITANTE")
@@ -139,7 +133,7 @@ def test_ca13_ninguem_alem_do_solicitante_retira(solicitante: Usuario, client_ad
 def test_ca09_a_contestada_reenviada_vira_a_versao_seguinte_e_a_anterior_continua(
     solicitante: Usuario, client_solicitante: APIClient, tipo_de_teste: TipoDeTeste
 ) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "CONTESTADA")
+    solicitacao = levar_a(enviada(solicitante), "CONTESTADA", avisos=tipo_de_teste.recebidas)
 
     resposta = _acao(client_solicitante, solicitacao, "reenviar", conteudo=pedido("Bolas oficiais", "120"))
 
@@ -159,7 +153,7 @@ def test_inv_sol_13_so_se_reenvia_contestada_ou_retirada(
     solicitante: Usuario, client_solicitante: APIClient
 ) -> None:
     for situacao in ("EM_ANALISE", "RECUSADA", "APROVADA", "CANCELADA"):
-        solicitacao = _na_situacao(_enviada(solicitante), situacao)
+        solicitacao = levar_a(enviada(solicitante), situacao)
 
         resposta = _acao(client_solicitante, solicitacao, "reenviar", conteudo=pedido())
 
@@ -169,7 +163,7 @@ def test_inv_sol_13_so_se_reenvia_contestada_ou_retirada(
 def test_reenvio_com_conteudo_recusado_pelo_dono_nao_muda_nada(
     solicitante: Usuario, client_solicitante: APIClient
 ) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "CONTESTADA")
+    solicitacao = levar_a(enviada(solicitante), "CONTESTADA")
 
     resposta = _acao(client_solicitante, solicitacao, "reenviar", conteudo={"descricao": ""})
 
@@ -179,13 +173,13 @@ def test_reenvio_com_conteudo_recusado_pelo_dono_nao_muda_nada(
 
 
 def test_so_o_solicitante_reenvia(solicitante: Usuario, client_admin: APIClient) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "CONTESTADA")
+    solicitacao = levar_a(enviada(solicitante), "CONTESTADA")
 
     assert _erro(_acao(client_admin, solicitacao, "reenviar", conteudo=pedido())) == (403, "SO_O_SOLICITANTE")
 
 
 def test_reenviar_sem_conteudo_e_recusado(solicitante: Usuario, client_solicitante: APIClient) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "CONTESTADA")
+    solicitacao = levar_a(enviada(solicitante), "CONTESTADA")
 
     assert _erro(_acao(client_solicitante, solicitacao, "reenviar")) == (400, "VALIDATION_ERROR")
 
@@ -196,10 +190,10 @@ def test_reenviar_sem_conteudo_e_recusado(solicitante: Usuario, client_solicitan
 def test_ca10_a_recusada_reaberta_com_justificativa_vira_versao_nova_por_varias_rodadas(
     solicitante: Usuario, client_solicitante: APIClient, tipo_de_teste: TipoDeTeste
 ) -> None:
-    solicitacao = _enviada(solicitante)
+    solicitacao = enviada(solicitante)
 
     for rodada in (2, 3, 4):
-        _na_situacao(solicitacao, "RECUSADA")
+        levar_a(solicitacao, "RECUSADA", avisos=tipo_de_teste.recebidas)
         resposta = _acao(
             client_solicitante,
             solicitacao,
@@ -223,7 +217,7 @@ def test_ca10_a_recusada_reaberta_com_justificativa_vira_versao_nova_por_varias_
 def test_ca10_reabrir_sem_justificativa_e_recusado(
     solicitante: Usuario, client_solicitante: APIClient, justificativa: str | None
 ) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "RECUSADA")
+    solicitacao = levar_a(enviada(solicitante), "RECUSADA")
     corpo = {} if justificativa is None else {"justificativa": justificativa}
 
     assert _erro(_acao(client_solicitante, solicitacao, "reabrir", **corpo)) == (400, "VALIDATION_ERROR")
@@ -232,7 +226,7 @@ def test_ca10_reabrir_sem_justificativa_e_recusado(
 
 
 def test_so_se_reabre_recusada(solicitante: Usuario, client_solicitante: APIClient) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "CONTESTADA")
+    solicitacao = levar_a(enviada(solicitante), "CONTESTADA")
 
     resposta = _acao(client_solicitante, solicitacao, "reabrir", justificativa="Mudou o cenário")
 
@@ -244,8 +238,8 @@ def test_ca11_so_o_admin_ou_quem_tem_a_permissao_reabre_a_de_outra_pessoa(
 ) -> None:
     sem_permissao = apoio.cliente_de(com_cargo("sem", APROVAR_TESTE))
     com_permissao = apoio.cliente_de(com_cargo("com", REABRIR))
-    primeira = _na_situacao(_enviada(solicitante), "RECUSADA")
-    segunda = _na_situacao(_enviada(solicitante), "RECUSADA")
+    primeira = levar_a(enviada(solicitante), "RECUSADA")
+    segunda = levar_a(enviada(solicitante), "RECUSADA")
 
     assert _erro(_acao(sem_permissao, primeira, "reabrir", justificativa="Quero")) == (
         403,
@@ -273,7 +267,7 @@ def test_a4_reabrir_sem_conteudo_copia_a_anterior_valida_em_nome_do_solicitante_
         ao_mudar=lambda mudanca: None,
     )
     try:
-        solicitacao = _na_situacao(_enviada(solicitante, "teste.registrado"), "RECUSADA")
+        solicitacao = levar_a(enviada(solicitante, "teste.registrado"), "RECUSADA")
         chamadas.clear()
 
         resposta = _acao(client_admin, solicitacao, "reabrir", justificativa="Revisto em reunião")
@@ -291,7 +285,7 @@ def test_a4_reabrir_sem_conteudo_copia_a_anterior_valida_em_nome_do_solicitante_
 def test_ca14_a_aprovada_editada_vira_versao_nova_em_analise_e_o_dono_e_avisado(
     solicitante: Usuario, client_solicitante: APIClient, tipo_de_teste: TipoDeTeste
 ) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "APROVADA")
+    solicitacao = levar_a(enviada(solicitante), "APROVADA", avisos=tipo_de_teste.recebidas)
 
     resposta = _acao(
         client_solicitante,
@@ -320,7 +314,7 @@ def test_ca14_a_aprovada_editada_vira_versao_nova_em_analise_e_o_dono_e_avisado(
 def test_inv_sol_06_a_versao_nova_da_editada_nao_tem_decisao(
     solicitante: Usuario, client_solicitante: APIClient
 ) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "APROVADA")
+    solicitacao = levar_a(enviada(solicitante), "APROVADA")
 
     _acao(client_solicitante, solicitacao, "editar", conteudo=pedido())
 
@@ -329,7 +323,7 @@ def test_inv_sol_06_a_versao_nova_da_editada_nao_tem_decisao(
 
 def test_editar_so_aprovada(solicitante: Usuario, client_solicitante: APIClient) -> None:
     for situacao in ("EM_ANALISE", "CONTESTADA", "RETIRADA", "RECUSADA"):
-        solicitacao = _na_situacao(_enviada(solicitante), situacao)
+        solicitacao = levar_a(enviada(solicitante), situacao)
 
         resposta = _acao(client_solicitante, solicitacao, "editar", conteudo=pedido())
 
@@ -337,7 +331,7 @@ def test_editar_so_aprovada(solicitante: Usuario, client_solicitante: APIClient)
 
 
 def test_so_o_solicitante_edita(solicitante: Usuario, client_admin: APIClient) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "APROVADA")
+    solicitacao = levar_a(enviada(solicitante), "APROVADA")
 
     assert _erro(_acao(client_admin, solicitacao, "editar", conteudo=pedido())) == (403, "SO_O_SOLICITANTE")
 
@@ -353,7 +347,7 @@ def test_so_o_solicitante_edita(solicitante: Usuario, client_admin: APIClient) -
 def test_ca15_em_execucao_nao_edita_nao_retira_nem_cancela(
     solicitante: Usuario, client_solicitante: APIClient, acao: str, corpo: dict[str, Any], codigo: str
 ) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), "EM_EXECUCAO")
+    solicitacao = levar_a(enviada(solicitante), "EM_EXECUCAO")
 
     assert _erro(_acao(client_solicitante, solicitacao, acao, **corpo)) == (422, codigo)
     solicitacao.refresh_from_db()
@@ -367,7 +361,7 @@ def test_ca15_em_execucao_nao_edita_nao_retira_nem_cancela(
 def test_ca16_o_solicitante_cancela_com_motivo(
     solicitante: Usuario, client_solicitante: APIClient, tipo_de_teste: TipoDeTeste, situacao: str
 ) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), situacao)
+    solicitacao = levar_a(enviada(solicitante), situacao, avisos=tipo_de_teste.recebidas)
 
     resposta = _acao(client_solicitante, solicitacao, "cancelar", motivo="Não vamos mais comprar")
 
@@ -386,7 +380,7 @@ def test_ca16_o_solicitante_cancela_com_motivo(
 def test_ca16_cancelar_sem_motivo_e_recusado(
     solicitante: Usuario, client_solicitante: APIClient, motivo: str | None
 ) -> None:
-    solicitacao = _enviada(solicitante)
+    solicitacao = enviada(solicitante)
     corpo = {} if motivo is None else {"motivo": motivo}
 
     assert _erro(_acao(client_solicitante, solicitacao, "cancelar", **corpo)) == (400, "VALIDATION_ERROR")
@@ -411,7 +405,7 @@ def test_ca16_inv_sol_08_cancelada_e_encerrada_nao_aceitam_mais_nada(
     corpo: dict[str, Any],
     codigo: str,
 ) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), final)
+    solicitacao = levar_a(enviada(solicitante), final)
 
     assert _erro(_acao(client_solicitante, solicitacao, acao, **corpo)) == (422, codigo)
 
@@ -421,8 +415,8 @@ def test_ca17_so_o_admin_ou_quem_tem_a_permissao_cancela_a_de_outra_pessoa(
 ) -> None:
     sem_permissao = apoio.cliente_de(com_cargo("sem", APROVAR_TESTE, REABRIR))
     com_permissao = apoio.cliente_de(com_cargo("com", CANCELAR))
-    primeira = _enviada(solicitante)
-    segunda = _enviada(solicitante)
+    primeira = enviada(solicitante)
+    segunda = enviada(solicitante)
 
     assert _erro(_acao(sem_permissao, primeira, "cancelar", motivo="X")) == (403, "PERMISSION_DENIED")
     assert _acao(client_admin, primeira, "cancelar", motivo="Duplicada").status_code == 200
@@ -435,12 +429,12 @@ def test_ca17_so_o_admin_ou_quem_tem_a_permissao_cancela_a_de_outra_pessoa(
 def test_ca33_cada_acao_do_solicitante_gera_registro_de_auditoria(
     solicitante: Usuario, client_solicitante: APIClient
 ) -> None:
-    solicitacao = _enviada(solicitante)
+    solicitacao = enviada(solicitante)
     _acao(client_solicitante, solicitacao, "retirar")
     _acao(client_solicitante, solicitacao, "reenviar", conteudo=pedido())
-    _na_situacao(solicitacao, "RECUSADA")
+    levar_a(solicitacao, "RECUSADA")
     _acao(client_solicitante, solicitacao, "reabrir", justificativa="Revisto")
-    _na_situacao(solicitacao, "APROVADA")
+    levar_a(solicitacao, "APROVADA")
     _acao(client_solicitante, solicitacao, "editar", conteudo=pedido())
     _acao(client_solicitante, solicitacao, "cancelar", motivo="Desisti")
 
@@ -452,7 +446,11 @@ def test_ca33_cada_acao_do_solicitante_gera_registro_de_auditoria(
         "SOLICITACAO_EDITADA",
         "SOLICITACAO_CANCELADA",
     ]
-    reaberta = auditoria.historico_do_item("solicitacao", solicitacao.id)[3]
+    (reaberta,) = [
+        r
+        for r in auditoria.historico_do_item("solicitacao", solicitacao.id)
+        if r.acao == "SOLICITACAO_REABERTA"
+    ]
     assert (reaberta.justificativa, reaberta.dados) == ("Revisto", {"versao": 3})
 
 
@@ -471,7 +469,7 @@ def test_o_erro_no_aviso_ao_modulo_dono_desfaz_a_acao(
         ao_mudar=falha,
     )
     try:
-        solicitacao = _enviada(solicitante, "teste.falho")
+        solicitacao = enviada(solicitante, "teste.falho")
         resposta = _acao(client_solicitante, solicitacao, "retirar")
     finally:
         apoio.remover_tipo_de_solicitacao_de_teste("teste.falho")
@@ -503,7 +501,7 @@ def test_textos_livres_ate_1000_caracteres(
     solicitante: Usuario, client_solicitante: APIClient, acao: str, campo: str
 ) -> None:
     situacao = {"reabrir": "RECUSADA", "editar": "APROVADA", "cancelar": "EM_ANALISE"}[acao]
-    solicitacao = _na_situacao(_enviada(solicitante), situacao)
+    solicitacao = levar_a(enviada(solicitante), situacao)
 
     resposta = _acao(client_solicitante, solicitacao, acao, conteudo=pedido(), **{campo: "a" * 1001})
 

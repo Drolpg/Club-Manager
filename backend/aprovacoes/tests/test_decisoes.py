@@ -21,6 +21,7 @@ from aprovacoes.tests.conftest import (
     TIPO,
     TipoDeTeste,
     com_cargo,
+    levar_a,
     pedido,
     preparar_pedido,
 )
@@ -70,13 +71,6 @@ def _enviada(solicitante: Usuario, tipo: str = TIPO, indicado: Usuario | None = 
 def _decidir(client: APIClient, solicitacao: Solicitacao, acao: str, **corpo: Any) -> Any:
     dados = CORPOS[acao](**corpo)
     return client.post(f"{SOLICITACOES}{solicitacao.id}/{acao}/", dados, format="json")
-
-
-def _na_situacao(solicitacao: Solicitacao, situacao: str) -> Solicitacao:
-    # Só prepara o cenário: no sistema, a situação muda pelos métodos do aggregate.
-    Solicitacao.objects.filter(pk=solicitacao.pk).update(situacao=situacao)
-    solicitacao.refresh_from_db()
-    return solicitacao
 
 
 @pytest.fixture
@@ -176,10 +170,11 @@ def test_ca04_motivo_de_outro_tipo_de_decisao_e_recusado(
 def test_ca05_inv_sol_01_fora_de_analise_nao_se_decide(
     solicitante: Usuario, client_aprovador: APIClient, situacao: str, acao: str
 ) -> None:
-    solicitacao = _na_situacao(_enviada(solicitante), situacao)
+    solicitacao = levar_a(_enviada(solicitante), situacao)
+    decisoes_antes = Decisao.objects.count()
 
     assert _erro(_decidir(client_aprovador, solicitacao, acao)) == (422, "NAO_ESTA_EM_ANALISE")
-    assert not Decisao.objects.exists()
+    assert Decisao.objects.count() == decisoes_antes
 
 
 def test_inv_sol_01_a_decisao_vale_para_a_versao_vigente(

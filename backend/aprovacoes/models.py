@@ -102,6 +102,16 @@ class Solicitacao(models.Model):
         self._executar(Comando.CANCELAR)
         self._gravar()
 
+    def iniciar_execucao(self) -> None:
+        """Comandado pelo módulo dono (por exemplo, quando o recurso é enviado). Daí em diante, INV-SOL-09."""
+        self._executar(Comando.INICIAR_EXECUCAO)
+        self._gravar()
+
+    def encerrar(self) -> None:
+        """Comandado pelo módulo dono, a partir de aprovada ou em execução. Encerrada, não muda mais."""
+        self._executar(Comando.ENCERRAR)
+        self._gravar()
+
     def aprovar(
         self,
         *,
