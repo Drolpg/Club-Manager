@@ -1,4 +1,4 @@
-import { apiGet } from './client'
+import { apiGet, apiPost } from './client'
 
 /** Quem fez algo: só o ID e o nome. */
 export interface Pessoa {
@@ -17,7 +17,15 @@ export type Situacao =
   | 'CANCELADA'
 
 /** Os comandos que a API pode oferecer no campo `acoes` do detalhe; os nomes são os das rotas. */
-export type Acao = 'retirar' | 'reenviar' | 'reabrir' | 'editar' | 'cancelar' | 'aprovar' | 'contestar' | 'recusar'
+export type Acao =
+  | 'retirar'
+  | 'reenviar'
+  | 'reabrir'
+  | 'editar'
+  | 'cancelar'
+  | 'aprovar'
+  | 'contestar'
+  | 'recusar'
 
 export interface TipoDeSolicitacao {
   codigo: string
@@ -99,6 +107,25 @@ export interface FiltrosDaLista {
   antes?: string
 }
 
+export interface Motivo {
+  id: string
+  tipo_de_decisao: string
+  texto: string
+  ativo: boolean
+}
+
+export interface TipoDeDecisao {
+  codigo: string
+  nome: string
+}
+
+/** O tipo de decisão de cada decisão sobre a solicitação, para carregar os motivos certos. */
+export const TIPO_DE_DECISAO: Record<'aprovar' | 'contestar' | 'recusar', string> = {
+  aprovar: 'solicitacao.aprovar',
+  contestar: 'solicitacao.contestar',
+  recusar: 'solicitacao.recusar',
+}
+
 /** Por página, na lista (a API aceita de 1 a 50). */
 export const POR_PAGINA = 20
 
@@ -122,4 +149,18 @@ export const aprovacoes = {
   fila: () => apiGet<ItemDaLista[]>(`${base}/fila/`),
   detalhe: (id: string) => apiGet<DetalheDaSolicitacao>(`${base}/solicitacoes/${id}/`),
   historico: (id: string) => apiGet<RegistroDoHistorico[]>(`${base}/solicitacoes/${id}/historico/`),
+
+  /** Um comando sobre a solicitação. O corpo é o que a rota pede; quem pode, a API confere. */
+  executar: (id: string, acao: Acao, corpo: Record<string, unknown> = {}) =>
+    apiPost<unknown>(`${base}/solicitacoes/${id}/${acao}/`, corpo),
+
+  motivos: (tipoDeDecisao: string) =>
+    apiGet<Motivo[]>(`${base}/motivos/?${new URLSearchParams({ tipo_de_decisao: tipoDeDecisao })}`),
+  todosOsMotivos: () => apiGet<Motivo[]>(`${base}/motivos/?todos=1`),
+  tiposDeDecisao: () => apiGet<TipoDeDecisao[]>(`${base}/tipos-de-decisao/`),
+  criarMotivo: (tipo_de_decisao: string, texto: string) =>
+    apiPost<Motivo>(`${base}/motivos/`, { tipo_de_decisao, texto }),
+  editarMotivo: (id: string, texto: string) => apiPost<Motivo>(`${base}/motivos/${id}/editar/`, { texto }),
+  desativarMotivo: (id: string) => apiPost<Motivo>(`${base}/motivos/${id}/desativar/`),
+  reativarMotivo: (id: string) => apiPost<Motivo>(`${base}/motivos/${id}/reativar/`),
 }

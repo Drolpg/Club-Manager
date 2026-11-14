@@ -4,6 +4,7 @@ import { CadastroPorConvite, Entrar, RecuperarSenha, RedefinirSenha, VerificarEm
 import { Moldura } from './Moldura'
 import { Convites, Usuarios } from './paginas/Admin'
 import { DetalheDeSolicitacao, FilaDePendencias, ListaDeSolicitacoes } from './paginas/Aprovacoes'
+import { MotivosDeDecisao } from './paginas/Motivos'
 import { Inicio } from './paginas/Inicio'
 import { CargosESetores, Permissoes, UsuarioDetalhe } from './paginas/Permissoes'
 import { Preferencias } from './paginas/Preferencias'
@@ -29,7 +30,7 @@ function ProtegidaDeConvites({ children }: { children: ReactNode }) {
   return children
 }
 
-// Solicitações são lidas pelo admin e por quem tem cargo (regra 18). A API confere de novo em cada chamada.
+// Solicitações são lidas pelo admin e por quem tem cargo (regra 18). A API confere de novo a cada chamada.
 function ProtegidaDeGestao({ children }: { children: ReactNode }) {
   const { usuario } = useSessao()
   if (usuario === undefined) return <p className="pagina">Carregando…</p>
@@ -126,6 +127,14 @@ function App() {
               <ProtegidaDeGestao>
                 <FilaDePendencias />
               </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/admin/motivos"
+            element={
+              <Protegida soAdmin>
+                <MotivosDeDecisao />
+              </Protegida>
             }
           />
           <Route

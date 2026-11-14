@@ -9,6 +9,7 @@ import {
   type Versao,
 } from '../api/aprovacoes'
 import { Alerta, Pagina, Selecao } from '../componentes'
+import { AcoesDaSolicitacao } from './AcoesDaSolicitacao'
 import { dataEHora, reais } from '../formatos'
 import {
   DECISAO_DA_SOLICITACAO,
@@ -191,8 +192,8 @@ export function FilaDePendencias() {
 }
 
 /**
- * O conteúdo de uma versão, de forma genérica: chave e valor, listas e objetos aninhados. Sempre como texto,
- * nunca como HTML. O M7 e o M8 acrescentam a apresentação própria dos tipos deles.
+ * O conteúdo de uma versão, de forma genérica: chave e valor, listas e objetos aninhados. Sempre como
+ * texto, nunca como HTML. O M7 e o M8 acrescentam a apresentação própria dos tipos deles.
  */
 function Conteudo({ valor }: { valor: unknown }) {
   if (valor === null || valor === undefined || valor === '') return <>—</>
@@ -297,6 +298,8 @@ export function DetalheDeSolicitacao() {
   const [detalhe, definirDetalhe] = useState<DetalheDaSolicitacao | null>(null)
   const [historico, definirHistorico] = useState<RegistroDoHistorico[]>([])
   const [erro, definirErro] = useState<unknown>(null)
+  // Sobe depois de cada comando, para o detalhe e o histórico virem de novo da API.
+  const [recarga, definirRecarga] = useState(0)
 
   useEffect(() => {
     let vivo = true
@@ -310,7 +313,7 @@ export function DetalheDeSolicitacao() {
     return () => {
       vivo = false
     }
-  }, [id])
+  }, [id, recarga])
 
   if (!detalhe) {
     return (
@@ -332,6 +335,7 @@ export function DetalheDeSolicitacao() {
       <p>Solicitante: {detalhe.solicitante.nome}</p>
       {detalhe.aprovador_indicado && <p>Aprovador indicado: {detalhe.aprovador_indicado.nome}</p>}
       <Alerta>{erro ? mensagemDoErro(erro) : null}</Alerta>
+      <AcoesDaSolicitacao detalhe={detalhe} aoMudar={() => definirRecarga((atual) => atual + 1)} />
       <h2>Versões</h2>
       {[...detalhe.versoes].reverse().map((versao) => (
         <VersaoDaSolicitacao key={versao.numero} versao={versao} temValor={detalhe.tem_valor} />

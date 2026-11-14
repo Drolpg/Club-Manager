@@ -252,6 +252,10 @@ Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `bac
 | CA-27 (site) | `frontend/src/aprovacoes.test.tsx` — "lista de solicitações" (situação, valor, solicitante; filtros; carregar mais; erro) |
 | CA-26 (site) | `frontend/src/aprovacoes.test.tsx` — "fila de pendências" (ordem da API; fila vazia) |
 | CA-28 (site) | `frontend/src/aprovacoes.test.tsx` — "detalhe da solicitação" (cabeçalho e versões; decisão; conteúdo genérico como texto; histórico; 404) |
+| Botões seguindo `acoes` (site, checkpoint 8b) | `frontend/src/aprovacoes.test.tsx` — "mostra só os botões que vieram em acoes", "sem nenhuma ação, a seção de ações não aparece" |
+| CA-03, CA-07, CA-08 (site) | `frontend/src/aprovacoes.test.tsx` — "aprova com o motivo escolhido…", "contesta com motivo, mensagem e teto sugerido", "sem valor no tipo, a contestação não pede teto", "recusa com o motivo da lista de recusa", "mostra o erro da API e os erros por campo", "mostra a recusa de quem não pode decidir" |
+| CA-09, CA-10, CA-12, CA-14, CA-16 (site) | `frontend/src/aprovacoes.test.tsx` — "retira com uma confirmação", "cancela com motivo e reabre com justificativa", "reenvia o conteúdo editado…", "conteúdo que não é JSON não é enviado" |
+| CA-29 a CA-31 (site) | `frontend/src/aprovacoes.test.tsx` — "motivos de decisão" (5 testes: lista por tipo com inativos, criar, editar/desativar/reativar, repetido, não admin) |
 
 ## Revisão de segurança
 
@@ -419,6 +423,26 @@ Preenchida no checkpoint 9.
 - Dinheiro chega da API como texto e é formatado em reais só mexendo no texto (`formatos.reais`), sem passar
   por ponto flutuante. O conteúdo de cada versão é mostrado de forma genérica (chave e valor, listas e objetos
   aninhados), sempre como texto.
+- Nenhum teste existente alterado.
+
+### Checkpoint 8b — Site: formulários das ações e tela de motivos (2026-11-14)
+
+- `npm run verify` em `frontend/`: saída 0, 160 testes (143 + 17 novos), cobertura de linhas 95,57%; lint e
+  build sem aviso.
+- A primeira verificação completa falhou num teste existente, `App.test.tsx` > "entra com a credencial
+  devolvida pelo Google", por tempo (5056 ms contra o limite de 5 s). Sozinho, o arquivo passou 26 de 26, e o
+  teste entra como diretor sem cargo, que não passa por nada do que este checkpoint mudou. A verificação
+  seguinte passou inteira. Leio como instabilidade por carga (os arquivos rodam em paralelo com cobertura, e o
+  arquivo novo é pesado); não alterei o teste. Fica o risco de voltar a acontecer no CI.
+- A seção "Ações" mostra só os comandos que vieram em `acoes`. Aprovar, contestar e recusar carregam os motivos
+  do tipo de decisão certo num seletor; o teto só aparece quando o tipo tem valor. Reenviar e editar mostram o
+  conteúdo da versão atual em JSON, num campo de texto: o site do motor não conhece o formato de nenhum tipo, e
+  o M7 e o M8 trocam esse campo pelo formulário dos tipos deles. Depois de cada comando, o detalhe e o histórico
+  vêm de novo da API.
+- Tela `/admin/motivos`, só do admin, com o atalho "Motivos de decisão" no menu "Aprovações" (não no menu
+  "Administração", pelo mesmo motivo do 8a).
+- Linhas de até 110 colunas em tudo o que este marco escreveu no site. Duas linhas anteriores ao marco passam
+  disso (`App.tsx:23`, `Moldura.tsx:14`) e ficaram como estavam.
 - Nenhum teste existente alterado.
 
 ## Rollback ou recuperação
