@@ -203,6 +203,28 @@ Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `bac
 | Adendo 1, A4 | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_a4_reabrir_sem_conteudo_copia_a_anterior_valida_em_nome_do_solicitante_e_o_autor_e_quem_reabriu` |
 | Adendo 1, A11 (textos do solicitante) | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_textos_livres_ate_1000_caracteres` |
 | Erro no módulo dono desfaz a ação | `aprovacoes/tests/test_ciclo_do_solicitante.py::test_o_erro_no_aviso_ao_modulo_dono_desfaz_a_acao` |
+| CA-03 (checkpoint 4; a notificação entra no 6) | `aprovacoes/tests/test_decisoes.py::test_ca03_o_aprovador_aprova_com_motivo_e_a_decisao_guarda_tudo` |
+| CA-04 | `aprovacoes/tests/test_decisoes.py::test_ca04_decisao_sem_motivo_e_recusada`, `::test_ca04_motivo_desativado_e_recusado`, `::test_ca04_motivo_de_outro_tipo_de_decisao_e_recusado` |
+| CA-05 e INV-SOL-01 | `aprovacoes/tests/test_decisoes.py::test_ca05_inv_sol_01_fora_de_analise_nao_se_decide` (7 situações × 3 decisões), `::test_inv_sol_01_a_decisao_vale_para_a_versao_vigente` |
+| CA-06 | `aprovacoes/tests/test_concorrencia.py::test_ca06_duas_decisoes_simultaneas_so_uma_vale` (duas threads; 15 de 15 verdes em sequência); segunda barreira: `test_modelos.py::test_inv_sol_14_uma_decisao_por_versao_no_banco` |
+| CA-07 (checkpoint 4; a notificação entra no 6) | `aprovacoes/tests/test_decisoes.py::test_ca07_o_aprovador_contesta_com_motivo_mensagem_e_teto` |
+| CA-08 | `aprovacoes/tests/test_decisoes.py::test_ca08_inv_sol_04_contestar_sem_mensagem_e_recusado`, `::test_ca08_inv_sol_07_teto_em_solicitacao_sem_valor_e_recusado` |
+| CA-12 (não pode ser decidida) | `aprovacoes/tests/test_decisoes.py::test_ca12_a_retirada_nao_pode_ser_decidida` |
+| CA-19 | `aprovacoes/tests/test_decisoes.py::test_ca19_sem_a_permissao_nao_decide_o_proprio_nem_o_de_outro` |
+| CA-21 (decisão) e INV-SOL-11 | `aprovacoes/tests/test_decisoes.py::test_ca21_inv_sol_11_o_indicado_decide_aquela_solicitacao_e_nenhuma_outra`, `::test_inv_sol_11_a_indicacao_vale_para_as_versoes_seguintes`, `::test_p3_com_indicado_os_demais_aprovadores_e_o_admin_continuam_decidindo` |
+| CA-22 | `aprovacoes/tests/test_decisoes.py::test_ca22_inv_sol_02_quem_tem_a_permissao_sem_auto_aprovacao_nao_decide_o_proprio_mesmo_com_indicado` |
+| CA-23 (checkpoint 4; o aviso ao admin entra no 6) | `aprovacoes/tests/test_decisoes.py::test_ca23_inv_sol_02_com_auto_aprovacao_decide_o_proprio_marcado_como_aprovacao_propria` |
+| CA-24 (decisão) | `aprovacoes/tests/test_decisoes.py::test_ca24_inv_sol_02_acesso_total_sem_auto_aprovacao_nao_decide_o_proprio`, `::test_ca24_acesso_total_decide_o_de_outro` |
+| CA-25 | `aprovacoes/tests/test_decisoes.py::test_ca25_inv_sol_02_o_admin_decide_qualquer_uma_inclusive_a_propria` |
+| CA-33 (decisões) | `aprovacoes/tests/test_decisoes.py::test_ca33_cada_decisao_gera_registro_de_auditoria` |
+| INV-SOL-02 (serviço, todos os caminhos) | `test_ca19_*`, `test_ca22_*`, `test_ca21_*`, `test_ca24_*`, `test_ca23_*`, `test_ca25_*` acima |
+| INV-SOL-03 | `aprovacoes/tests/test_decisoes.py::test_inv_sol_03_a_versao_decidida_nao_recebe_outra_decisao` |
+| INV-SOL-04 | `aprovacoes/tests/test_decisoes.py::test_ca08_inv_sol_04_contestar_sem_mensagem_e_recusado`, `::test_inv_sol_04_contestar_sem_teto_tambem_vale`, `::test_ca04_*` |
+| INV-SOL-07 | `aprovacoes/tests/test_decisoes.py::test_ca08_inv_sol_07_teto_em_solicitacao_sem_valor_e_recusado`, `::test_inv_sol_07_teto_precisa_ser_maior_que_zero` |
+| Adendo 1, A2 | `aprovacoes/tests/test_decisoes.py::test_a2_quem_tem_a_permissao_e_nao_tem_cargo_nao_decide`, `::test_a2_o_servico_tambem_exige_a_leitura_de_gestao` |
+| Adendo 1, A11 (textos da decisão) | `aprovacoes/tests/test_decisoes.py::test_a11_textos_da_decisao_ate_1000_caracteres` |
+| Adendo 1, A12 | `aprovacoes/tests/test_decisoes.py::test_adendo_a12_teto_maior_que_o_valor_pedido_e_aceito` |
+| Erro no módulo dono desfaz a decisão | `aprovacoes/tests/test_decisoes.py::test_o_erro_no_aviso_ao_modulo_dono_desfaz_a_decisao` |
 
 ## Revisão de segurança
 
@@ -285,6 +307,18 @@ Preenchida no checkpoint 9.
   no envio e no reenvio ficou para o M7 e o M8, adendo 1).
 - Nos testes deste checkpoint, contestada, recusada, aprovada, em execução e encerrada são postas direto no banco
   para montar o cenário, porque as decisões e a execução só entram nos checkpoints 4 e 5.
+- Nenhum teste existente alterado.
+
+### Checkpoint 4 — Decisões e concorrência (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 948 testes (883 + 65 novos), cobertura 97,64%, contratos do
+  import-linter 1 mantido, 0 quebrados; nenhuma migração pendente.
+- Teste de concorrência (CA-06) rodado 15 vezes seguidas, sozinho: 15 verdes. Ele cria os próprios dados (motivos
+  inclusive), porque um teste transacional anterior esvazia as sementes.
+- O teto sugerido entra como texto e vira `Dinheiro` no serviço: nunca passa por ponto flutuante. Zero, negativo,
+  mais de duas casas e texto que não é número são recusados com `VALIDATION_ERROR` em `teto_sugerido`.
+- A auditoria da decisão leva no `justificativa` o texto do motivo, e em `dados` a versão, a decisão, o motivo e
+  a marca de aprovação própria.
 - Nenhum teste existente alterado.
 
 ## Rollback ou recuperação

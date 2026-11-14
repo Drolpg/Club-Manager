@@ -26,6 +26,7 @@ _MENSAGENS = {
     "NAO_PODE_CANCELAR": (422, "Esta solicitação não pode mais ser cancelada."),
     "NAO_ESTA_APROVADA": (422, "A solicitação não está aprovada."),
     "NAO_PODE_ENCERRAR": (422, "Esta solicitação não pode ser encerrada."),
+    "TETO_SEM_VALOR": (422, "Só se sugere teto numa solicitação que tem valor."),
 }
 
 

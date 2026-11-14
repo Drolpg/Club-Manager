@@ -20,6 +20,7 @@ from aprovacoes.domain.transicoes import (
 )
 from aprovacoes.erros import erro
 from aprovacoes.tipos import ConteudoPreparado
+from kernel.dinheiro import Dinheiro
 
 
 class Imutavel(Exception):
@@ -101,12 +102,111 @@ class Solicitacao(models.Model):
         self._executar(Comando.CANCELAR)
         self._gravar()
 
+    def aprovar(
+        self,
+        *,
+        aprovador_id: uuid.UUID,
+        motivo_id: uuid.UUID,
+        motivo_texto: str,
+        texto: str,
+        aprovacao_propria: bool,
+    ) -> Decisao:
+        return self._decidir(
+            Comando.APROVAR,
+            aprovador_id=aprovador_id,
+            motivo_id=motivo_id,
+            motivo_texto=motivo_texto,
+            texto=texto,
+            aprovacao_propria=aprovacao_propria,
+        )
+
+    def contestar(
+        self,
+        *,
+        aprovador_id: uuid.UUID,
+        motivo_id: uuid.UUID,
+        motivo_texto: str,
+        texto: str,
+        mensagem: str,
+        teto_sugerido: Dinheiro | None,
+        aprovacao_propria: bool,
+    ) -> Decisao:
+        return self._decidir(
+            Comando.CONTESTAR,
+            aprovador_id=aprovador_id,
+            motivo_id=motivo_id,
+            motivo_texto=motivo_texto,
+            texto=texto,
+            mensagem=mensagem,
+            teto_sugerido=teto_sugerido,
+            aprovacao_propria=aprovacao_propria,
+        )
+
+    def recusar(
+        self,
+        *,
+        aprovador_id: uuid.UUID,
+        motivo_id: uuid.UUID,
+        motivo_texto: str,
+        texto: str,
+        aprovacao_propria: bool,
+    ) -> Decisao:
+        return self._decidir(
+            Comando.RECUSAR,
+            aprovador_id=aprovador_id,
+            motivo_id=motivo_id,
+            motivo_texto=motivo_texto,
+            texto=texto,
+            aprovacao_propria=aprovacao_propria,
+        )
+
+    def _decidir(
+        self,
+        comando: Comando,
+        *,
+        aprovador_id: uuid.UUID,
+        motivo_id: uuid.UUID,
+        motivo_texto: str,
+        texto: str,
+        aprovacao_propria: bool,
+        mensagem: str = "",
+        teto_sugerido: Dinheiro | None = None,
+    ) -> Decisao:
+        """INV-SOL-01, 03, 04 e 07. Quem pode decidir (INV-SOL-02, 11) é conferido antes, pelo serviço."""
+        self._exigir_transicao(comando)
+        versao = self.versao_atual
+        if Decisao.objects.filter(versao=versao).exists():
+            raise erro("NAO_ESTA_EM_ANALISE")
+        if comando is Comando.CONTESTAR and not mensagem:
+            raise ValueError("Contestar exige mensagem.")
+        if teto_sugerido is not None:
+            if versao.valor is None:
+                raise erro("TETO_SEM_VALOR")
+            if teto_sugerido.quantia <= 0:
+                raise ValueError("O teto sugerido é maior que zero.")
+        decisao = Decisao.objects.create(
+            versao=versao,
+            tipo=TipoDaDecisao(comando.value),
+            aprovador_id=aprovador_id,
+            motivo_id=motivo_id,
+            motivo_texto=motivo_texto,
+            texto=texto,
+            mensagem=mensagem,
+            teto_sugerido=teto_sugerido.quantia if teto_sugerido is not None else None,
+            aprovacao_propria=aprovacao_propria,
+        )
+        self._executar(comando)
+        self._gravar()
+        return decisao
+
+    def _exigir_transicao(self, comando: Comando) -> None:
+        if not transicao_permitida(Situacao(self.situacao), comando):
+            raise erro(ERRO_DE_SITUACAO[comando])
+
     def _executar(self, comando: Comando) -> None:
         """Toda mudança de situação passa pela tabela de transições (INV-SOL-08, INV-SOL-09)."""
-        atual = Situacao(self.situacao)
-        if not transicao_permitida(atual, comando):
-            raise erro(ERRO_DE_SITUACAO[comando])
-        self.situacao = situacao_apos(atual, comando)
+        self._exigir_transicao(comando)
+        self.situacao = situacao_apos(Situacao(self.situacao), comando)
 
     def _acrescentar_versao(
         self, preparado: ConteudoPreparado, *, autor_id: uuid.UUID, justificativa: str = ""

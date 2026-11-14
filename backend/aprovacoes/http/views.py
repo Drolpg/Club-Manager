@@ -15,7 +15,9 @@ from aprovacoes.http.permissions import EhAdmin, LeGestao
 from aprovacoes.http.serializers import (
     CancelamentoSerializer,
     ConsultaDeMotivosSerializer,
+    ContestacaoSerializer,
     ConteudoSerializer,
+    DecisaoSerializer,
     EdicaoSerializer,
     EnvioSerializer,
     MotivoSerializer,
@@ -25,7 +27,7 @@ from aprovacoes.http.serializers import (
     TextoDoMotivoSerializer,
     TipoDeDecisaoSerializer,
 )
-from aprovacoes.services import motivos, solicitacoes
+from aprovacoes.services import decisoes, motivos, solicitacoes
 
 
 def _ator_id(request: Request) -> uuid.UUID:
@@ -152,6 +154,32 @@ def _cancelar(request: Request, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -
     return solicitacoes.cancelar(ator_id=ator_id, solicitacao_id=solicitacao_id, motivo=dados["motivo"])
 
 
+def _aprovar(request: Request, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Any:
+    dados = _validar(DecisaoSerializer, request.data)
+    return decisoes.aprovar(
+        ator_id=ator_id, solicitacao_id=solicitacao_id, motivo_id=dados["motivo_id"], texto=dados["texto"]
+    )
+
+
+def _contestar(request: Request, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Any:
+    dados = _validar(ContestacaoSerializer, request.data)
+    return decisoes.contestar(
+        ator_id=ator_id,
+        solicitacao_id=solicitacao_id,
+        motivo_id=dados["motivo_id"],
+        texto=dados["texto"],
+        mensagem=dados["mensagem"],
+        teto_sugerido=dados["teto_sugerido"],
+    )
+
+
+def _recusar(request: Request, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Any:
+    dados = _validar(DecisaoSerializer, request.data)
+    return decisoes.recusar(
+        ator_id=ator_id, solicitacao_id=solicitacao_id, motivo_id=dados["motivo_id"], texto=dados["texto"]
+    )
+
+
 def _view_de_acao(acao: str, executar: Any, entrada: type[Any] | None, resumo: str) -> type[APIView]:
     """Uma view por comando, para o contrato mostrar a entrada de cada um. Quem pode, o serviço confere."""
 
@@ -173,4 +201,7 @@ VIEWS_DO_SOLICITANTE: dict[str, type[APIView]] = {
     "reabrir": _view_de_acao("reabrir", _reabrir, ReaberturaSerializer, "Reabrir a solicitação recusada"),
     "editar": _view_de_acao("editar", _editar, EdicaoSerializer, "Editar a solicitação aprovada"),
     "cancelar": _view_de_acao("cancelar", _cancelar, CancelamentoSerializer, "Cancelar a solicitação"),
+    "aprovar": _view_de_acao("aprovar", _aprovar, DecisaoSerializer, "Aprovar a solicitação"),
+    "contestar": _view_de_acao("contestar", _contestar, ContestacaoSerializer, "Contestar a solicitação"),
+    "recusar": _view_de_acao("recusar", _recusar, DecisaoSerializer, "Recusar a solicitação"),
 }

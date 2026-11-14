@@ -64,3 +64,14 @@ class EdicaoSerializer(serializers.Serializer[Any]):
 
 class CancelamentoSerializer(serializers.Serializer[Any]):
     motivo = serializers.CharField(max_length=1000)
+
+
+class DecisaoSerializer(serializers.Serializer[Any]):
+    motivo_id = serializers.UUIDField()
+    texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+class ContestacaoSerializer(DecisaoSerializer):
+    mensagem = serializers.CharField(max_length=1000)
+    # Texto, e não número: o valor em dinheiro nunca passa por ponto flutuante. O serviço confere.
+    teto_sugerido = serializers.CharField(max_length=20, required=False, allow_null=True, default=None)
