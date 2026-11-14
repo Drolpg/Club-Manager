@@ -29,11 +29,11 @@ O banco e o titular da conta não se integram ao sistema: os valores são escrit
 
 | Container | Responsabilidade | Tecnologia | Decisão |
 | --- | --- | --- | --- |
-| `web` | Servir o site e repassar `/api` | Caddy 2; React 19, Vite 8, TypeScript 7 | DEC-05 |
-| `api` | Toda a regra de negócio, permissões e auditoria | Python 3.14, Django 6.1, DRF 3.18, gunicorn | DEC-01, DEC-04 |
-| `worker` | Tarefas agendadas e trabalho em segundo plano | Celery 5.7, mesma imagem da `api` | DEC-06 |
-| `db` | Dados; schema só por migrações | PostgreSQL 18 | DEC-04 |
-| `redis` | Fila do Celery, sem persistência | Redis 8 | DEC-06 |
+| `web` | Servir o site e repassar `/api` | Caddy 2; React 19, Vite 8, TypeScript 7 | ADR-005 |
+| `api` | Toda a regra de negócio, permissões e auditoria | Python 3.14, Django 6.1, DRF 3.18, gunicorn | ADR-001, ADR-004 |
+| `worker` | Tarefas agendadas e trabalho em segundo plano | Celery 5.7, mesma imagem da `api` | ADR-006 |
+| `db` | Dados; schema só por migrações | PostgreSQL 18 | ADR-004 |
+| `redis` | Fila do Celery, sem persistência | Redis 8 | ADR-006 |
 
 O diagrama de containers está no README. Em produção nenhuma porta de banco ou Redis é publicada; em
 desenvolvimento, só em `127.0.0.1`.
@@ -152,28 +152,26 @@ Comandos do dia a dia:
 Cada decisão registra o que foi escolhido e o que foi descartado. O próximo número é sempre o maior existente + 1.
 Só o dono do projeto muda um status para aceito ou resolvido.
 
-O código e os comentários citam `ADR-001` a `ADR-008`; elas correspondem a `DEC-01` a `DEC-08`, na mesma ordem.
-
 | ID | Decisão | Escolhido | Descartado | Status |
 | --- | --- | --- | --- | --- |
-| DEC-01 | Estilo arquitetural | Monólito modular; DDD tático em `aprovacoes`, `financeiro` e `eventos`; camadas nos demais; fronteira verificada no CI; gatilhos de revisão: dashboard lento (read model só da consulta afetada), segundo cliente real (tenant) | Camadas e ports nas fronteiras, sem DDD; hexagonal completa ou Clean Architecture | Aceita |
-| DEC-02 | Repositório e legado | Reaproveitar o repositório; o protótipo antigo fica fora do git, só como consulta, e é removido até o M12 | Repositório novo | Aceita |
-| DEC-03 | Integração entre contextos | Para cima, chamada direta à API pública; para baixo, evento de integração em processo, síncrono e na mesma transação; auditoria por chamada direta; adendo: portas de consulta com padrão seguro para módulo de baixo perguntar ao de cima | Só chamadas diretas, aceitando ciclos; eventos assíncronos com outbox | Aceita |
-| DEC-04 | Backend | Django 6.1 + DRF 3.18 + PostgreSQL 18 + Python 3.14; views e serializers só validam e formatam; sem `ModelViewSet` nem `ModelSerializer` que gravem direto | FastAPI com Pydantic | Aceita |
-| DEC-05 | Site | React 19 + Vite + TypeScript como SPA, atrás do Caddy que repassa `/api`; sem regra de negócio | Next.js | Aceita |
-| DEC-06 | Filas e agendamento | Celery com Redis, um worker com agendador embutido, sem backend de resultados, Redis sem persistência; tarefa idempotente que só chama um serviço | Fila no próprio PostgreSQL | Aceita |
-| DEC-07 | Repositório, CI e imagens | Um repositório; duas imagens (`club-manager-api`, `club-manager-web`), as mesmas em desenvolvimento e produção; um workflow por pasta; configuração só por variável de ambiente | Dois repositórios; um workflow único que roda tudo sempre | Aceita |
-| DEC-08 | Sessão e autenticação | Sessão do Django no banco, cookie `HttpOnly`/`Secure`/`SameSite=Lax` e CSRF, mesma origem; 7 dias sem uso; Google pelo token de identidade validado na API; app futuro com token opaco guardado no servidor | JWT de acesso com token de renovação; biblioteca completa de autenticação social por redirecionamento | Aceita |
-| DEC-09 | Permissões | Catálogo de códigos `<recurso>.<acao>` declarados pelos módulos; concessão por cargo, setor ou usuário; permissão efetiva é a união; acesso total não inclui auto-aprovação | Escopo por setor do item | Aceita |
-| DEC-10 | Motor de aprovações | Um aprovador por versão; o que exige duas decisões são duas solicitações ligadas; versões e decisões imutáveis, também no banco; tipos se registram no motor | Aprovação por vários setores na mesma solicitação | Aceita |
-| DEC-11 | Auditoria | Registro só de inserção, na mesma transação, com gatilho no banco que recusa `UPDATE` e `DELETE`; guarda só IDs | — | Aceita |
-| DEC-12 | Primeiro admin | Comando `criar_admin` que lê a senha sem ecoar e não a aceita por argumento; nenhuma senha padrão | Senha ou usuário padrão | Aceita |
-| DEC-13 | Estornos e cancelamentos | Lançamento novo ligado ao original; estado final imutável | Edição do registro | Pendente (M7) |
-| DEC-14 | Armazenamento de anexos | Abstração `STORAGES` do Django; provedor de custo mínimo, trocável por configuração | — | Pendente (M6) |
-| DEC-15 | Provedor de e-mail | SMTP genérico por configuração; escolha do provedor na produção | — | Não bloqueia (M12) |
-| DEC-16 | CI/CD, deploy e dimensionamento | CI no plano gratuito do GitHub Actions; deploy, HTTPS, backup e rollback na instância única | — | Pendente (M12) |
-| DEC-17 | Aplicativo mobile | Fora da etapa 1; comparar tecnologias na fase própria | — | Adiada |
-| DEC-18 | Multi-cliente | Fora da etapa 1; nenhuma identidade de clube fixa no código | Coluna de cliente agora | Adiada |
+| ADR-001 | Estilo arquitetural | Monólito modular; DDD tático em `aprovacoes`, `financeiro` e `eventos`; camadas nos demais; fronteira verificada no CI; gatilhos de revisão: dashboard lento (read model só da consulta afetada), segundo cliente real (tenant) | Camadas e ports nas fronteiras, sem DDD; hexagonal completa ou Clean Architecture | Aceita |
+| ADR-002 | Repositório e legado | Reaproveitar o repositório; o protótipo antigo fica fora do git, só como consulta, e é removido até o M12 | Repositório novo | Aceita |
+| ADR-003 | Integração entre contextos | Para cima, chamada direta à API pública; para baixo, evento de integração em processo, síncrono e na mesma transação; auditoria por chamada direta; adendo: portas de consulta com padrão seguro para módulo de baixo perguntar ao de cima | Só chamadas diretas, aceitando ciclos; eventos assíncronos com outbox | Aceita |
+| ADR-004 | Backend | Django 6.1 + DRF 3.18 + PostgreSQL 18 + Python 3.14; views e serializers só validam e formatam; sem `ModelViewSet` nem `ModelSerializer` que gravem direto | FastAPI com Pydantic | Aceita |
+| ADR-005 | Site | React 19 + Vite + TypeScript como SPA, atrás do Caddy que repassa `/api`; sem regra de negócio | Next.js | Aceita |
+| ADR-006 | Filas e agendamento | Celery com Redis, um worker com agendador embutido, sem backend de resultados, Redis sem persistência; tarefa idempotente que só chama um serviço | Fila no próprio PostgreSQL | Aceita |
+| ADR-007 | Repositório, CI e imagens | Um repositório; duas imagens (`club-manager-api`, `club-manager-web`), as mesmas em desenvolvimento e produção; um workflow por pasta; configuração só por variável de ambiente | Dois repositórios; um workflow único que roda tudo sempre | Aceita |
+| ADR-008 | Sessão e autenticação | Sessão do Django no banco, cookie `HttpOnly`/`Secure`/`SameSite=Lax` e CSRF, mesma origem; 7 dias sem uso; Google pelo token de identidade validado na API; app futuro com token opaco guardado no servidor | JWT de acesso com token de renovação; biblioteca completa de autenticação social por redirecionamento | Aceita |
+| ADR-009 | Permissões | Catálogo de códigos `<recurso>.<acao>` declarados pelos módulos; concessão por cargo, setor ou usuário; permissão efetiva é a união; acesso total não inclui auto-aprovação | Escopo por setor do item | Aceita |
+| ADR-010 | Motor de aprovações | Um aprovador por versão; o que exige duas decisões são duas solicitações ligadas; versões e decisões imutáveis, também no banco; tipos se registram no motor | Aprovação por vários setores na mesma solicitação | Aceita |
+| ADR-011 | Auditoria | Registro só de inserção, na mesma transação, com gatilho no banco que recusa `UPDATE` e `DELETE`; guarda só IDs | — | Aceita |
+| ADR-012 | Primeiro admin | Comando `criar_admin` que lê a senha sem ecoar e não a aceita por argumento; nenhuma senha padrão | Senha ou usuário padrão | Aceita |
+| ADR-013 | Estornos e cancelamentos | Lançamento novo ligado ao original; estado final imutável | Edição do registro | Pendente (M7) |
+| ADR-014 | Armazenamento de anexos | Abstração `STORAGES` do Django; provedor de custo mínimo, trocável por configuração | — | Pendente (M6) |
+| ADR-015 | Provedor de e-mail | SMTP genérico por configuração; escolha do provedor na produção | — | Não bloqueia (M12) |
+| ADR-016 | CI/CD, deploy e dimensionamento | CI no plano gratuito do GitHub Actions; deploy, HTTPS, backup e rollback na instância única | — | Pendente (M12) |
+| ADR-017 | Aplicativo mobile | Fora da etapa 1; comparar tecnologias na fase própria | — | Adiada |
+| ADR-018 | Multi-cliente | Fora da etapa 1; nenhuma identidade de clube fixa no código | Coluna de cliente agora | Adiada |
 
 ## 5. Estratégia de testes
 
