@@ -14,20 +14,26 @@ from aprovacoes import tipos
 from aprovacoes.http.permissions import EhAdmin, LeGestao
 from aprovacoes.http.serializers import (
     CancelamentoSerializer,
+    ConsultaDaListaSerializer,
     ConsultaDeMotivosSerializer,
     ContestacaoSerializer,
     ConteudoSerializer,
     DecisaoSerializer,
+    DetalheSerializer,
     EdicaoSerializer,
     EnvioSerializer,
+    HistoricoSerializer,
+    ItemDaListaSerializer,
     MotivoSerializer,
     NovoMotivoSerializer,
+    PaginaSerializer,
     ReaberturaSerializer,
     SolicitacaoSerializer,
     TextoDoMotivoSerializer,
     TipoDeDecisaoSerializer,
+    TipoDeSolicitacaoSerializer,
 )
-from aprovacoes.services import decisoes, motivos, solicitacoes
+from aprovacoes.services import consulta, decisoes, motivos, solicitacoes
 
 
 def _ator_id(request: Request) -> uuid.UUID:
@@ -99,8 +105,37 @@ class TiposDeDecisaoView(APIView):
         return Response(TipoDeDecisaoSerializer(tipos.listar_tipos_de_decisao(), many=True).data)
 
 
+class TiposView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Tipos de solicitação registrados", responses=TipoDeSolicitacaoSerializer(many=True)
+    )
+    def get(self, request: Request) -> Response:
+        return Response(TipoDeSolicitacaoSerializer(consulta.listar_tipos(_ator_id(request)), many=True).data)
+
+
 class SolicitacoesView(APIView):
     permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Lista de solicitações",
+        description="Da mais recente para a mais antiga. `antes` é o ID da última recebida; `limite` vai "
+        "de 1 a 50 (padrão 20). `minhas=1` traz só as que quem pergunta enviou.",
+        parameters=[ConsultaDaListaSerializer],
+        responses=PaginaSerializer,
+    )
+    def get(self, request: Request) -> Response:
+        filtros = _validar(ConsultaDaListaSerializer, request.query_params)
+        pagina = consulta.listar(
+            _ator_id(request),
+            tipo=filtros.get("tipo"),
+            situacao=filtros.get("situacao"),
+            minhas=filtros["minhas"],
+            antes=filtros.get("antes"),
+            limite=filtros["limite"],
+        )
+        return Response(PaginaSerializer(pagina).data)
 
     @extend_schema(
         summary="Enviar solicitação",
@@ -205,3 +240,32 @@ VIEWS_DO_SOLICITANTE: dict[str, type[APIView]] = {
     "contestar": _view_de_acao("contestar", _contestar, ContestacaoSerializer, "Contestar a solicitação"),
     "recusar": _view_de_acao("recusar", _recusar, DecisaoSerializer, "Recusar a solicitação"),
 }
+
+
+class DetalheView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Detalhe da solicitação", responses=DetalheSerializer)
+    def get(self, request: Request, solicitacao_id: uuid.UUID) -> Response:
+        return Response(DetalheSerializer(consulta.detalhe(_ator_id(request), solicitacao_id)).data)
+
+
+class HistoricoView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Histórico da solicitação", responses=HistoricoSerializer(many=True))
+    def get(self, request: Request, solicitacao_id: uuid.UUID) -> Response:
+        registros = consulta.historico(_ator_id(request), solicitacao_id)
+        return Response(HistoricoSerializer(registros, many=True).data)
+
+
+class FilaView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Fila de pendências",
+        description="As solicitações em análise que quem pergunta pode decidir, da que espera há mais tempo.",
+        responses=ItemDaListaSerializer(many=True),
+    )
+    def get(self, request: Request) -> Response:
+        return Response(ItemDaListaSerializer(consulta.fila(_ator_id(request)), many=True).data)

@@ -240,6 +240,14 @@ Inclui as invariantes do canvas (INV-SOL-NN). Caminhos de teste relativos a `bac
 | Linha 8 e A7 | `aprovacoes/tests/test_notificacoes.py::test_retirada_ou_cancelada_em_analise_avisa_quem_podia_decidir`, `::test_a7_cancelada_fora_da_analise_nao_avisa_que_saiu_da_fila` |
 | A11 (texto da notificação) | `aprovacoes/tests/test_notificacoes.py::test_a11_o_texto_da_notificacao_e_cortado_para_caber` |
 | Chave impede duplicata | `aprovacoes/tests/test_notificacoes.py::test_a_notificacao_nao_se_repete_para_o_mesmo_fato` |
+| CA-12 (sai da fila) | `aprovacoes/tests/test_consultas.py::test_ca26_a_retirada_sai_da_fila` |
+| CA-26 e A9 (fila) | `aprovacoes/tests/test_consultas.py::test_ca26_a_fila_traz_so_o_que_o_aprovador_pode_decidir_da_mais_antiga_para_a_mais_nova`, `::test_a9_a_fila_conta_a_espera_a_partir_da_versao_atual`, `::test_ca26_o_indicado_ve_so_a_que_foi_indicado`, `::test_ca26_com_auto_aprovacao_a_propria_aparece`, `::test_ca26_o_admin_ve_todas_inclusive_as_proprias`, `::test_ca26_quem_nao_aprova_o_tipo_tem_a_fila_vazia` |
+| A2 (fila) | `aprovacoes/tests/test_consultas.py::test_a2_a_fila_exige_leitura_de_gestao` |
+| CA-27 e A9 (lista) | `aprovacoes/tests/test_consultas.py::test_ca27_quem_tem_cargo_ve_todas_da_mais_recente_para_a_mais_antiga`, `::test_ca27_filtros_por_tipo_situacao_e_as_minhas`, `::test_ca27_a_lista_e_paginada`, `::test_ca27_parametros_invalidos_da_lista`, `::test_ca27_diretor_sem_cargo_nao_ve_a_lista` |
+| CA-28 | `aprovacoes/tests/test_consultas.py::test_ca28_o_detalhe_mostra_versoes_decisoes_indicacao_e_acoes`, `::test_ca28_detalhe_e_historico_exigem_leitura_e_respondem_404` |
+| CA-33 (histórico com todas as ações) | `aprovacoes/tests/test_consultas.py::test_ca28_e_ca33_o_historico_traz_todas_as_acoes_com_os_nomes` |
+| Paridade entre `acoes` e as rotas | `aprovacoes/tests/test_consultas.py::test_acoes_do_detalhe_coincidem_com_o_que_as_rotas_aceitam` (6 papéis × 8 situações × 8 comandos) |
+| Tipos registrados | `aprovacoes/tests/test_consultas.py::test_quem_le_gestao_ve_os_tipos_registrados`, `::test_os_tipos_exigem_leitura_de_gestao` |
 
 ## Revisão de segurança
 
@@ -362,8 +370,8 @@ Preenchida no checkpoint 9.
   import-linter 1 mantido, 0 quebrados; nenhuma migração pendente.
 - Duas verificações falharam antes desta, por motivos diferentes e corrigidos: (1) o teste da agenda importava
   `config.celery`, e `aprovacoes` não pode importar `config` (contrato de camadas); passou a ler
-  `settings.CELERY_BEAT_SCHEDULE`, que é de onde o Celery tira a agenda; (2) `test_ca32_a_versao_nova_zera_a_contagem`
-  passava sozinho e falhava na suíte, porque o reenvio usava o relógio real, que andou uns 90 segundos desde a
+  `settings.CELERY_BEAT_SCHEDULE`, que é de onde o Celery tira a agenda; (2)
+  `test_ca32_a_versao_nova_zera_a_contagem` passava sozinho e falhava na suíte, porque o reenvio usava o relógio real, que andou uns 90 segundos desde a
   importação do módulo; o relógio passou a ser fixado também no reenvio.
 - Os nove tipos de notificação se registram no `ready`. A chave é `<tipo>:<solicitação>:<número da versão>`.
   Os testes leem as notificações pela caixa de cada destinatário (`GET notificacoes/`), sem importar os internos
@@ -375,6 +383,24 @@ Preenchida no checkpoint 9.
   `aprovacoes.lembrar_solicitacoes_paradas` só chama o serviço, e a agenda a roda às 8h (America/Sao_Paulo).
 - O teste de concorrência agora também dispara as notificações e o e-mail depois do commit: 5 de 5 verdes
   rodado em sequência.
+- Nenhum teste anterior a esta branch alterado.
+
+### Checkpoint 7 — Consultas e paridade (2026-11-13)
+
+- `uv run poe verify` em `backend/`: saída 0, 1082 testes (1013 + 69 novos), cobertura 97,82%, contratos do
+  import-linter 1 mantido, 0 quebrados; nenhuma migração pendente.
+- Rotas: `tipos/`, `fila/`, `solicitacoes/` (lista, com `tipo`, `situacao`, `minhas`, `antes` e `limite`),
+  `solicitacoes/{id}/` (detalhe, com `acoes`) e `solicitacoes/{id}/historico/`. Todas com `LeGestao`; a fila
+  também (adendo 1, A2), e não "logado", como a tabela de rotas da technical-spec dizia antes do adendo.
+- `acoes` sai de `acoes_disponiveis`, a mesma função pura que os serviços usam; os nomes são os das rotas
+  (`retirar`, `aprovar`...). A fila é a regra de `pode_decidir` escrita como consulta, e a paridade das duas é
+  coberta pelos testes de fila por papel.
+- Teste de paridade: para cada um dos 6 papéis (solicitante que precisou indicar, indicado, aprovador, admin,
+  leitor, quem reabre e cancela de outros) e cada uma das 8 situações, toda ação em `acoes` é aceita pela rota
+  (200) e toda ação fora dela é recusada (403 ou 422).
+- Os testes do checkpoint foram escritos antes do código, mas o código foi escrito antes de eu rodá-los. Para
+  conferir a falha pelo motivo certo, tirei o código de lado e rodei: 68 de 69 falharam (rotas inexistentes);
+  depois o devolvi.
 - Nenhum teste anterior a esta branch alterado.
 
 ## Rollback ou recuperação
