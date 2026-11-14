@@ -5,27 +5,10 @@ saídas, aprovação formal de gastos e eventos, e rastreabilidade de quem fez o
 
 Os valores são escriturais: o sistema registra, e o dinheiro se move por fora, na conta do clube.
 
-## Estado
+## Como rodar
 
-A etapa 1 (diretores, no site) tem 13 marcos. O estado de cada um está em [docs/method.md](docs/method.md).
-
-| Marco | Situação |
-| --- | --- |
-| M0 Arquitetura | Concluído: domínio, requisitos e decisões registrados |
-| M1 Fundação | Concluído (`v0.1.0`): API, worker, banco, fila e site sobem com um comando |
-| M2 Identidade e acesso | Concluído (`v0.2.0`): convite, cadastro, login por senha e Google, administração de usuários |
-| M3 Permissões e auditoria | Concluído (na `dev`): cargos, setores, classificação, concessão de permissões e histórico |
-| M4 Notificações | Concluído (na `dev`): caixa de entrada, sino, e-mail e preferências de alerta |
-| M5 Motor de aprovações | Concluído (na `dev`): solicitações com versões, decisões, motivos, fila e lembretes |
-| M6 a M12 | Não iniciados |
-
-Hoje o sistema cuida só do acesso: um admin criado por comando convida diretores, que se cadastram e entram. As
-funções financeiras e de eventos ainda não existem.
-
-## Subir localmente
-
-Precisa de Docker Desktop, uv e Node 22. Passo a passo, com o resultado esperado de cada comando, em
-[docs/setup/local.md](docs/setup/local.md). Em resumo:
+Precisa de Docker Desktop, uv e Node 22. No Windows, rode os comandos num terminal aberto em `C:\…` com a letra
+maiúscula.
 
 ```text
 cd backend
@@ -35,10 +18,14 @@ cd ..
 docker compose up --build
 ```
 
-O site abre em <http://localhost:8080>, na tela de entrar. O primeiro admin é criado com
-`docker compose exec api python manage.py criar_admin`.
+`make_env.py` cria o `.env` com segredos aleatórios; as variáveis estão descritas em `.env.example`. O site abre em
+<http://localhost:8080>, na tela de entrar. O primeiro admin é criado com
+`docker compose exec api python manage.py criar_admin`, e ele convida os demais diretores.
 
-## Verificar
+Para rodar só os testes, suba o banco e o Redis com `docker compose up -d db redis` e use `127.0.0.1` (e não
+`localhost`) para acessá-los no Windows.
+
+## Como testar
 
 ```text
 cd backend
@@ -49,7 +36,8 @@ npm install
 npm run verify
 ```
 
-O CI roda os mesmos dois comandos.
+Cada `verify` roda formato, lint, tipos, testes com cobertura e verificação de vulnerabilidades. O CI roda os mesmos
+dois comandos. Não rode os dois ao mesmo tempo.
 
 ## Como o sistema roda
 
@@ -109,16 +97,12 @@ stateDiagram-v2
   S --> G: gasto aprovado
 ```
 
-Os diagramas completos (contexto, containers, estados de cada aggregate e modelo de domínio) estão em
-[docs/architecture/overview.md](docs/architecture/overview.md) e em [docs/domain/](docs/domain/).
-
 ## Documentação
 
-| Para | Leia |
+| Documento | Conteúdo |
 | --- | --- |
-| Entender o que foi pedido | [docs/challenge/phase-1.md](docs/challenge/phase-1.md) |
-| Ver os requisitos | [docs/requirements/requirements.md](docs/requirements/requirements.md) |
-| Entender o domínio e os termos | [docs/domain/ubiquitous-language.md](docs/domain/ubiquitous-language.md) |
-| Saber por que cada escolha foi feita | [docs/adr/](docs/adr/) |
-| Contribuir | [AGENTS.md](AGENTS.md) e [CONTRIBUTING.md](CONTRIBUTING.md) |
-| Tudo o mais | [docs/README.md](docs/README.md) |
+| [Constituição](docs/sdd/00-constitution.md) | Princípios, arquitetura, Definition of Done, convenções de Git |
+| [Especificação](docs/sdd/01-spec.md) | Requisitos, contrato da API, dados e critérios de aceite |
+| [Plano](docs/sdd/02-plan.md) | Arquitetura, estrutura, decisões, testes e débitos |
+| [Tarefas](docs/sdd/03-tasks.md) | Marcos, checklists e pendências |
+| [Segurança](docs/sdd/04-seguranca.md) | Modelo de ameaças, LGPD e relatórios por marco |

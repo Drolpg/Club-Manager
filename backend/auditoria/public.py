@@ -1,7 +1,7 @@
 """API pública do módulo `auditoria`.
 
 É o único arquivo deste módulo que outros módulos podem importar
-(docs/architecture/project-structure.md).
+(docs/sdd/02-plan.md).
 """
 
 import uuid
