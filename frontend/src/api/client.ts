@@ -41,20 +41,19 @@ function csrfToken(): string {
   return achado ? decodeURIComponent(achado.slice('csrftoken='.length)) : ''
 }
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers: Record<string, string> = { Accept: 'application/json' }
-  if (method !== 'GET') {
-    headers['X-CSRFToken'] = csrfToken()
-    headers['Content-Type'] = 'application/json'
-  }
-
+async function executeFetch<T>(
+  method: string,
+  path: string,
+  bodyInit: BodyInit | undefined,
+  headers: Record<string, string>,
+): Promise<T> {
   let response: Response
   try {
     response = await fetch(`${BASE_URL}${path}`, {
       method,
       headers,
       credentials: 'same-origin',
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: bodyInit,
     })
   } catch {
     throw new ApiError(0, 'NETWORK_ERROR', 'Não foi possível falar com a API.')
@@ -69,7 +68,32 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   throw new ApiError(response.status, 'UNEXPECTED_RESPONSE', 'A API devolveu uma resposta inesperada.')
 }
 
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = { Accept: 'application/json' }
+  if (method !== 'GET') {
+    headers['X-CSRFToken'] = csrfToken()
+    headers['Content-Type'] = 'application/json'
+  }
+  return executeFetch<T>(method, path, body === undefined ? undefined : JSON.stringify(body), headers)
+}
+
+function resumirFormData(formData: FormData): string {
+  const entradas = Array.from(formData.entries(), ([chave, valor]) => [
+    chave,
+    valor instanceof File ? valor.name : String(valor),
+  ])
+  return JSON.stringify(Object.fromEntries(entradas))
+}
+
 export const apiGet = <T>(path: string) => request<T>('GET', path)
 export const apiPost = <T>(path: string, body?: unknown) => request<T>('POST', path, body ?? {})
 export const apiPut = <T>(path: string, body?: unknown) => request<T>('PUT', path, body ?? {})
 export const apiDelete = <T>(path: string) => request<T>('DELETE', path)
+
+export const apiPostForm = <T>(path: string, formData: FormData): Promise<T> => {
+  Object.defineProperty(formData, 'toString', { value: () => resumirFormData(formData), configurable: true })
+  return executeFetch<T>('POST', path, formData, {
+    Accept: 'application/json',
+    'X-CSRFToken': csrfToken(),
+  })
+}

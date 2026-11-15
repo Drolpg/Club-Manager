@@ -7,7 +7,13 @@ import { DetalheDeSolicitacao, FilaDePendencias, ListaDeSolicitacoes } from './p
 import { MotivosDeDecisao } from './paginas/Motivos'
 import { Inicio } from './paginas/Inicio'
 import { CargosESetores, Permissoes, UsuarioDetalhe } from './paginas/Permissoes'
+import { Cobrancas } from './paginas/Cobrancas'
+import { ConfiguracaoFinanceira } from './paginas/ConfiguracaoFinanceira'
+import { DetalheDaCobranca } from './paginas/DetalheDaCobranca'
+import { Entradas } from './paginas/Entradas'
+import { MinhasCobrancas } from './paginas/MinhasCobrancas'
 import { Preferencias } from './paginas/Preferencias'
+import { RecorrenciasESuspensoes } from './paginas/RecorrenciasESuspensoes'
 import { ProvedorDeSessao, useSessao } from './sessao'
 import { CONVITES_GERENCIAR, temPermissao, useMinhas } from './useMinhas'
 
@@ -142,6 +148,54 @@ function App() {
             element={
               <Protegida>
                 <Preferencias />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/minhas-cobrancas"
+            element={
+              <Protegida>
+                <MinhasCobrancas />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/cobrancas"
+            element={
+              <ProtegidaDeGestao>
+                <Cobrancas />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/cobrancas/:id"
+            element={
+              <Protegida>
+                <DetalheDaCobranca />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/recorrencias"
+            element={
+              <ProtegidaDeGestao>
+                <RecorrenciasESuspensoes />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/entradas"
+            element={
+              <ProtegidaDeGestao>
+                <Entradas />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/configuracao/financeiro"
+            element={
+              <Protegida soAdmin>
+                <ConfiguracaoFinanceira />
               </Protegida>
             }
           />

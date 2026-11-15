@@ -11,7 +11,7 @@ seção "Como reproduzir" dele.
 | Atualizado em | 2026-11-13 |
 | Diagrama base | [02-plan](02-plan.md), seção Containers |
 | Responsável | o dono do projeto |
-| Escopo desta versão | Marcos M2 (identidade e acesso), M3 (permissões e auditoria) e M4 (notificações). Cada marco seguinte acrescenta as ameaças do que entrega |
+| Escopo desta versão | Marcos M2 (identidade e acesso), M3 (permissões e auditoria), M4 (notificações), M5 (aprovações) e M6 (financeiro: entradas e cobranças). Cada marco seguinte acrescenta as ameaças do que entrega |
 
 Feito uma vez neste marco, como desvio registrado em [03-tasks](03-tasks.md) (elemento do nível 3), porque o sistema passa a
 guardar dados pessoais e a controlar o acesso a dados financeiros.
@@ -141,11 +141,38 @@ processo, os motivos de decisão, a tarefa diária de lembretes e o tipo de demo
 | Aprovador indicado desativado deixa o pedido parado | O aviso de 7 dias ao admin; os demais aprovadores e o admin continuam decidindo | Aceita | Backlog (aviso ao admin na desativação) |
 | O módulo dono não é avisado do envio e do reenvio | Fora do M5, por decisão do adendo 1 | Aceita | M7 e M8, por adendo |
 
+### M6: financeiro — cobrança e recebimento
+
+Elementos novos: cadastros de categorias e chaves Pix (com exceção controlada de chave tipo CPF), cobranças
+avulsas e em lote com geração local de Pix copia e cola / QR Code SVG, pagamentos com upload de comprovante
+ou em mão, recibo em PDF, questionamentos, isenções, recorrências e suspensões, rotina diária idempotente,
+inadimplência e renegociação, entradas sem devedor, armazenamento de anexos em `STORAGES["default"]`
+(`media-data`, `kernel/anexos.py`) e evento `UsuarioDesativado`.
+
+| Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
+| --- | --- | --- | --- | --- | --- | --- |
+| Cadastros (`CategoriaFinanceira`, `ChavePix`) | — | Alterar chave Pix de cobrança emitida → snapshot imutável da chave e do BR Code gravados na criação da cobrança | Criação, edição, padrão, desativação e reativação auditados | Chave CPF → aceita apenas para chave Pix do clube, com aviso explícito de LGPD na tela; nunca há CPF no cadastro do diretor | Índice único parcial para `padrao=True`; sem rota de exclusão (`PROTECT`) | Só admin escreve nas rotas e serviços |
+| Cobranças e pagamentos (`COMPROVANTE` e `EM_MAO`) | Validar em nome de outro → ator vem da sessão | Validação simultânea ou sobre pagamento já decidido → `select_for_update()` na cobrança + índice único parcial para `EM_VALIDACAO`; estado muda só pelos métodos do aggregate | Toda criação, pagamento, validação, rejeição, isenção, cancelamento e recebimento auditados na transação com motivo quando exigido | Comprovantes com dados bancários de terceiros → descarga apenas por rota autenticada (`pagamentos/{id}/comprovante/`) restrita a devedor, `pagamentos.validar` e admin, com `X-Content-Type-Options: nosniff` e `Cache-Control: private, no-store`; sem URL no detalhe para quem não pode ver e sem binário em log/auditoria/e-mail | Tamanho máximo de 5 MB, assinatura verificada por magic bytes (PDF, PNG, JPEG, WebP; HTML/SVG recusados) e chave opaca `<contexto>/<uuid7>.<ext>` | **Devedor validar ou decidir o próprio item:** `avaliar_cobranca` centraliza a regra (inclusive negando acesso total para validação pelo devedor); diretor sem cargo não enumera cobranças de terceiros (403 em qualquer ID fora das suas) |
+| Questionamento e inadimplência (`perdoar`, `renegociar`, `manter-divida`) | — | Lançar parcelas negativas ou no passado → `Dinheiro > 0` e validação atômica de todas as parcelas em `transaction.atomic()` antes de marcar `RENEGOCIADA` | Decisões e justificativa da dívida auditadas com `motivo_id` e texto do motivo copiado | Lista `?inadimplentes=1` só para quem lê gestão e sem vazamento fora de diretor com cargo | Questionamento aberto trava novo questionamento e pausa contagem de inadimplência | Devedor não decide questionamento nem dívida (`DEVEDOR_NAO_DECIDE`) |
+| Recorrência, suspensão e rotina diária | — | Alterar recorrência retroativamente → edição afeta só competências futuras; cobranças já geradas preservam seus snapshots | Execuções da rotina auditadas com `ator_id=None` (sistema) | Sem valores nem comprovantes em e-mails | Execução repetida no mesmo dia é idempotente por índice único `(recorrencia, devedor_id, competencia)` e datas de lembrete/atraso; diretor inativo é ignorado | Apenas `cobrancas.criar` e `cobrancas.suspender` gerenciam recorrências e suspensões |
+| Entradas sem devedor e API pública | — | Rejeitar ou validar fora de `EM_VALIDACAO` → transição bloqueada na tabela e com `select_for_update()` | Registro, evidência e decisão auditados | Comprovante restrito a registrador, `entradas.validar` e admin com `nosniff` e `no-store` | Exige comprovante válido ou `evidencia_texto` | **Quem registrou validar a própria entrada:** `avaliar_entrada` exige `registrada_por_id != ator_id` (`REGISTRADOR_NAO_VALIDA`) |
+| Site (Pix QR Code, formulários e ações) | — | **XSS por SVG ou textos livres:** `QrCodePix.tsx` interpreta atributos numéricos do SVG gerado sem `dangerouslySetInnerHTML`; textos livres renderizados como texto | — | Diretor sem cargo não dispara consultas administrativas nem `/permissoes/minhas/` pelo menu | Upload validado no backend em tamanho e assinatura | `acoes` é apenas conveniência visual; cada rota revalida tudo na API (teste de paridade) |
+
+| Ameaça | Mitigação | Status | Registro |
+| --- | --- | --- | --- |
+| Vazamento de comprovante para terceiros | Rota autenticada com `autorizacao.py`, `nosniff`, `private, no-store`, URL omitida para quem não pode ver, sem binário na auditoria/e-mail | Implementada (M6) | CA-18; `test_parte2_pagamentos.py`, `test_parte6_entradas_e_public.py` |
+| Upload malicioso ou SVG/HTML disfarçado | Validação em `kernel/anexos.py` até 5 MB e magic bytes (PDF, PNG, JPEG, WebP), chave `<contexto>/<uuid7>.<ext>` | Implementada (M6) | CA-20; `kernel/tests/test_anexos.py` |
+| Autovalidação pelo devedor ou registrador | `avaliar_cobranca` e `avaliar_entrada`, inclusive com acesso total, cobertos por paridade `acoes` ↔ rotas | Implementada (M6) | CA-15, CA-41, CA-43; `test_parte6_entradas_e_public.py` |
+| Enumeração de IDs por diretor sem cargo | 403 imediato ao consultar recurso de outro devedor ou rotas de gestão | Implementada (M6) | CA-45; `test_parte1_cobrancas.py` |
+| Concorrência em validação dupla ou duplicata recorrente | `select_for_update()`, índices únicos parciais (`EM_VALIDACAO`, competência) e unicidade atômica | Implementada (M6) | CA-22; `test_parte2_pagamentos.py`, `test_parte3_recorrencias.py` |
+| XSS via SVG do QR Code ou textos | Renderização declarativa em `<QrCodePix />` sem `dangerouslySetInnerHTML` | Implementada (M6) | `frontend/src/financeiro.test.tsx` |
+| BR Code recusado por algum banco real | Payload EMV + CRC16 conferido nos testes e nos contêineres; resta teste manual com bancos reais | Pendente do dono (risco 3) | [02-plan](02-plan.md) § 6 |
+
 ## 2. Avaliação de LGPD
 
 | Campo | Valor |
 | --- | --- |
-| Atualizado em | 2026-11-12 |
+| Atualizado em | 2026-11-14 |
 | Decisão | AD-015 |
 | Escopo | Etapa 1: diretores de um clube |
 
@@ -170,9 +197,10 @@ processo, os motivos de decisão, a tarefa diária de lembretes e o tipo de demo
 | Telefone | Contato entre diretores | M2 |
 | Hash da senha, identificador do Google | Autenticação | M2 |
 | Registros de auditoria (quem fez o quê) | Rastreabilidade das decisões do clube | M2 em diante |
-| Cobranças, pagamentos e comprovantes do diretor | Controle financeiro do clube | M6, M7 |
+| Cobranças, pagamentos e comprovantes do diretor | Controle financeiro do clube (download restrito e sigilo contra terceiros) | M6, M7 |
 
-O sistema não trata dado sensível (saúde, biometria, religião) e não coleta CPF (RN-003).
+O sistema não trata dado sensível (saúde, biometria, religião) e não coleta CPF cadastral de usuários
+(RN-003); a única exceção é a chave Pix do clube tipo CPF cadastrada pelo admin, com aviso específico na tela.
 
 ### Base legal (a confirmar)
 
@@ -234,7 +262,7 @@ configurável (M11).
 | Confirmar a base legal com alguém qualificado | Antes da produção (M12) |
 | Decidir a anonimização a pedido | M12 |
 | Procedimento de incidente e contato do encarregado, se o clube precisar de um | M12 |
-| Reavaliar quando entrarem comprovantes (M6), que podem conter dados bancários de terceiros | Especificação do M6 |
+| Comprovantes (dados bancários de terceiros) | Tratada no M6 (ADR-014; acesso restrito a devedor/registrador, validador e admin; `nosniff`, `no-store`; sem e-mail nem binário em auditoria) |
 
 ## 3. Relatório de vulnerabilidades — M1
 
@@ -458,3 +486,79 @@ sessão em `/api/v1/schema/` e `/api/v1/docs/`; `acesso/tests/test_documentacao.
 | CI verde no pull request | PR #1, workflows `backend` e `frontend`, em 2026-11-13 |
 | Verificação completa | `implementation-plan.md`, checkpoint 11 |
 | Revisão de segurança por item | `implementation-plan.md`, seção "Revisão de segurança" |
+
+## 5. Relatório de vulnerabilidades — M6
+
+| Campo | Valor |
+| --- | --- |
+| Projeto | Club Manager |
+| Escopo | Feature `financeiro/cobrancas-e-recebimentos`: `kernel/anexos.py`, `acesso.UsuarioDesativado`, módulo `financeiro`, site |
+| Data da execução | 2026-11-14 |
+| Responsável | o dono do projeto |
+| Ferramentas | SCA: pip-audit e `npm audit --audit-level=high`. SAST: regras `S` do Ruff. DAST: não executado (M12). Revisão por ameaça e inspeção nos contêineres Docker Compose |
+| Especificação | RNF-07; [01-spec](01-spec.md) § 1 (M6); modelo de ameaças § 1 (M6) |
+| Achados aceitos sem correção | Risco 3 pendente de teste manual do dono em dois aplicativos bancários reais |
+
+### 1. Contexto e escopo
+
+O M6 introduz o fluxo financeiro de entradas e cobranças: cadastros de categorias e chaves Pix (incluindo
+chave CPF do clube com aviso LGPD), geração local de BR Code EMV e QR Code SVG, upload e armazenamento de
+comprovantes em `STORAGES["default"]` (`media-data`, ADR-014), validação/rejeição segregada, emissão de
+recibos PDF 1.4 determinísticos, recorrências, suspensões, inadimplência/renegociação e entradas sem devedor.
+
+### 2. Frentes
+
+| Frente | Ferramenta | O que cobre | Mapeamento OWASP |
+| --- | --- | --- | --- |
+| SCA | `pip-audit`; `npm audit --audit-level=high` | Dependências Python e Node | A06 |
+| SAST | `ruff check --select S .` | Padrões inseguros em Python | A02, A03, A05 |
+| Revisão por ameaça e contêineres | 1181 testes backend (94,32%), 173 testes site, fluxo ponta a ponta no Compose | Controle de acesso a anexos, segregação de funções, upload, enumeração, XSS, UIDs e cabeçalhos | A01, A03, A04, A05 |
+| DAST | Não executado | — | — |
+
+### 3. Como reproduzir
+
+```text
+# em backend/
+uv run pip-audit
+uv run ruff check --select S .
+uv run poe verify
+
+# em frontend/
+npm audit --audit-level=high
+npm run verify
+
+# com o sistema no ar (na raiz)
+docker compose up -d --build
+docker compose exec -T api id
+docker compose exec -T web id
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/health/     # 200
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/schema/     # 401
+```
+
+### 4. Resultado: inicial → correções → final
+
+| Frente | Severidade | Inicial | Final | Variação |
+| --- | --- | --- | --- | --- |
+| SCA backend (`pip-audit`) | Qualquer | 0 | 0 | — |
+| SCA site (`npm audit --audit-level=high`) | Crítica, alta | 0 | 0 | — |
+| SAST (`ruff --select S`) | Qualquer | 0 | 0 | — |
+| Revisão por ameaça | Média, baixa | 0 novos abertos | 0 | — |
+
+### 5. Controles verificados e lacunas
+
+| Controle ou lacuna | Resultado / Situação | Evidência |
+| --- | --- | --- |
+| Acesso a comprovantes (RNF-07, CA-18) | Download com `X-Content-Type-Options: nosniff` e `Cache-Control: private, no-store` para autorizado; `403` para outro diretor sem cargo | Teste nos contêineres + `test_parte2_pagamentos.py`, `test_parte6_entradas_e_public.py` |
+| Validação de uploads (CA-20) | Limite de 5 MB e magic bytes (PDF, PNG, JPEG, WebP); chave opaca `<contexto>/<uuid7>.<ext>` | `kernel/tests/test_anexos.py` |
+| Segregação de funções (RN-012) | Devedor/registrador impedido de validar/decidir (inclusive acesso total); paridade `acoes` ↔ rotas verde | `test_parte6_entradas_e_public.py` |
+| Contêineres e isolamento de dados | `api`/`worker` em `uid=10001(app)`, `web` em `uid=10001(web)`, portas `db`/`redis` em `127.0.0.1`, volume `media-data` em `/app/media` | Execução direta no Compose rebuildado |
+| DAST e HTTPS/HSTS | Avaliar e configurar no M12 | `02-plan.md` (D-03, M12) |
+| BR Code em aplicativos bancários reais (Risco 3) | Payload EMV + CRC16 conferido nos testes; validação em apps reais pendente do dono | `02-plan.md` § 6, `03-tasks.md` |
+
+### 6. Evidências
+
+| Evidência | Onde |
+| --- | --- |
+| Verificação do backend (`1181` testes, cobertura `94.32%`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run pip-audit` |
+| Verificação do site (`173` testes, cobertura global `88.38%` Stmts / `90.37%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
+| Exercício nos contêineres e Mailpit | `docker compose up -d --build` (saúde, Pix, recorrência idempotente, e-mail, comprovante e recibo `%PDF-1.4`) |

@@ -1,5 +1,12 @@
 export const dataEHora = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 
+/** Formata data ISO simples ("2026-12-10") em "10/12/2026" sem deslocamento de fuso. */
+export function dataCurta(valor: string | null): string {
+  if (!valor) return '—'
+  const partes = valor.split('-')
+  return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : valor
+}
+
 /**
  * Valor em dinheiro, que a API manda como texto com duas casas ("1234.50"), em reais ("R$ 1.234,50").
  * Só mexe no texto: o valor nunca passa por ponto flutuante.

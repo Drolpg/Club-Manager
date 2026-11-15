@@ -7,6 +7,7 @@
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import datetime
 
 from acesso import portas
 from acesso.models import Situacao, Usuario
@@ -38,6 +39,14 @@ class PapelDeAdminAlterado:
 
     usuario_id: uuid.UUID
     admin: bool
+
+
+@dataclass(frozen=True)
+class UsuarioDesativado:
+    """Evento de integração: um usuário ativo foi desativado por um administrador."""
+
+    usuario_id: uuid.UUID
+    desativado_em: datetime
 
 
 def _info(usuario: Usuario) -> UsuarioInfo:
@@ -83,6 +92,7 @@ __all__ = (
     "CadastroConcluido",
     "PapelDeAdminAlterado",
     "RegistroDoHistorico",
+    "UsuarioDesativado",
     "UsuarioInfo",
     "admins_ativos",
     "historico_com_nomes",

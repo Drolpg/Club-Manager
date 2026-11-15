@@ -104,8 +104,12 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", str(BASE_DIR / "media")))
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {"location": MEDIA_ROOT},
+    },
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 
@@ -239,6 +243,10 @@ CELERY_BEAT_SCHEDULE = {
     "aprovacoes.lembrar_solicitacoes_paradas": {
         "task": "aprovacoes.lembrar_solicitacoes_paradas",
         "schedule": crontab(minute=0, hour=8),
+    },
+    "financeiro.processar_rotina_diaria": {
+        "task": "financeiro.processar_rotina_diaria",
+        "schedule": crontab(minute=15, hour=6),
     },
 }
 

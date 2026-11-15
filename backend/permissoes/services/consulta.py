@@ -57,6 +57,13 @@ def le_gestao(usuario_id: uuid.UUID) -> bool:
     return Classificacao.objects.filter(usuario_id=usuario_id, cargo__ativo=True).exists()
 
 
+def usuarios_ativos_com_cargo() -> list[uuid.UUID]:
+    """IDs dos diretores ativos que têm cargo ativo."""
+    candidatos = list(Classificacao.objects.filter(cargo__ativo=True).values_list("usuario_id", flat=True))
+    ativos = acesso.ids_ativos(candidatos)
+    return [uid for uid in candidatos if uid in ativos]
+
+
 def _permissoes_por_grupo(concessoes: list[Concessao], campo: str) -> dict[uuid.UUID, frozenset[str]]:
     por_grupo: dict[uuid.UUID, set[str]] = {}
     for concessao in concessoes:

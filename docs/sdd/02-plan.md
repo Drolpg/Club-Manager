@@ -167,7 +167,7 @@ Só o dono do projeto muda um status para aceito ou resolvido.
 | ADR-011 | Auditoria | Registro só de inserção, na mesma transação, com gatilho no banco que recusa `UPDATE` e `DELETE`; guarda só IDs | — | Aceita |
 | ADR-012 | Primeiro admin | Comando `criar_admin` que lê a senha sem ecoar e não a aceita por argumento; nenhuma senha padrão | Senha ou usuário padrão | Aceita |
 | ADR-013 | Estornos e cancelamentos | Lançamento novo ligado ao original; estado final imutável | Edição do registro | Pendente (M7) |
-| ADR-014 | Armazenamento de anexos | Abstração `STORAGES` do Django; provedor de custo mínimo, trocável por configuração | — | Pendente (M6) |
+| ADR-014 | Armazenamento de anexos | Abstração `STORAGES` do Django (`FileSystemStorage` em `MEDIA_ROOT` com volume `media-data`, download só por rota autenticada da API com `nosniff` e `no-store`; `InMemoryStorage` nos testes) | Armazenamento externo em objeto na etapa 1; `bytea` no banco | Aceita |
 | ADR-015 | Provedor de e-mail | SMTP genérico por configuração; escolha do provedor na produção | — | Não bloqueia (M12) |
 | ADR-016 | CI/CD, deploy e dimensionamento | CI no plano gratuito do GitHub Actions; deploy, HTTPS, backup e rollback na instância única | — | Pendente (M12) |
 | ADR-017 | Aplicativo mobile | Fora da etapa 1; comparar tecnologias na fase própria | — | Adiada |
@@ -205,7 +205,7 @@ são acessados por `127.0.0.1`, porque `localhost` tenta IPv6 primeiro.
 | --- | --- | --- |
 | 1 | API, banco, fila e worker não cabem com folga na instância única | Pendente de análise; medir no M1 e no M12 |
 | 2 | As regras do free tier da AWS para a conta do dono diferem do que se supõe | Pendente de análise |
-| 3 | O Pix copia e cola gerado sem integração bancária não é aceito por algum aplicativo de banco | Pendente; testar com aplicativos reais no M6 |
+| 3 | O Pix copia e cola gerado sem integração bancária não é aceito por algum aplicativo de banco | Parcialmente mitigado: BR Code EMV + CRC16 validados em testes e nos contêineres; teste em aplicativos reais pendente do dono |
 | 4 | Um tratador de evento em processo com erro desfaz a operação de quem publicou | Mitigado: tratadores curtos e testados |
 | 5 | A tarefa de geração de cobranças roda duas vezes e duplica cobranças | Mitigado: unicidade por recorrência, devedor e competência |
 | 6 | Geração de PDF pesa na instância pequena | Pendente; escolher a biblioteca no M10 |

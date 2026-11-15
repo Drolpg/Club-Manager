@@ -20,7 +20,7 @@ COPY --chown=app:app . .
 
 # Os arquivos estáticos (documentação da API) são coletados na imagem; a chave e o banco aqui são só para o comando rodar.
 RUN DJANGO_SECRET_KEY=build DATABASE_URL=postgres://build:build@localhost/build SITE_URL=http://build \
-    python manage.py collectstatic --noinput && chown -R app:app /app/staticfiles
+    python manage.py collectstatic --noinput && mkdir -p /app/media && chown -R app:app /app/staticfiles /app/media
 
 USER app
 EXPOSE 8000
