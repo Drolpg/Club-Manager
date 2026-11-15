@@ -51,6 +51,12 @@ export function Moldura() {
           )}
           {usuario.admin && <Link to="/configuracao/financeiro">Configuração financeira</Link>}
         </nav>
+        {(usuario.admin || usuario.tem_cargo) && (
+          <nav aria-label="Saídas e gastos">
+            <Link to="/saidas">Saídas e gastos</Link>
+            <Link to="/gastos/novo">Pedir gasto</Link>
+          </nav>
+        )}
         <Link to="/preferencias">Preferências</Link>
         <Sino />
         <button type="button" onClick={() => void sair()}>

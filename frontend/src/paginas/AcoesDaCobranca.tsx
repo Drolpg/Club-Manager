@@ -24,6 +24,7 @@ const ROTULO_ACAO: Record<AcaoCobranca, string> = {
   perdoar: 'Perdoar',
   renegociar: 'Renegociar',
   manter_divida: 'Manter dívida',
+  estornar: 'Estornar',
 }
 
 interface ParcelaForm {
@@ -96,6 +97,13 @@ function FormularioAcao({
         return financeiro.perdoarDivida(cobrancaId, { motivo_id: motivoId, texto })
       case 'manter_divida':
         return financeiro.manterDivida(cobrancaId, { motivo_id: motivoId, texto })
+      case 'estornar': {
+        const resp = await financeiro.estornarCobranca(cobrancaId, {
+          motivo_id: motivoId,
+          justificativa: texto,
+        })
+        return resp.registro
+      }
       case 'renegociar':
         return financeiro.renegociarDivida(cobrancaId, {
           motivo_id: motivoId,
@@ -228,7 +236,7 @@ function FormularioAcao({
       {acao !== 'registrar_pagamento' && (
         <AreaDeTexto
           rotulo={
-            acao === 'questionar' || acao === 'isentar' || acao === 'justificar_divida'
+            acao === 'questionar' || acao === 'isentar' || acao === 'justificar_divida' || acao === 'estornar'
               ? 'Justificativa'
               : 'Texto (opcional)'
           }

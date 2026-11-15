@@ -17,3 +17,17 @@ export function reais(valor: string | null): string {
   const comMilhar = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   return `R$ ${comMilhar},${centavos.padEnd(2, '0')}`
 }
+
+/** Soma exata em centavos inteiros de strings decimais ("10.50" ou "10,50"), sem ponto flutuante. */
+export function somarCentavos(valores: string[]): string {
+  let total = 0
+  for (const bruto of valores) {
+    const limpo = bruto.trim().replace(',', '.')
+    if (!/^\d+(\.\d{1,2})?$/.test(limpo)) continue
+    const [reaisParte, centParte = ''] = limpo.split('.')
+    total += Number(reaisParte) * 100 + Number(centParte.padEnd(2, '0'))
+  }
+  const reaisParte = Math.floor(total / 100)
+  const centParte = String(total % 100).padStart(2, '0')
+  return `${reaisParte}.${centParte}`
+}

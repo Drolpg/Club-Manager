@@ -51,6 +51,25 @@ const TEXTO: Record<string, string> = {
   NAO_ESTA_ATRASADA: 'Esta ação só vale para cobranças atrasadas.',
   NAO_ESTA_PAGA: 'O recibo só fica disponível após a validação do pagamento.',
   COBRANCA_JA_GERADA: 'A cobrança desta competência já foi gerada.',
+  ITENS_INVALIDOS: 'Informe itens válidos com descrição e valor maior que zero.',
+  COTACAO_INVALIDA: 'Anexe uma cotação em PDF ou imagem válida.',
+  APROVADOR_INVALIDO: 'Escolha outro diretor ativo com cargo como aprovador indicado.',
+  SO_O_SOLICITANTE: 'Só quem solicitou o gasto pode executar esta ação.',
+  SOLICITANTE_NAO_LIQUIDA: 'Quem pediu o gasto não pode conferir nem liquidar a própria saída.',
+  SAIDA_JA_POSSUI_ENVIO: 'O recurso desta saída já foi enviado.',
+  ENVIO_NAO_EXIGE_COMPLEMENTO: 'O envio inicial cobre até o valor aprovado.',
+  COMPLEMENTO_NAO_APROVADO: 'Não há complemento aprovado aguardando envio.',
+  COMPROVANTE_OBRIGATORIO: 'Anexe o comprovante da operação.',
+  EVIDENCIA_OBRIGATORIA: 'Anexe o comprovante ou descreva a justificativa.',
+  VALOR_ACIMA_DO_APROVADO: 'O valor informado ultrapassa o valor aprovado.',
+  NAO_ESTA_EM_CONFERENCIA: 'A saída precisa estar em conferência para esta ação.',
+  DEVOLUCAO_ACIMA_DO_ENVIADO: 'A devolução não pode ultrapassar o total enviado.',
+  COMPLEMENTO_JA_EM_ANDAMENTO: 'Já existe um pedido de complemento em andamento nesta saída.',
+  NAO_HA_EXCESSO_PARA_COMPLEMENTO: 'Só é possível pedir complemento quando o gasto supera o enviado.',
+  DEVOLUCAO_PENDENTE: 'Aguarde a validação da devolução pendente antes de liquidar.',
+  DIFERENCA_NAO_ACERTADA: 'Informe justificativa ou resolva a diferença antes de liquidar.',
+  JUSTIFICATIVA_OBRIGATORIA: 'Informe a justificativa para concluir esta ação.',
+  NAO_PODE_ESTORNAR: 'Este registro não pode ser estornado nesta situação.',
 }
 
 // Desativar um cargo ou setor que usuários ativos têm: a API informa a quantidade em `details.usuarios`.
@@ -191,12 +210,41 @@ export const SITUACAO_DA_COBRANCA: Record<string, string> = {
   CANCELADA: 'Cancelada',
   PERDOADA: 'Perdoada',
   RENEGOCIADA: 'Renegociada',
+  ESTORNADA: 'Estornada',
 }
 
 export const SITUACAO_DA_ENTRADA: Record<string, string> = {
   EM_VALIDACAO: 'Em validação',
   VALIDADA: 'Validada',
   REJEITADA: 'Rejeitada',
+  ESTORNADA: 'Estornada',
+}
+
+export const SITUACAO_DA_SAIDA: Record<string, string> = {
+  AGUARDANDO_ENVIO: 'Aguardando envio',
+  RECURSO_ENVIADO: 'Recurso enviado',
+  EM_CONFERENCIA: 'Em conferência',
+  LIQUIDADA: 'Liquidada',
+  CANCELADA: 'Cancelada',
+  ESTORNADA: 'Estornada',
+}
+
+export const SITUACAO_DA_PRESTACAO: Record<string, string> = {
+  VIGENTE: 'Vigente',
+  DEVOLVIDA: 'Devolvida',
+}
+
+export const SITUACAO_DO_COMPLEMENTO: Record<string, string> = {
+  EM_ANDAMENTO: 'Em andamento',
+  APROVADO: 'Aprovado',
+  RECUSADO: 'Recusado',
+  CANCELADO: 'Cancelado',
+}
+
+export const ALVO_DO_ESTORNO: Record<string, string> = {
+  SAIDA: 'Saída',
+  ENTRADA: 'Entrada',
+  COBRANCA: 'Cobrança',
 }
 
 export const SITUACAO_DO_PAGAMENTO: Record<string, string> = {
@@ -244,6 +292,20 @@ const ACAO_FINANCEIRA_AUDITADA: Record<string, string> = {
   ENTRADA_REGISTRADA: 'Entrada registrada',
   ENTRADA_VALIDADA: 'Entrada validada',
   ENTRADA_REJEITADA: 'Entrada rejeitada',
+  SAIDA_ABERTA: 'Saída aberta',
+  SAIDA_CANCELADA: 'Saída cancelada',
+  RECURSO_ENVIADO: 'Recurso enviado',
+  PRESTACAO_REGISTRADA: 'Prestação de contas registrada',
+  PRESTACAO_DEVOLVIDA: 'Prestação devolvida para correção',
+  COMPLEMENTO_SOLICITADO: 'Complemento solicitado',
+  COMPLEMENTO_APROVADO: 'Complemento aprovado',
+  COMPLEMENTO_RECUSADO: 'Complemento recusado',
+  COMPLEMENTO_CANCELADO: 'Complemento cancelado',
+  SAIDA_LIQUIDADA: 'Saída liquidada',
+  SAIDA_ESTORNADA: 'Saída estornada',
+  ENTRADA_ESTORNADA: 'Entrada estornada',
+  COBRANCA_ESTORNADA: 'Cobrança estornada',
+  ESTORNO_REGISTRADO: 'Estorno registrado',
 }
 
 export function rotuloDaAcaoFinanceira(acao: string): string {

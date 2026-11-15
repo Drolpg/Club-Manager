@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useState, type FormEvent } from 'react'
+import { Link } from 'react-router'
 import {
   PERM_ENTRADAS_REGISTRAR,
   TIPO_DECISAO_FINANCEIRO,
@@ -15,6 +16,19 @@ import { dataCurta, reais } from '../formatos'
 import { SITUACAO_DA_ENTRADA, errosPorCampo, mensagemDoErro } from '../mensagens'
 import { useMotivosPorTipo, usePodeFinanceiro } from '../useFinanceiro'
 import { AreaDeTexto, SeletorDeMotivo } from './apoioFinanceiro'
+import { BlocoEstorno } from './apoioSaidas'
+
+const TIPO_DECISAO_ENTRADA: Record<AcaoEntrada, string> = {
+  validar: TIPO_DECISAO_FINANCEIRO.entrada_validar,
+  rejeitar: TIPO_DECISAO_FINANCEIRO.entrada_rejeitar,
+  estornar: TIPO_DECISAO_FINANCEIRO.estornar,
+}
+
+const ROTULO_DECISAO_ENTRADA: Record<AcaoEntrada, string> = {
+  validar: 'Validar entrada',
+  rejeitar: 'Rejeitar entrada',
+  estornar: 'Estornar entrada',
+}
 
 function FormularioDecisaoEntrada({
   entradaId,
@@ -27,9 +41,7 @@ function FormularioDecisaoEntrada({
   aoConcluir: () => void
   aoFechar: () => void
 }) {
-  const motivos = useMotivosPorTipo(
-    acao === 'validar' ? TIPO_DECISAO_FINANCEIRO.entrada_validar : TIPO_DECISAO_FINANCEIRO.entrada_rejeitar,
-  )
+  const motivos = useMotivosPorTipo(TIPO_DECISAO_ENTRADA[acao])
   const [motivoId, definirMotivoId] = useState('')
   const [texto, definirTexto] = useState('')
   const [erro, definirErro] = useState<unknown>(null)
@@ -41,8 +53,10 @@ function FormularioDecisaoEntrada({
     try {
       if (acao === 'validar') {
         await financeiro.validarEntrada(entradaId, { motivo_id: motivoId, texto })
-      } else {
+      } else if (acao === 'rejeitar') {
         await financeiro.rejeitarEntrada(entradaId, { motivo_id: motivoId, texto })
+      } else {
+        await financeiro.estornarEntrada(entradaId, { motivo_id: motivoId, justificativa: texto })
       }
       aoConcluir()
     } catch (falha) {
@@ -51,17 +65,19 @@ function FormularioDecisaoEntrada({
   }
 
   return (
-    <form
-      aria-label={acao === 'validar' ? 'Validar entrada' : 'Rejeitar entrada'}
-      onSubmit={(e) => void confirmar(e)}
-    >
+    <form aria-label={ROTULO_DECISAO_ENTRADA[acao]} onSubmit={(e) => void confirmar(e)}>
       <SeletorDeMotivo
         motivos={motivos}
         valor={motivoId}
         aoMudar={definirMotivoId}
         erros={campos.motivo_id}
       />
-      <AreaDeTexto rotulo="Texto (opcional)" valor={texto} aoMudar={definirTexto} erros={campos.texto} />
+      <AreaDeTexto
+        rotulo={acao === 'estornar' ? 'Justificativa' : 'Texto (opcional)'}
+        valor={texto}
+        aoMudar={definirTexto}
+        erros={acao === 'estornar' ? campos.justificativa : campos.texto}
+      />
       <Alerta>{erro ? mensagemDoErro(erro) : null}</Alerta>
       <button type="submit">Confirmar</button>
       <button type="button" onClick={aoFechar}>
@@ -227,7 +243,21 @@ export function Entradas() {
               >
                 Rejeitar
               </button>
+            )}{' '}
+            {item.acoes.includes('estornar') && (
+              <button
+                type="button"
+                onClick={() => definirDecidindo({ id: item.id, acao: 'estornar' })}
+              >
+                Estornar
+              </button>
             )}
+            {item.saida_id && (
+              <p>
+                Devolução vinculada à <Link to={`/saidas/${item.saida_id}`}>saída</Link>
+              </p>
+            )}
+            {item.estorno && <BlocoEstorno estorno={item.estorno} />}
             {decidindo?.id === item.id && (
               <FormularioDecisaoEntrada
                 key={`${item.id}-${decidindo.acao}`}

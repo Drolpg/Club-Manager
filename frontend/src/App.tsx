@@ -10,10 +10,13 @@ import { CargosESetores, Permissoes, UsuarioDetalhe } from './paginas/Permissoes
 import { Cobrancas } from './paginas/Cobrancas'
 import { ConfiguracaoFinanceira } from './paginas/ConfiguracaoFinanceira'
 import { DetalheDaCobranca } from './paginas/DetalheDaCobranca'
+import { DetalheDaSaida } from './paginas/DetalheDaSaida'
 import { Entradas } from './paginas/Entradas'
 import { MinhasCobrancas } from './paginas/MinhasCobrancas'
+import { NovaSolicitacaoDeGasto } from './paginas/NovaSolicitacaoDeGasto'
 import { Preferencias } from './paginas/Preferencias'
 import { RecorrenciasESuspensoes } from './paginas/RecorrenciasESuspensoes'
+import { Saidas } from './paginas/Saidas'
 import { ProvedorDeSessao, useSessao } from './sessao'
 import { CONVITES_GERENCIAR, temPermissao, useMinhas } from './useMinhas'
 
@@ -188,6 +191,30 @@ function App() {
             element={
               <ProtegidaDeGestao>
                 <Entradas />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/gastos/novo"
+            element={
+              <ProtegidaDeGestao>
+                <NovaSolicitacaoDeGasto />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/saidas"
+            element={
+              <ProtegidaDeGestao>
+                <Saidas />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/saidas/:id"
+            element={
+              <ProtegidaDeGestao>
+                <DetalheDaSaida />
               </ProtegidaDeGestao>
             }
           />
