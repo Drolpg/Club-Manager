@@ -17,6 +17,7 @@ from rest_framework.views import APIView
 from financeiro.domain.autorizacao import (
     PERM_COBRANCAS_CANCELAR,
     PERM_COBRANCAS_CRIAR,
+    PERM_COBRANCAS_SUSPENDER,
     PERM_PAGAMENTOS_VALIDAR,
 )
 from financeiro.erros import erro
@@ -31,18 +32,33 @@ from financeiro.http.serializers import (
     ConsultaChavesPixSerializer,
     ConsultaCobrancasSerializer,
     ConsultaMinhasCobrancasSerializer,
+    ConsultaRecorrenciasSerializer,
+    ConsultaSuspensoesSerializer,
     DecidirPagamentoSerializer,
     EditarChavePixSerializer,
+    EditarRecorrenciaSerializer,
     HistoricoSerializer,
     NomeCategoriaSerializer,
     NovaCategoriaSerializer,
     NovaChavePixSerializer,
     NovaCobrancaSerializer,
+    NovaRecorrenciaSerializer,
+    NovaSuspensaoSerializer,
     NovoLoteCobrancasSerializer,
     PaginaCobrancasSerializer,
+    RecorrenciaSerializer,
     RegistrarPagamentoSerializer,
+    SuspensaoSerializer,
 )
-from financeiro.services import categorias, chaves_pix, cobrancas, consulta, pagamentos
+from financeiro.services import (
+    categorias,
+    chaves_pix,
+    cobrancas,
+    consulta,
+    pagamentos,
+    recorrencias,
+    suspensoes,
+)
 from kernel.dinheiro import Dinheiro
 
 
@@ -446,3 +462,149 @@ class CobrancaReciboView(APIView):
     @extend_schema(summary="Emitir recibo PDF da cobrança paga", responses={200: OpenApiTypes.BINARY})
     def get(self, request: Request, cobranca_id: uuid.UUID) -> HttpResponse:
         return pagamentos.emitir_recibo(_ator_id(request), cobranca_id)
+
+
+# --- Recorrências e Suspensões ---
+
+
+class RecorrenciasView(APIView):
+    def get_permissions(self) -> list[BasePermission]:
+        if self.request.method == "GET":
+            return [LeGestao()]
+        return [exige_permissao(PERM_COBRANCAS_CRIAR)()]
+
+    @extend_schema(
+        summary="Listar recorrências financeiras",
+        parameters=[ConsultaRecorrenciasSerializer],
+        responses=RecorrenciaSerializer(many=True),
+    )
+    def get(self, request: Request) -> Response:
+        filtros = _validar(ConsultaRecorrenciasSerializer, request.query_params)
+        itens = recorrencias.listar(
+            _ator_id(request),
+            devedor_id=filtros.get("devedor_id"),
+            incluir_inativas=filtros["todas"],
+        )
+        return Response(RecorrenciaSerializer(itens, many=True).data)
+
+    @extend_schema(
+        summary="Criar recorrência financeira",
+        request=NovaRecorrenciaSerializer,
+        responses={201: RecorrenciaSerializer},
+    )
+    def post(self, request: Request) -> Response:
+        dados = _validar(NovaRecorrenciaSerializer, request.data)
+        item = recorrencias.criar(
+            _ator_id(request),
+            devedor_id=dados["devedor_id"],
+            categoria_id=dados["categoria_id"],
+            descricao=dados["descricao"],
+            valor=_dinheiro_positivo(dados["valor"]),
+            periodicidade=dados["periodicidade"],
+            dia_vencimento=dados["dia_vencimento"],
+            mes_vencimento=dados.get("mes_vencimento"),
+            antecedencia_dias=dados["antecedencia_dias"],
+            limite_de_inadimplencia=dados["limite_de_inadimplencia"],
+            chave_pix_id=dados.get("chave_pix_id"),
+            a_partir_de=dados.get("a_partir_de"),
+        )
+        return Response(RecorrenciaSerializer(item).data, status=status.HTTP_201_CREATED)
+
+
+class RecorrenciaEditarView(APIView):
+    permission_classes = (exige_permissao(PERM_COBRANCAS_CRIAR),)
+
+    @extend_schema(
+        summary="Editar recorrência financeira",
+        request=EditarRecorrenciaSerializer,
+        responses=RecorrenciaSerializer,
+    )
+    def post(self, request: Request, recorrencia_id: uuid.UUID) -> Response:
+        dados = _validar(EditarRecorrenciaSerializer, request.data)
+        item = recorrencias.editar(
+            _ator_id(request),
+            recorrencia_id,
+            categoria_id=dados["categoria_id"],
+            descricao=dados["descricao"],
+            valor=_dinheiro_positivo(dados["valor"]),
+            dia_vencimento=dados["dia_vencimento"],
+            mes_vencimento=dados.get("mes_vencimento"),
+            antecedencia_dias=dados["antecedencia_dias"],
+            limite_de_inadimplencia=dados["limite_de_inadimplencia"],
+            chave_pix_id=dados.get("chave_pix_id"),
+        )
+        return Response(RecorrenciaSerializer(item).data)
+
+
+class RecorrenciaDesativarView(APIView):
+    permission_classes = (exige_permissao(PERM_COBRANCAS_CRIAR),)
+
+    @extend_schema(summary="Desativar recorrência", request=None, responses=RecorrenciaSerializer)
+    def post(self, request: Request, recorrencia_id: uuid.UUID) -> Response:
+        item = recorrencias.desativar(_ator_id(request), recorrencia_id)
+        return Response(RecorrenciaSerializer(item).data)
+
+
+class RecorrenciaHistoricoView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Histórico da recorrência", responses=HistoricoSerializer(many=True))
+    def get(self, request: Request, recorrencia_id: uuid.UUID) -> Response:
+        registros = recorrencias.historico(_ator_id(request), recorrencia_id)
+        return Response(HistoricoSerializer(consulta.serializar_historico(registros), many=True).data)
+
+
+class SuspensoesView(APIView):
+    def get_permissions(self) -> list[BasePermission]:
+        if self.request.method == "GET":
+            return [LeGestao()]
+        return [exige_permissao(PERM_COBRANCAS_SUSPENDER)()]
+
+    @extend_schema(
+        summary="Listar suspensões de recorrência",
+        parameters=[ConsultaSuspensoesSerializer],
+        responses=SuspensaoSerializer(many=True),
+    )
+    def get(self, request: Request) -> Response:
+        filtros = _validar(ConsultaSuspensoesSerializer, request.query_params)
+        itens = suspensoes.listar(
+            _ator_id(request),
+            diretor_id=filtros.get("diretor_id"),
+            incluir_encerradas=filtros["todas"],
+        )
+        return Response(SuspensaoSerializer(itens, many=True).data)
+
+    @extend_schema(
+        summary="Criar suspensão temporária de cobrança recorrente",
+        request=NovaSuspensaoSerializer,
+        responses={201: SuspensaoSerializer},
+    )
+    def post(self, request: Request) -> Response:
+        dados = _validar(NovaSuspensaoSerializer, request.data)
+        item = suspensoes.criar(
+            _ator_id(request),
+            diretor_id=dados["diretor_id"],
+            recorrencia_id=dados.get("recorrencia_id"),
+            inicio=dados["inicio"],
+            fim=dados.get("fim"),
+            justificativa=dados["justificativa"],
+        )
+        return Response(SuspensaoSerializer(item).data, status=status.HTTP_201_CREATED)
+
+
+class SuspensaoEncerrarView(APIView):
+    permission_classes = (exige_permissao(PERM_COBRANCAS_SUSPENDER),)
+
+    @extend_schema(summary="Encerrar suspensão vigente", request=None, responses=SuspensaoSerializer)
+    def post(self, request: Request, suspensao_id: uuid.UUID) -> Response:
+        item = suspensoes.encerrar(_ator_id(request), suspensao_id)
+        return Response(SuspensaoSerializer(item).data)
+
+
+class SuspensaoHistoricoView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Histórico da suspensão", responses=HistoricoSerializer(many=True))
+    def get(self, request: Request, suspensao_id: uuid.UUID) -> Response:
+        registros = suspensoes.historico(_ator_id(request), suspensao_id)
+        return Response(HistoricoSerializer(consulta.serializar_historico(registros), many=True).data)

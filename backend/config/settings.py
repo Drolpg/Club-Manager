@@ -244,6 +244,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "aprovacoes.lembrar_solicitacoes_paradas",
         "schedule": crontab(minute=0, hour=8),
     },
+    "financeiro.processar_rotina_diaria": {
+        "task": "financeiro.processar_rotina_diaria",
+        "schedule": crontab(minute=15, hour=6),
+    },
 }
 
 LOGGING = {

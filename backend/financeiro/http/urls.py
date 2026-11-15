@@ -23,6 +23,13 @@ from financeiro.http.views import (
     CobrancasView,
     CobrancaValidarPagamentoView,
     MinhasCobrancasView,
+    RecorrenciaDesativarView,
+    RecorrenciaEditarView,
+    RecorrenciaHistoricoView,
+    RecorrenciasView,
+    SuspensaoEncerrarView,
+    SuspensaoHistoricoView,
+    SuspensoesView,
 )
 
 urlpatterns = [
@@ -111,5 +118,32 @@ urlpatterns = [
         "cobrancas/<uuid:cobranca_id>/recibo/",
         CobrancaReciboView.as_view(),
         name="financeiro-cobranca-recibo",
+    ),
+    path("recorrencias/", RecorrenciasView.as_view(), name="financeiro-recorrencias"),
+    path(
+        "recorrencias/<uuid:recorrencia_id>/editar/",
+        RecorrenciaEditarView.as_view(),
+        name="financeiro-recorrencia-editar",
+    ),
+    path(
+        "recorrencias/<uuid:recorrencia_id>/desativar/",
+        RecorrenciaDesativarView.as_view(),
+        name="financeiro-recorrencia-desativar",
+    ),
+    path(
+        "recorrencias/<uuid:recorrencia_id>/historico/",
+        RecorrenciaHistoricoView.as_view(),
+        name="financeiro-recorrencia-historico",
+    ),
+    path("suspensoes/", SuspensoesView.as_view(), name="financeiro-suspensoes"),
+    path(
+        "suspensoes/<uuid:suspensao_id>/encerrar/",
+        SuspensaoEncerrarView.as_view(),
+        name="financeiro-suspensao-encerrar",
+    ),
+    path(
+        "suspensoes/<uuid:suspensao_id>/historico/",
+        SuspensaoHistoricoView.as_view(),
+        name="financeiro-suspensao-historico",
     ),
 ]

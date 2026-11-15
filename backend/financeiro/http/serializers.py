@@ -4,6 +4,7 @@ from typing import Any
 
 from rest_framework import serializers
 
+from financeiro.domain.competencia import Periodicidade
 from financeiro.domain.pix import TipoChavePix
 from financeiro.domain.transicoes import SituacaoCobranca
 from financeiro.models import FormaPagamento, NaturezaCategoria
@@ -12,6 +13,7 @@ _NATUREZAS = [c.value for c in NaturezaCategoria]
 _TIPOS_PIX = [t.value for t in TipoChavePix]
 _SITUACOES_COBRANCA = [s.value for s in SituacaoCobranca]
 _FORMAS_PAGAMENTO = [f.value for f in FormaPagamento]
+_PERIODICIDADES = [p.value for p in Periodicidade]
 
 
 def _dinheiro(**extra: Any) -> serializers.DecimalField:
@@ -245,3 +247,73 @@ class RegistrarPagamentoSerializer(serializers.Serializer[Any]):
 class DecidirPagamentoSerializer(serializers.Serializer[Any]):
     motivo_id = serializers.UUIDField()
     texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+# --- Recorrências e Suspensões ---
+
+
+class RecorrenciaSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    devedor = PessoaSerializer()
+    categoria_id = serializers.UUIDField()
+    categoria_nome = serializers.CharField()
+    descricao = serializers.CharField()
+    valor = _dinheiro()
+    periodicidade = serializers.CharField()
+    dia_vencimento = serializers.IntegerField()
+    mes_vencimento = serializers.IntegerField(allow_null=True)
+    antecedencia_dias = serializers.IntegerField()
+    limite_de_inadimplencia = serializers.IntegerField()
+    chave_pix_id = serializers.UUIDField()
+    ativa = serializers.BooleanField()
+    a_partir_de = serializers.DateField()
+    criada_em = serializers.DateTimeField()
+
+
+class ConsultaRecorrenciasSerializer(serializers.Serializer[Any]):
+    devedor_id = serializers.UUIDField(required=False)
+    todas = serializers.BooleanField(required=False, default=False)
+
+
+class EditarRecorrenciaSerializer(serializers.Serializer[Any]):
+    categoria_id = serializers.UUIDField()
+    descricao = serializers.CharField(min_length=2, max_length=200)
+    valor = _dinheiro()
+    dia_vencimento = serializers.IntegerField(min_value=1, max_value=31)
+    mes_vencimento = serializers.IntegerField(
+        min_value=1, max_value=12, required=False, allow_null=True, default=None
+    )
+    antecedencia_dias = serializers.IntegerField(min_value=0, max_value=90, required=False, default=5)
+    limite_de_inadimplencia = serializers.IntegerField(min_value=1, max_value=365, required=False, default=30)
+    chave_pix_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+
+
+class NovaRecorrenciaSerializer(EditarRecorrenciaSerializer):
+    devedor_id = serializers.UUIDField()
+    periodicidade = serializers.ChoiceField(choices=_PERIODICIDADES)
+    a_partir_de = serializers.DateField(required=False, allow_null=True, default=None)
+
+
+class SuspensaoSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    diretor = PessoaSerializer()
+    recorrencia_id = serializers.UUIDField(allow_null=True)
+    inicio = serializers.DateField()
+    fim = serializers.DateField(allow_null=True)
+    justificativa = serializers.CharField()
+    situacao = serializers.CharField()
+    criada_em = serializers.DateTimeField()
+    encerrada_em = serializers.DateTimeField(allow_null=True)
+
+
+class ConsultaSuspensoesSerializer(serializers.Serializer[Any]):
+    diretor_id = serializers.UUIDField(required=False)
+    todas = serializers.BooleanField(required=False, default=False)
+
+
+class NovaSuspensaoSerializer(serializers.Serializer[Any]):
+    diretor_id = serializers.UUIDField()
+    recorrencia_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+    inicio = serializers.DateField()
+    fim = serializers.DateField(required=False, allow_null=True, default=None)
+    justificativa = serializers.CharField(min_length=2, max_length=1000)
