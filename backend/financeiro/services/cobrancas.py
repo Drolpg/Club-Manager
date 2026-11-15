@@ -11,7 +11,7 @@ from acesso import public as acesso
 from aprovacoes import public as aprovacoes
 from auditoria import public as auditoria
 from financeiro import tipos
-from financeiro.domain.autorizacao import PERM_COBRANCAS_CRIAR
+from financeiro.domain.autorizacao import PERM_COBRANCAS_CRIAR, PERM_COBRANCAS_ISENTAR
 from financeiro.domain.transicoes import ComandoCobranca
 from financeiro.erros import erro, erro_validacao
 from financeiro.models import CategoriaFinanceira, ChavePix, Cobranca, NaturezaCategoria
@@ -173,5 +173,25 @@ def cancelar(
         item_id=cobranca.id,
         justificativa=texto.strip() or motivo_texto,
         dados={"motivo_id": str(motivo_id), "motivo_texto": motivo_texto},
+    )
+    return cobranca
+
+
+@transaction.atomic
+def isentar(*, ator_id: uuid.UUID, cobranca_id: uuid.UUID, justificativa: str) -> Cobranca:
+    """Isenta cobrança aberta ou atrasada com justificativa obrigatória (CA-34)."""
+    cobranca = Cobranca.objects.select_for_update().filter(pk=cobranca_id).first()
+    if cobranca is None:
+        exigir_permissao(ator_id, PERM_COBRANCAS_ISENTAR)
+        raise erro("NOT_FOUND")
+    exigir_comando_cobranca(cobranca, ator_id, ComandoCobranca.ISENTAR)
+    limpo = justificativa.strip()
+    cobranca.isentar(por_id=ator_id, justificativa=limpo, agora=timezone.now())
+    auditoria.registrar(
+        ator_id=ator_id,
+        acao="COBRANCA_ISENTA",
+        item_tipo=ITEM_AUDITORIA,
+        item_id=cobranca.id,
+        justificativa=limpo,
     )
     return cobranca

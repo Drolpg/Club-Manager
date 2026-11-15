@@ -7,13 +7,14 @@ from rest_framework import serializers
 from financeiro.domain.competencia import Periodicidade
 from financeiro.domain.pix import TipoChavePix
 from financeiro.domain.transicoes import SituacaoCobranca
-from financeiro.models import FormaPagamento, NaturezaCategoria
+from financeiro.models import DecisaoQuestionamento, FormaPagamento, NaturezaCategoria
 
 _NATUREZAS = [c.value for c in NaturezaCategoria]
 _TIPOS_PIX = [t.value for t in TipoChavePix]
 _SITUACOES_COBRANCA = [s.value for s in SituacaoCobranca]
 _FORMAS_PAGAMENTO = [f.value for f in FormaPagamento]
 _PERIODICIDADES = [p.value for p in Periodicidade]
+_DECISOES_QUESTIONAMENTO = [d.value for d in DecisaoQuestionamento]
 
 
 def _dinheiro(**extra: Any) -> serializers.DecimalField:
@@ -245,6 +246,20 @@ class RegistrarPagamentoSerializer(serializers.Serializer[Any]):
 
 
 class DecidirPagamentoSerializer(serializers.Serializer[Any]):
+    motivo_id = serializers.UUIDField()
+    texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+class IsentarCobrancaSerializer(serializers.Serializer[Any]):
+    justificativa = serializers.CharField(min_length=2, max_length=1000)
+
+
+class QuestionarCobrancaSerializer(serializers.Serializer[Any]):
+    texto = serializers.CharField(min_length=2, max_length=1000)
+
+
+class DecidirQuestionamentoSerializer(serializers.Serializer[Any]):
+    decisao = serializers.ChoiceField(choices=_DECISOES_QUESTIONAMENTO)
     motivo_id = serializers.UUIDField()
     texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
 

@@ -17,8 +17,10 @@ from rest_framework.views import APIView
 from financeiro.domain.autorizacao import (
     PERM_COBRANCAS_CANCELAR,
     PERM_COBRANCAS_CRIAR,
+    PERM_COBRANCAS_ISENTAR,
     PERM_COBRANCAS_SUSPENDER,
     PERM_PAGAMENTOS_VALIDAR,
+    PERM_QUESTIONAMENTOS_DECIDIR,
 )
 from financeiro.erros import erro
 from financeiro.http.permissions import DiretorAtivo, EhAdmin, LeGestao, exige_permissao
@@ -35,9 +37,11 @@ from financeiro.http.serializers import (
     ConsultaRecorrenciasSerializer,
     ConsultaSuspensoesSerializer,
     DecidirPagamentoSerializer,
+    DecidirQuestionamentoSerializer,
     EditarChavePixSerializer,
     EditarRecorrenciaSerializer,
     HistoricoSerializer,
+    IsentarCobrancaSerializer,
     NomeCategoriaSerializer,
     NovaCategoriaSerializer,
     NovaChavePixSerializer,
@@ -46,6 +50,7 @@ from financeiro.http.serializers import (
     NovaSuspensaoSerializer,
     NovoLoteCobrancasSerializer,
     PaginaCobrancasSerializer,
+    QuestionarCobrancaSerializer,
     RecorrenciaSerializer,
     RegistrarPagamentoSerializer,
     SuspensaoSerializer,
@@ -56,6 +61,7 @@ from financeiro.services import (
     cobrancas,
     consulta,
     pagamentos,
+    questionamentos,
     recorrencias,
     suspensoes,
 )
@@ -381,6 +387,68 @@ class CobrancaCancelarView(APIView):
         cobranca = cobrancas.cancelar(
             ator_id=ator_id,
             cobranca_id=cobranca_id,
+            motivo_id=dados["motivo_id"],
+            texto=dados["texto"],
+        )
+        detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
+        return Response(CobrancaDetalheSerializer(detalhe).data)
+
+
+class CobrancaIsentarView(APIView):
+    permission_classes = (exige_permissao(PERM_COBRANCAS_ISENTAR),)
+
+    @extend_schema(
+        summary="Isentar cobrança",
+        request=IsentarCobrancaSerializer,
+        responses=CobrancaDetalheSerializer,
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        ator_id = _ator_id(request)
+        dados = _validar(IsentarCobrancaSerializer, request.data)
+        cobranca = cobrancas.isentar(
+            ator_id=ator_id,
+            cobranca_id=cobranca_id,
+            justificativa=dados["justificativa"],
+        )
+        detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
+        return Response(CobrancaDetalheSerializer(detalhe).data)
+
+
+class CobrancaQuestionarView(APIView):
+    permission_classes = (DiretorAtivo,)
+
+    @extend_schema(
+        summary="Questionar cobrança (devedor)",
+        request=QuestionarCobrancaSerializer,
+        responses={201: CobrancaDetalheSerializer},
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        ator_id = _ator_id(request)
+        dados = _validar(QuestionarCobrancaSerializer, request.data)
+        cobranca = questionamentos.questionar(
+            ator_id=ator_id,
+            cobranca_id=cobranca_id,
+            texto=dados["texto"],
+        )
+        detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
+        return Response(CobrancaDetalheSerializer(detalhe).data, status=status.HTTP_201_CREATED)
+
+
+class CobrancaDecidirQuestionamentoView(APIView):
+    permission_classes = (exige_permissao(PERM_QUESTIONAMENTOS_DECIDIR),)
+
+    @extend_schema(
+        summary="Decidir questionamento aberto",
+        request=DecidirQuestionamentoSerializer,
+        responses=CobrancaDetalheSerializer,
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        ator_id = _ator_id(request)
+        dados = _validar(DecidirQuestionamentoSerializer, request.data)
+        cobranca = questionamentos.decidir(
+            ator_id=ator_id,
+            cobranca_id=cobranca_id,
+            decisao=dados["decisao"],
             motivo_id=dados["motivo_id"],
             texto=dados["texto"],
         )
