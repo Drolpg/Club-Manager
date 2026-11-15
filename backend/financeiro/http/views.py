@@ -20,6 +20,8 @@ from financeiro.domain.autorizacao import (
     PERM_COBRANCAS_ISENTAR,
     PERM_COBRANCAS_SUSPENDER,
     PERM_DIVIDAS_DECIDIR,
+    PERM_ENTRADAS_REGISTRAR,
+    PERM_ENTRADAS_VALIDAR,
     PERM_PAGAMENTOS_VALIDAR,
     PERM_QUESTIONAMENTOS_DECIDIR,
 )
@@ -34,14 +36,18 @@ from financeiro.http.serializers import (
     ConsultaCategoriasSerializer,
     ConsultaChavesPixSerializer,
     ConsultaCobrancasSerializer,
+    ConsultaEntradasSerializer,
     ConsultaMinhasCobrancasSerializer,
     ConsultaRecorrenciasSerializer,
+    ConsultaResumoEntradasSerializer,
     ConsultaSuspensoesSerializer,
     DecidirDividaSerializer,
+    DecidirEntradaSerializer,
     DecidirPagamentoSerializer,
     DecidirQuestionamentoSerializer,
     EditarChavePixSerializer,
     EditarRecorrenciaSerializer,
+    EntradaSerializer,
     HistoricoSerializer,
     IsentarCobrancaSerializer,
     JustificarDividaSerializer,
@@ -49,14 +55,17 @@ from financeiro.http.serializers import (
     NovaCategoriaSerializer,
     NovaChavePixSerializer,
     NovaCobrancaSerializer,
+    NovaEntradaSerializer,
     NovaRecorrenciaSerializer,
     NovaSuspensaoSerializer,
     NovoLoteCobrancasSerializer,
     PaginaCobrancasSerializer,
+    PaginaEntradasSerializer,
     QuestionarCobrancaSerializer,
     RecorrenciaSerializer,
     RegistrarPagamentoSerializer,
     RenegociarDividaSerializer,
+    ResumoEntradasSerializer,
     SuspensaoSerializer,
 )
 from financeiro.services import (
@@ -64,6 +73,7 @@ from financeiro.services import (
     chaves_pix,
     cobrancas,
     consulta,
+    entradas,
     inadimplencia,
     pagamentos,
     questionamentos,
@@ -765,3 +775,134 @@ class SuspensaoHistoricoView(APIView):
     def get(self, request: Request, suspensao_id: uuid.UUID) -> Response:
         registros = suspensoes.historico(_ator_id(request), suspensao_id)
         return Response(HistoricoSerializer(consulta.serializar_historico(registros), many=True).data)
+
+
+# --- Entradas sem devedor ---
+
+
+class EntradasView(APIView):
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+
+    def get_permissions(self) -> list[BasePermission]:
+        if self.request.method == "GET":
+            return [LeGestao()]
+        return [exige_permissao(PERM_ENTRADAS_REGISTRAR)()]
+
+    @extend_schema(
+        summary="Listar entradas sem devedor e devoluções",
+        parameters=[ConsultaEntradasSerializer],
+        responses=PaginaEntradasSerializer,
+    )
+    def get(self, request: Request) -> Response:
+        filtros = _validar(ConsultaEntradasSerializer, request.query_params)
+        pagina = entradas.listar(
+            _ator_id(request),
+            situacao=filtros.get("situacao"),
+            categoria_id=filtros.get("categoria_id"),
+            de=filtros.get("de"),
+            ate=filtros.get("ate"),
+            antes=filtros.get("antes"),
+            limite=filtros["limite"],
+        )
+        return Response(PaginaEntradasSerializer(pagina).data)
+
+    @extend_schema(
+        summary="Registrar entrada sem devedor",
+        request=NovaEntradaSerializer,
+        responses={201: EntradaSerializer},
+    )
+    def post(self, request: Request) -> Response:
+        dados = _validar(NovaEntradaSerializer, request.data)
+        item = entradas.registrar(
+            _ator_id(request),
+            categoria_id=dados["categoria_id"],
+            valor=_dinheiro_positivo(dados["valor"]),
+            data=dados["data"],
+            origem=dados["origem"],
+            evidencia_texto=dados["evidencia_texto"],
+            arquivo=dados.get("comprovante"),
+        )
+        return Response(EntradaSerializer(item).data, status=status.HTTP_201_CREATED)
+
+
+class EntradaResumoView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Resumo consolidado das entradas validadas",
+        parameters=[ConsultaResumoEntradasSerializer],
+        responses=ResumoEntradasSerializer,
+    )
+    def get(self, request: Request) -> Response:
+        filtros = _validar(ConsultaResumoEntradasSerializer, request.query_params)
+        resumo = entradas.resumo(
+            _ator_id(request),
+            de=filtros.get("de"),
+            ate=filtros.get("ate"),
+            categoria_id=filtros.get("categoria_id"),
+        )
+        return Response(ResumoEntradasSerializer(resumo).data)
+
+
+class EntradaDetalheView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Detalhar entrada", responses=EntradaSerializer)
+    def get(self, request: Request, entrada_id: uuid.UUID) -> Response:
+        item = entradas.detalhe(_ator_id(request), entrada_id)
+        return Response(EntradaSerializer(item).data)
+
+
+class EntradaHistoricoView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Histórico da entrada", responses=HistoricoSerializer(many=True))
+    def get(self, request: Request, entrada_id: uuid.UUID) -> Response:
+        registros = entradas.historico(_ator_id(request), entrada_id)
+        return Response(HistoricoSerializer(registros, many=True).data)
+
+
+class EntradaComprovanteView(APIView):
+    permission_classes = (DiretorAtivo,)
+
+    @extend_schema(summary="Baixar comprovante privado da entrada", responses={200: OpenApiTypes.BINARY})
+    def get(self, request: Request, entrada_id: uuid.UUID) -> HttpResponse:
+        return entradas.baixar_comprovante(_ator_id(request), entrada_id)
+
+
+class EntradaValidarView(APIView):
+    permission_classes = (exige_permissao(PERM_ENTRADAS_VALIDAR),)
+
+    @extend_schema(
+        summary="Validar entrada",
+        request=DecidirEntradaSerializer,
+        responses=EntradaSerializer,
+    )
+    def post(self, request: Request, entrada_id: uuid.UUID) -> Response:
+        dados = _validar(DecidirEntradaSerializer, request.data)
+        item = entradas.validar(
+            _ator_id(request),
+            entrada_id,
+            motivo_id=dados["motivo_id"],
+            texto=dados["texto"],
+        )
+        return Response(EntradaSerializer(item).data)
+
+
+class EntradaRejeitarView(APIView):
+    permission_classes = (exige_permissao(PERM_ENTRADAS_VALIDAR),)
+
+    @extend_schema(
+        summary="Rejeitar entrada",
+        request=DecidirEntradaSerializer,
+        responses=EntradaSerializer,
+    )
+    def post(self, request: Request, entrada_id: uuid.UUID) -> Response:
+        dados = _validar(DecidirEntradaSerializer, request.data)
+        item = entradas.rejeitar(
+            _ator_id(request),
+            entrada_id,
+            motivo_id=dados["motivo_id"],
+            texto=dados["texto"],
+        )
+        return Response(EntradaSerializer(item).data)

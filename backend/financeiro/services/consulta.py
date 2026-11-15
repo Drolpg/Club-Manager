@@ -6,6 +6,8 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
+from django.db.models import Count, Sum
+
 from acesso import public as acesso
 from auditoria import public as auditoria
 from financeiro.domain.autorizacao import (
@@ -14,8 +16,9 @@ from financeiro.domain.autorizacao import (
     pode_ver_comprovante_cobranca,
 )
 from financeiro.domain.qrcode_svg import gerar_qrcode_svg
+from financeiro.domain.transicoes import SituacaoEntrada
 from financeiro.erros import erro
-from financeiro.models import Cobranca, Pagamento
+from financeiro.models import Cobranca, Entrada, Pagamento
 from financeiro.services.autorizacao import (
     exigir_diretor_ativo,
     exigir_leitura_gestao,
@@ -43,9 +46,13 @@ def _pessoa(usuario_id: uuid.UUID, cache: dict[uuid.UUID, PessoaInfo]) -> Pessoa
     return cache[usuario_id]
 
 
-def _pessoa_dict(usuario_id: uuid.UUID, cache: dict[uuid.UUID, PessoaInfo]) -> dict[str, Any]:
+def pessoa_dict(usuario_id: uuid.UUID, cache: dict[uuid.UUID, PessoaInfo]) -> dict[str, Any]:
     p = _pessoa(usuario_id, cache)
     return {"id": p.id, "nome": p.nome}
+
+
+def _pessoa_dict(usuario_id: uuid.UUID, cache: dict[uuid.UUID, PessoaInfo]) -> dict[str, Any]:
+    return pessoa_dict(usuario_id, cache)
 
 
 def _serializar_item(cobranca: Cobranca, cache: dict[uuid.UUID, PessoaInfo]) -> dict[str, Any]:
@@ -309,3 +316,24 @@ class DadosRegistroHistorico:
 class ResumoEntradasValidadas:
     quantidade: int
     total: Decimal
+
+
+def resumo_entradas_validadas(
+    *,
+    de: date | None = None,
+    ate: date | None = None,
+    categoria_id: uuid.UUID | None = None,
+) -> ResumoEntradasValidadas:
+    """Consolida quantidade e total apenas de entradas validadas no intervalo."""
+    qs = Entrada.objects.filter(situacao=SituacaoEntrada.VALIDADA.value)
+    if de:
+        qs = qs.filter(data__gte=de)
+    if ate:
+        qs = qs.filter(data__lte=ate)
+    if categoria_id:
+        qs = qs.filter(categoria_id=categoria_id)
+    agg = qs.aggregate(quantidade=Count("id"), total=Sum("valor"))
+    return ResumoEntradasValidadas(
+        quantidade=agg["quantidade"] or 0,
+        total=agg["total"] or Decimal("0.00"),
+    )

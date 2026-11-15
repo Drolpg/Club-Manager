@@ -6,7 +6,8 @@ class FinanceiroConfig(AppConfig):
     verbose_name = "Financeiro"
 
     def ready(self) -> None:
-        """Declara permissões, tipos de decisão e notificações ao iniciar."""
-        from financeiro import tipos
+        """Declara permissões, tipos de decisão, notificações e tratadores ao iniciar."""
+        from financeiro import handlers, tipos
 
         tipos.registrar_catalogos()
+        handlers.registrar()

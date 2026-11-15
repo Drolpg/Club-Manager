@@ -1001,6 +1001,7 @@ class Entrada(models.Model):
         evidencia_texto: str,
         anexo: AnexoSalvo | None,
         registrada_por_id: uuid.UUID,
+        tipo: TipoEntrada = TipoEntrada.SEM_DEVEDOR,
     ) -> Entrada:
         if valor.quantia <= 0:
             raise erro("VALOR_INVALIDO")
@@ -1010,7 +1011,7 @@ class Entrada(models.Model):
         if not texto_limpo and anexo is None:
             raise erro_validacao("evidencia_texto", "Informe o comprovante ou um texto de evidência.")
         return cls.objects.create(
-            tipo=TipoEntrada.SEM_DEVEDOR,
+            tipo=tipo,
             categoria=categoria,
             categoria_nome=categoria.nome,
             valor=valor.quantia,

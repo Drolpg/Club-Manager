@@ -6,12 +6,13 @@ from rest_framework import serializers
 
 from financeiro.domain.competencia import Periodicidade
 from financeiro.domain.pix import TipoChavePix
-from financeiro.domain.transicoes import SituacaoCobranca
+from financeiro.domain.transicoes import SituacaoCobranca, SituacaoEntrada
 from financeiro.models import DecisaoQuestionamento, FormaPagamento, NaturezaCategoria
 
 _NATUREZAS = [c.value for c in NaturezaCategoria]
 _TIPOS_PIX = [t.value for t in TipoChavePix]
 _SITUACOES_COBRANCA = [s.value for s in SituacaoCobranca]
+_SITUACOES_ENTRADA = [s.value for s in SituacaoEntrada]
 _FORMAS_PAGAMENTO = [f.value for f in FormaPagamento]
 _PERIODICIDADES = [p.value for p in Periodicidade]
 _DECISOES_QUESTIONAMENTO = [d.value for d in DecisaoQuestionamento]
@@ -353,3 +354,64 @@ class NovaSuspensaoSerializer(serializers.Serializer[Any]):
     inicio = serializers.DateField()
     fim = serializers.DateField(required=False, allow_null=True, default=None)
     justificativa = serializers.CharField(min_length=2, max_length=1000)
+
+
+class EntradaSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    tipo = serializers.CharField()
+    categoria_id = serializers.UUIDField()
+    categoria_nome = serializers.CharField()
+    valor = _dinheiro()
+    data = serializers.DateField()  # type: ignore[assignment]
+    origem = serializers.CharField()
+    evidencia_texto = serializers.CharField(allow_blank=True)
+    comprovante_disponivel = serializers.BooleanField()
+    comprovante_nome = serializers.CharField(allow_blank=True)
+    registrada_por = PessoaSerializer()
+    situacao = serializers.CharField()
+    decidido_por = PessoaSerializer(allow_null=True)
+    motivo_texto = serializers.CharField(allow_blank=True)
+    decisao_texto = serializers.CharField(allow_blank=True)
+    registrada_em = serializers.DateTimeField()
+    decidido_em = serializers.DateTimeField(allow_null=True)
+    acoes = serializers.ListField(child=serializers.CharField())
+
+
+class PaginaEntradasSerializer(serializers.Serializer[Any]):
+    itens = EntradaSerializer(many=True)
+    tem_mais = serializers.BooleanField()
+
+
+class ConsultaEntradasSerializer(serializers.Serializer[Any]):
+    situacao = serializers.ChoiceField(choices=_SITUACOES_ENTRADA, required=False)
+    categoria_id = serializers.UUIDField(required=False)
+    de = serializers.DateField(required=False)
+    ate = serializers.DateField(required=False)
+    antes = serializers.UUIDField(required=False)
+    limite = serializers.IntegerField(min_value=1, max_value=50, default=20)
+
+
+class ConsultaResumoEntradasSerializer(serializers.Serializer[Any]):
+    categoria_id = serializers.UUIDField(required=False)
+    de = serializers.DateField(required=False)
+    ate = serializers.DateField(required=False)
+
+
+class ResumoEntradasSerializer(serializers.Serializer[Any]):
+    quantidade = serializers.IntegerField()
+    total = _dinheiro()
+
+
+class NovaEntradaSerializer(serializers.Serializer[Any]):
+    categoria_id = serializers.UUIDField()
+    # Sem min_value aqui: valores <= 0 são recusados no domínio como 422 VALOR_INVALIDO.
+    valor = _dinheiro()
+    data = serializers.DateField()  # type: ignore[assignment]
+    origem = serializers.CharField(min_length=2, max_length=150)
+    evidencia_texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+    comprovante = serializers.FileField(required=False, allow_null=True, default=None)
+
+
+class DecidirEntradaSerializer(serializers.Serializer[Any]):
+    motivo_id = serializers.UUIDField()
+    texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")

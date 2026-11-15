@@ -154,6 +154,7 @@ def desativar(*, ator: Usuario, usuario_id: uuid.UUID) -> Usuario:
     alvo.desativar()
     alvo.save(update_fields=["situacao"])
     _auditar(ator, alvo, "USUARIO_DESATIVADO")
+    events.publish(public.UsuarioDesativado(usuario_id=alvo.id, desativado_em=timezone.now()))
     return alvo
 
 
