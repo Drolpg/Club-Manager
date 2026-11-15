@@ -1,5 +1,9 @@
 """Declaração das permissões, tipos de decisão e tipos de notificação do módulo financeiro."""
 
+import uuid
+from dataclasses import dataclass
+from decimal import Decimal
+
 from aprovacoes import public as aprovacoes
 from financeiro.domain.autorizacao import (
     PERM_COBRANCAS_CANCELAR,
@@ -136,11 +140,35 @@ TIPOS_DE_NOTIFICACAO: tuple[tuple[str, bool, str], ...] = (
 )
 
 
+@dataclass(frozen=True)
+class OrcamentoDeEventoMudou:
+    """Evento de integração emitido quando uma solicitação de gasto ligada a evento muda de estado."""
+
+    evento_id: uuid.UUID
+    solicitacao_id: uuid.UUID
+    acontecimento: str
+    versao: int
+    valor: Decimal | None
+    aprovador_id: uuid.UUID | None
+
+
 def registrar_catalogos() -> None:
-    """Declara permissões, tipos de decisão e tipos de notificação no boot do Django."""
+    """Declara permissões, tipos de decisão, notificações e solicitações no boot do Django."""
+    from financeiro import handlers
+    from financeiro.services import gastos
+
     for codigo, nome, descricao in PERMISSOES:
         permissoes.registrar_permissao(codigo, nome, descricao)
     for codigo, nome in TIPOS_DE_DECISAO:
         aprovacoes.registrar_tipo_de_decisao(codigo, nome)
     for codigo, pede_acao, descricao in TIPOS_DE_NOTIFICACAO:
         notificacoes.registrar_tipo(codigo, pede_acao=pede_acao, descricao=descricao)
+    aprovacoes.registrar_tipo(
+        codigo=gastos.TIPO_GASTO,
+        nome="Solicitação de gasto",
+        permissao_de_aprovar=PERM_GASTOS_APROVAR,
+        permissao_de_enviar=None,
+        tem_valor=True,
+        preparar=gastos.preparar_solicitacao_de_gasto,
+        ao_mudar=handlers.ao_mudar_solicitacao_de_gasto,
+    )

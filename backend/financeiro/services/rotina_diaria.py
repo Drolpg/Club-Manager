@@ -14,8 +14,8 @@ from financeiro.domain.competencia import (
     competencias_a_gerar,
     suspensa_na_data,
 )
-from financeiro.domain.transicoes import SituacaoCobranca, data_limite_convocacao
-from financeiro.models import Cobranca, Recorrencia, SituacaoSuspensao, Suspensao
+from financeiro.domain.transicoes import SituacaoCobranca, SituacaoSaida, data_limite_convocacao
+from financeiro.models import Cobranca, Recorrencia, Saida, SituacaoSuspensao, Suspensao
 from financeiro.services import avisos
 from kernel.dinheiro import Dinheiro
 
@@ -190,13 +190,44 @@ def _convocar_inadimplentes(hoje: date) -> int:
     return convocadas
 
 
+def _lembrar_prestacoes_pendentes(hoje: date) -> tuple[int, int]:
+    ids = list(
+        Saida.objects.filter(
+            situacao=SituacaoSaida.RECURSO_ENVIADO.value,
+            primeiro_envio_em__isnull=False,
+        ).values_list("id", flat=True)
+    )
+    lembretes_5 = 0
+    avisos_7 = 0
+    for sid in ids:
+        with transaction.atomic():
+            saida = Saida.objects.select_for_update().get(pk=sid)
+            if saida.marcar_lembrete_5_dias(hoje):
+                avisos.prestacao_lembrete_5_dias(saida)
+                lembretes_5 += 1
+            if saida.marcar_aviso_7_dias(hoje):
+                auditoria.registrar(
+                    acao="PRESTACAO_ATRASADA_NOTIFICADA",
+                    ator_id=None,
+                    item_tipo="saida",
+                    item_id=saida.id,
+                    dados={"data_referencia": hoje.isoformat()},
+                )
+                avisos.prestacao_vencida(saida)
+                avisos_7 += 1
+    return lembretes_5, avisos_7
+
+
 def executar(hoje: date | None = None) -> dict[str, int]:
     """Executa toda a rotina diária financeira de forma idempotente para `hoje`."""
     data_ref = hoje or timezone.localdate()
+    lembretes_5, avisos_7 = _lembrar_prestacoes_pendentes(data_ref)
     return {
         "recorrencias_geradas": _gerar_cobrancas_recorrentes(data_ref),
         "lembretes_3_dias": _enviar_lembretes_3_dias(data_ref),
         "lembretes_vencimento": _enviar_lembretes_vencimento(data_ref),
         "atrasadas": _marcar_atrasadas(data_ref),
         "convocadas": _convocar_inadimplentes(data_ref),
+        "prestacoes_lembrete_5_dias": lembretes_5,
+        "prestacoes_aviso_7_dias": avisos_7,
     }

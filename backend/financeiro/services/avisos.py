@@ -13,8 +13,19 @@ from financeiro.domain.autorizacao import (
     PERM_ENTRADAS_VALIDAR,
     PERM_PAGAMENTOS_VALIDAR,
     PERM_QUESTIONAMENTOS_DECIDIR,
+    PERM_SAIDAS_ENVIAR,
+    PERM_SAIDAS_LIQUIDAR,
 )
-from financeiro.models import Cobranca, Entrada, Pagamento, Questionamento
+from financeiro.models import (
+    Cobranca,
+    Complemento,
+    Entrada,
+    Envio,
+    Pagamento,
+    PrestacaoDeContas,
+    Questionamento,
+    Saida,
+)
 from notificacoes import public as notificacoes
 from permissoes import public as permissoes
 
@@ -303,4 +314,153 @@ def diretor_desativado_com_cobrancas(usuario_id: uuid.UUID, desativado_em: datet
         item_id=usuario_id,
         caminho="/cobrancas",
         chave=f"diretor-desativado:{usuario_id}:{desativado_em.isoformat()}",
+    )
+
+
+def _enviar_saida(
+    saida: Saida, *, tipo: str, destinatarios: Iterable[uuid.UUID], titulo: str, texto: str, chave: str
+) -> None:
+    _notificar(
+        tipo=tipo,
+        destinatarios=destinatarios,
+        titulo=titulo,
+        texto=texto,
+        item_tipo="saida",
+        item_id=saida.id,
+        caminho=f"/saidas/{saida.id}",
+        chave=chave,
+    )
+
+
+def saida_aguardando_envio(saida: Saida) -> None:
+    _enviar_saida(
+        saida,
+        tipo=tipos.NOTIF_SAIDA_AGUARDANDO_ENVIO,
+        destinatarios=_destinatarios_permissao(PERM_SAIDAS_ENVIAR),
+        titulo="Gasto aprovado aguardando envio",
+        texto=(
+            f"O gasto “{saida.descricao}” ({_reais(saida.valor_aprovado)}) de "
+            f"{_nome(saida.solicitante_id)} foi aprovado e aguarda envio do recurso."
+        ),
+        chave=f"saida-aguardando-envio:{saida.id}",
+    )
+
+
+def recurso_enviado(saida: Saida, envio: Envio) -> None:
+    _enviar_saida(
+        saida,
+        tipo=tipos.NOTIF_RECURSO_ENVIADO,
+        destinatarios={saida.solicitante_id},
+        titulo="Recurso enviado",
+        texto=(
+            f"O envio de {_reais(envio.valor)} para “{saida.descricao}” foi registrado. "
+            "Realize a prestação de contas em até 7 dias."
+        ),
+        chave=f"recurso-enviado:{envio.id}",
+    )
+
+
+def prestacao_lembrete_5_dias(saida: Saida) -> None:
+    _enviar_saida(
+        saida,
+        tipo=tipos.NOTIF_PRESTACAO_LEMBRETE_5_DIAS,
+        destinatarios={saida.solicitante_id},
+        titulo="Lembrete de prestação de contas",
+        texto=(f"Faltam 2 dias para vencer o prazo de prestação de contas da saída “{saida.descricao}”."),
+        chave=f"prestacao-lembrete-5d:{saida.id}",
+    )
+
+
+def prestacao_vencida(saida: Saida) -> None:
+    _enviar_saida(
+        saida,
+        tipo=tipos.NOTIF_PRESTACAO_VENCIDA,
+        destinatarios={saida.solicitante_id},
+        titulo="Prestação de contas vencida",
+        texto=f"O prazo de 7 dias para prestar contas de “{saida.descricao}” venceu. Envie assim mesmo.",
+        chave=f"prestacao-vencida-sol:{saida.id}",
+    )
+    _enviar_saida(
+        saida,
+        tipo=tipos.NOTIF_PRESTACAO_VENCIDA_FIN,
+        destinatarios=_destinatarios_permissao(PERM_SAIDAS_LIQUIDAR, exceto=saida.solicitante_id),
+        titulo="Prestação de contas em atraso",
+        texto=f"A saída “{saida.descricao}” de {_nome(saida.solicitante_id)} está com prestação em atraso.",
+        chave=f"prestacao-vencida-fin:{saida.id}",
+    )
+
+
+def prestacao_registrada(saida: Saida, prestacao: PrestacaoDeContas) -> None:
+    _enviar_saida(
+        saida,
+        tipo=tipos.NOTIF_PRESTACAO_REGISTRADA,
+        destinatarios=_destinatarios_permissao(PERM_SAIDAS_LIQUIDAR, exceto=saida.solicitante_id),
+        titulo="Prestação de contas aguardando conferência",
+        texto=(
+            f"{_nome(saida.solicitante_id)} prestou contas de “{saida.descricao}” "
+            f"({_reais(prestacao.valor)})."
+        ),
+        chave=f"prestacao-registrada:{prestacao.id}",
+    )
+
+
+def prestacao_devolvida(saida: Saida, prestacao: PrestacaoDeContas) -> None:
+    _enviar_saida(
+        saida,
+        tipo=tipos.NOTIF_PRESTACAO_DEVOLVIDA,
+        destinatarios={saida.solicitante_id},
+        titulo="Prestação de contas devolvida",
+        texto=(
+            f"Sua prestação de contas de “{saida.descricao}” foi devolvida "
+            f"({prestacao.motivo_devolucao_texto}). Ajuste e reenvie."
+        ),
+        chave=f"prestacao-devolvida:{prestacao.id}",
+    )
+
+
+def complemento_aprovado(saida: Saida, complemento: Complemento) -> None:
+    _enviar_saida(
+        saida,
+        tipo=tipos.NOTIF_COMPLEMENTO_APROVADO,
+        destinatarios=_destinatarios_permissao(PERM_SAIDAS_ENVIAR),
+        titulo="Complemento de saída aprovado",
+        texto=(
+            f"Um complemento de {_reais(complemento.valor)} para “{saida.descricao}” foi aprovado e "
+            "aguarda envio."
+        ),
+        chave=f"complemento-aprovado:{complemento.id}",
+    )
+
+
+def saida_liquidada(saida: Saida) -> None:
+    _enviar_saida(
+        saida,
+        tipo=tipos.NOTIF_SAIDA_LIQUIDADA,
+        destinatarios={saida.solicitante_id},
+        titulo="Saída liquidada",
+        texto=f"A saída “{saida.descricao}” foi conferida e liquidada.",
+        chave=f"saida-liquidada:{saida.id}",
+    )
+
+
+def registro_estornado(
+    *,
+    estorno_id: uuid.UUID,
+    item_tipo: str,
+    item_id: uuid.UUID,
+    interessado_id: uuid.UUID,
+    titulo: str,
+    texto: str,
+    caminho: str,
+) -> None:
+    admins = {a.id for a in acesso.admins_ativos()}
+    _notificar(
+        tipo=tipos.NOTIF_REGISTRO_ESTORNADO,
+        destinatarios=admins | {interessado_id},
+        titulo=titulo,
+        texto=texto,
+        item_tipo=item_tipo,
+        item_id=item_id,
+        caminho=caminho,
+        chave=f"registro-estornado:{estorno_id}",
     )
