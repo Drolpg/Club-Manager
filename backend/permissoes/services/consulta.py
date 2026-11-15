@@ -145,6 +145,17 @@ def _item(item: Cargo | Setor) -> ItemInfo:
     return ItemInfo(id=item.id, nome=item.nome, ativo=item.ativo)
 
 
+def setor_por_id(setor_id: uuid.UUID) -> ItemInfo | None:
+    """Resumo de um setor por id, ativo ou inativo (None se não existir)."""
+    setor = Setor.objects.filter(pk=setor_id).first()
+    return _item(setor) if setor is not None else None
+
+
+def listar_setores_ativos() -> list[ItemInfo]:
+    """Todos os setores ativos, ordenados pelo nome."""
+    return [_item(item) for item in Setor.objects.filter(ativo=True).order_by("nome")]
+
+
 def classificacao_de(usuario_id: uuid.UUID) -> ClassificacaoInfo | None:
     classificacao = (
         Classificacao.objects.select_related("cargo")

@@ -9,8 +9,12 @@ from financeiro.domain.autorizacao import (
     PERM_DIVIDAS_DECIDIR,
     PERM_ENTRADAS_REGISTRAR,
     PERM_ENTRADAS_VALIDAR,
+    PERM_FINANCEIRO_ESTORNAR,
+    PERM_GASTOS_APROVAR,
     PERM_PAGAMENTOS_VALIDAR,
     PERM_QUESTIONAMENTOS_DECIDIR,
+    PERM_SAIDAS_ENVIAR,
+    PERM_SAIDAS_LIQUIDAR,
 )
 from notificacoes import public as notificacoes
 from permissoes import public as permissoes
@@ -29,6 +33,26 @@ PERMISSOES: tuple[tuple[str, str, str], ...] = (
     ),
     (PERM_DIVIDAS_DECIDIR, "Decidir dívidas", "Perdoar, renegociar ou manter dívidas em inadimplência."),
     (PERM_COBRANCAS_SUSPENDER, "Suspender cobranças", "Criar e encerrar suspensões de cobranças."),
+    (
+        PERM_GASTOS_APROVAR,
+        "Aprovar gastos",
+        "Decidir solicitações de gasto iniciais e complementares.",
+    ),
+    (
+        PERM_SAIDAS_ENVIAR,
+        "Enviar recursos",
+        "Registrar envio de recurso e de complemento em saídas aprovadas.",
+    ),
+    (
+        PERM_SAIDAS_LIQUIDAR,
+        "Liquidar saídas",
+        "Conferir prestação de contas, devolver para correção e liquidar saídas.",
+    ),
+    (
+        PERM_FINANCEIRO_ESTORNAR,
+        "Estornar lançamentos",
+        "Registrar estorno de saída liquidada, entrada validada ou cobrança paga.",
+    ),
 )
 
 DECISAO_PAGAMENTO_VALIDAR = "financeiro.pagamento_validar"
@@ -38,6 +62,8 @@ DECISAO_QUESTIONAMENTO_DECIDIR = "financeiro.questionamento_decidir"
 DECISAO_DIVIDA_DECIDIR = "financeiro.divida_decidir"
 DECISAO_ENTRADA_VALIDAR = "financeiro.entrada_validar"
 DECISAO_ENTRADA_REJEITAR = "financeiro.entrada_rejeitar"
+DECISAO_PRESTACAO_DEVOLVER = "financeiro.prestacao_devolver"
+DECISAO_ESTORNAR = "financeiro.estornar"
 
 TIPOS_DE_DECISAO: tuple[tuple[str, str], ...] = (
     (DECISAO_PAGAMENTO_VALIDAR, "Validar pagamento"),
@@ -47,6 +73,8 @@ TIPOS_DE_DECISAO: tuple[tuple[str, str], ...] = (
     (DECISAO_DIVIDA_DECIDIR, "Decidir dívida"),
     (DECISAO_ENTRADA_VALIDAR, "Validar entrada"),
     (DECISAO_ENTRADA_REJEITAR, "Rejeitar entrada"),
+    (DECISAO_PRESTACAO_DEVOLVER, "Devolver prestação de contas"),
+    (DECISAO_ESTORNAR, "Estornar lançamento financeiro"),
 )
 
 NOTIF_COBRANCA_CRIADA = "financeiro.cobranca_criada"
@@ -66,6 +94,16 @@ NOTIF_DIVIDA_DECIDIDA = "financeiro.divida_decidida"
 NOTIF_ENTRADA_REGISTRADA = "financeiro.entrada_registrada"
 NOTIF_ENTRADA_DECIDIDA = "financeiro.entrada_decidida"
 NOTIF_DIRETOR_DESATIVADO = "financeiro.diretor_desativado_com_cobrancas"
+NOTIF_SAIDA_AGUARDANDO_ENVIO = "financeiro.saida_aguardando_envio"
+NOTIF_RECURSO_ENVIADO = "financeiro.recurso_enviado"
+NOTIF_PRESTACAO_LEMBRETE_5_DIAS = "financeiro.prestacao_lembrete_cinco_dias"
+NOTIF_PRESTACAO_VENCIDA = "financeiro.prestacao_vencida"
+NOTIF_PRESTACAO_VENCIDA_FIN = "financeiro.prestacao_vencida_financeiro"
+NOTIF_PRESTACAO_REGISTRADA = "financeiro.prestacao_registrada"
+NOTIF_PRESTACAO_DEVOLVIDA = "financeiro.prestacao_devolvida"
+NOTIF_COMPLEMENTO_APROVADO = "financeiro.complemento_aprovado"
+NOTIF_SAIDA_LIQUIDADA = "financeiro.saida_liquidada"
+NOTIF_REGISTRO_ESTORNADO = "financeiro.registro_estornado"
 
 TIPOS_DE_NOTIFICACAO: tuple[tuple[str, bool, str], ...] = (
     (NOTIF_COBRANCA_CRIADA, True, "Uma nova cobrança foi emitida para você."),
@@ -85,6 +123,16 @@ TIPOS_DE_NOTIFICACAO: tuple[tuple[str, bool, str], ...] = (
     (NOTIF_ENTRADA_REGISTRADA, True, "Uma entrada sem devedor aguarda validação."),
     (NOTIF_ENTRADA_DECIDIDA, False, "A entrada registrada foi validada ou rejeitada."),
     (NOTIF_DIRETOR_DESATIVADO, True, "Um diretor com cobranças não encerradas foi desativado."),
+    (NOTIF_SAIDA_AGUARDANDO_ENVIO, True, "Um gasto aprovado aguarda envio de recurso."),
+    (NOTIF_RECURSO_ENVIADO, True, "O recurso de seu gasto foi enviado e aguarda prestação."),
+    (NOTIF_PRESTACAO_LEMBRETE_5_DIAS, True, "Lembrete: envie a prestação de contas da sua saída."),
+    (NOTIF_PRESTACAO_VENCIDA, True, "O prazo para prestar contas desta saída venceu."),
+    (NOTIF_PRESTACAO_VENCIDA_FIN, False, "Uma saída está com prestação de contas em atraso."),
+    (NOTIF_PRESTACAO_REGISTRADA, True, "Uma prestação de contas foi registrada para conferência."),
+    (NOTIF_PRESTACAO_DEVOLVIDA, True, "Sua prestação de contas foi devolvida para correção."),
+    (NOTIF_COMPLEMENTO_APROVADO, True, "Um complemento de saída foi aprovado e aguarda envio."),
+    (NOTIF_SAIDA_LIQUIDADA, False, "Sua saída de recurso foi liquidada."),
+    (NOTIF_REGISTRO_ESTORNADO, False, "Um lançamento financeiro foi estornado."),
 )
 
 

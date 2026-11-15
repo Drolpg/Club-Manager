@@ -5,6 +5,9 @@ não avisa o dono de volta, porque foi ele quem pediu a mudança.
 """
 
 import uuid
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Any
 
 from django.db import transaction
 
@@ -51,3 +54,35 @@ def encerrar(solicitacao_id: uuid.UUID, *, ator_id: uuid.UUID | None = None) -> 
 
 def situacao_de(solicitacao_id: uuid.UUID) -> Situacao:
     return Situacao(_buscar(solicitacao_id, bloquear=False).situacao)
+
+
+@dataclass(frozen=True)
+class SolicitacaoInfo:
+    """Resumo imutável da versão vigente de uma solicitação exposto pela API pública."""
+
+    id: uuid.UUID
+    tipo: str
+    situacao: Situacao
+    solicitante_id: uuid.UUID
+    aprovador_indicado_id: uuid.UUID | None
+    versao_atual: int
+    valor: Decimal | None
+    resumo: str
+    conteudo: dict[str, Any]
+
+
+def obter_solicitacao(solicitacao_id: uuid.UUID) -> SolicitacaoInfo:
+    """Devolve dados da solicitação e sua versão vigente (NOT_FOUND caso não exista)."""
+    solicitacao = _buscar(solicitacao_id, bloquear=False)
+    versao = solicitacao.versao_atual
+    return SolicitacaoInfo(
+        id=solicitacao.id,
+        tipo=solicitacao.tipo,
+        situacao=Situacao(solicitacao.situacao),
+        solicitante_id=solicitacao.solicitante_id,
+        aprovador_indicado_id=solicitacao.aprovador_indicado_id,
+        versao_atual=versao.numero,
+        valor=versao.valor,
+        resumo=versao.resumo,
+        conteudo=dict(versao.conteudo),
+    )
