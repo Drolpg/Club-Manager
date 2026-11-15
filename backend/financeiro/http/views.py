@@ -1,6 +1,7 @@
 """Rotas HTTP da API financeira (`/api/v1/financeiro/...`). Sem regra de negócio."""
 
 import uuid
+from collections.abc import Callable
 from typing import Any
 
 from django.http import HttpResponse
@@ -22,8 +23,11 @@ from financeiro.domain.autorizacao import (
     PERM_DIVIDAS_DECIDIR,
     PERM_ENTRADAS_REGISTRAR,
     PERM_ENTRADAS_VALIDAR,
+    PERM_FINANCEIRO_ESTORNAR,
     PERM_PAGAMENTOS_VALIDAR,
     PERM_QUESTIONAMENTOS_DECIDIR,
+    PERM_SAIDAS_ENVIAR,
+    PERM_SAIDAS_LIQUIDAR,
 )
 from financeiro.erros import erro
 from financeiro.http.permissions import DiretorAtivo, EhAdmin, LeGestao, exige_permissao
@@ -33,40 +37,62 @@ from financeiro.http.serializers import (
     ChavePixSerializer,
     CobrancaDetalheSerializer,
     CobrancaItemSerializer,
+    ComplementoCriadoSerializer,
     ConsultaCategoriasSerializer,
     ConsultaChavesPixSerializer,
     ConsultaCobrancasSerializer,
     ConsultaEntradasSerializer,
+    ConsultaEstornosSerializer,
     ConsultaMinhasCobrancasSerializer,
     ConsultaRecorrenciasSerializer,
     ConsultaResumoEntradasSerializer,
+    ConsultaSaidasSerializer,
     ConsultaSuspensoesSerializer,
+    CotacaoSerializer,
     DecidirDividaSerializer,
     DecidirEntradaSerializer,
     DecidirPagamentoSerializer,
     DecidirQuestionamentoSerializer,
+    DevolverPrestacaoSerializer,
     EditarChavePixSerializer,
     EditarRecorrenciaSerializer,
     EntradaSerializer,
+    EstornoCobrancaRespostaSerializer,
+    EstornoEntradaRespostaSerializer,
+    EstornoSaidaRespostaSerializer,
     HistoricoSerializer,
     IsentarCobrancaSerializer,
     JustificarDividaSerializer,
+    LiquidarSaidaSerializer,
     NomeCategoriaSerializer,
     NovaCategoriaSerializer,
     NovaChavePixSerializer,
     NovaCobrancaSerializer,
     NovaEntradaSerializer,
     NovaRecorrenciaSerializer,
+    NovaSolicitacaoGastoSerializer,
     NovaSuspensaoSerializer,
     NovoLoteCobrancasSerializer,
     PaginaCobrancasSerializer,
     PaginaEntradasSerializer,
+    PaginaEstornosSerializer,
+    PaginaSaidasSerializer,
+    PedirComplementoSerializer,
     QuestionarCobrancaSerializer,
     RecorrenciaSerializer,
+    ReferenciasGastosSerializer,
+    RegistrarDevolucaoSaidaSerializer,
+    RegistrarEnvioSaidaSerializer,
+    RegistrarEstornoSerializer,
     RegistrarPagamentoSerializer,
+    RegistrarPrestacaoSerializer,
     RenegociarDividaSerializer,
     ResumoEntradasSerializer,
+    SaidaDetalheSerializer,
+    SolicitacaoGastoCriadaSerializer,
     SuspensaoSerializer,
+    UploadCotacaoSerializer,
+    VisaoDoCaixaSerializer,
 )
 from financeiro.services import (
     categorias,
@@ -74,10 +100,13 @@ from financeiro.services import (
     cobrancas,
     consulta,
     entradas,
+    estornos,
+    gastos,
     inadimplencia,
     pagamentos,
     questionamentos,
     recorrencias,
+    saidas,
     suspensoes,
 )
 from kernel.dinheiro import Dinheiro
@@ -906,3 +935,355 @@ class EntradaRejeitarView(APIView):
             texto=dados["texto"],
         )
         return Response(EntradaSerializer(item).data)
+
+
+# --- Caixa, Gastos, Saídas e Estornos ---
+
+
+def _executar_estorno(
+    request: Request,
+    alvo_id: uuid.UUID,
+    servico: Callable[..., dict[str, Any]],
+    serializer_cls: type[Any],
+) -> Response:
+    dados = _validar(RegistrarEstornoSerializer, request.data)
+    resultado = servico(
+        _ator_id(request),
+        alvo_id,
+        motivo_id=dados["motivo_id"],
+        justificativa=dados["justificativa"],
+    )
+    return Response(serializer_cls(resultado).data, status=status.HTTP_201_CREATED)
+
+
+class CaixaView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Visão consolidada do caixa", responses=VisaoDoCaixaSerializer)
+    def get(self, request: Request) -> Response:
+        visao = consulta.obter_visao_do_caixa(_ator_id(request))
+        return Response(VisaoDoCaixaSerializer(visao).data)
+
+
+class ReferenciasGastosView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Categorias, setores e pessoas para gastos e saídas",
+        responses=ReferenciasGastosSerializer,
+    )
+    def get(self, request: Request) -> Response:
+        dados = gastos.referencias(_ator_id(request))
+        return Response(ReferenciasGastosSerializer(dados).data)
+
+
+class CotacoesView(APIView):
+    permission_classes = (LeGestao,)
+    parser_classes = (MultiPartParser, FormParser)
+
+    @extend_schema(
+        summary="Enviar arquivo de cotação",
+        request=UploadCotacaoSerializer,
+        responses={201: CotacaoSerializer},
+    )
+    def post(self, request: Request) -> Response:
+        dados = _validar(UploadCotacaoSerializer, request.data)
+        cot = gastos.upload_cotacao(_ator_id(request), dados["arquivo"])
+        return Response(
+            CotacaoSerializer(
+                {
+                    "id": cot.id,
+                    "nome": cot.nome,
+                    "mime": cot.mime,
+                    "tamanho": cot.tamanho,
+                    "criada_em": cot.criada_em,
+                }
+            ).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class CotacaoDownloadView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Baixar cotação", responses={200: OpenApiTypes.BINARY})
+    def get(self, request: Request, cotacao_id: uuid.UUID) -> HttpResponse:
+        return gastos.baixar_cotacao(_ator_id(request), cotacao_id)
+
+
+class GastosView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Abrir solicitação estruturada de gasto",
+        request=NovaSolicitacaoGastoSerializer,
+        responses={201: SolicitacaoGastoCriadaSerializer},
+    )
+    def post(self, request: Request) -> Response:
+        dados = _validar(NovaSolicitacaoGastoSerializer, request.data)
+        itens = [{"descricao": i["descricao"], "valor": str(i["valor"])} for i in dados["itens"]]
+        info = gastos.abrir_solicitacao(
+            _ator_id(request),
+            descricao=dados["descricao"],
+            categoria_id=dados["categoria_id"],
+            setor_id=dados["setor_id"],
+            itens=itens,
+            cotacao_id=dados.get("cotacao_id"),
+            aprovador_indicado_id=dados.get("aprovador_indicado_id"),
+            evento_id=dados.get("evento_id"),
+        )
+        payload = {
+            "id": info.id,
+            "tipo": info.tipo,
+            "situacao": info.situacao.value,
+            "solicitante_id": info.solicitante_id,
+            "aprovador_indicado_id": info.aprovador_indicado_id,
+            "versao_atual": info.versao_atual,
+            "valor": info.valor,
+            "resumo": info.resumo,
+            "conteudo": info.conteudo,
+        }
+        return Response(SolicitacaoGastoCriadaSerializer(payload).data, status=status.HTTP_201_CREATED)
+
+
+class SaidasView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Listar saídas e filas operacionais",
+        parameters=[ConsultaSaidasSerializer],
+        responses=PaginaSaidasSerializer,
+    )
+    def get(self, request: Request) -> Response:
+        filtros = _validar(ConsultaSaidasSerializer, request.query_params)
+        pagina = consulta.listar_saidas(
+            _ator_id(request),
+            situacao=filtros.get("situacao"),
+            categoria_id=filtros.get("categoria_id"),
+            setor_id=filtros.get("setor_id"),
+            solicitante_id=filtros.get("solicitante_id"),
+            evento_id=filtros.get("evento_id"),
+            de=filtros.get("de"),
+            ate=filtros.get("ate"),
+            pendentes_envio=filtros["pendentes_envio"],
+            pendentes_prestacao=filtros["pendentes_prestacao"],
+            atrasadas=filtros["atrasadas"],
+            antes=filtros.get("antes"),
+            limite=filtros["limite"],
+        )
+        return Response(PaginaSaidasSerializer(pagina).data)
+
+
+class SaidaDetalheView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Detalhar saída", responses=SaidaDetalheSerializer)
+    def get(self, request: Request, saida_id: uuid.UUID) -> Response:
+        item = consulta.detalhe_saida(_ator_id(request), saida_id)
+        return Response(SaidaDetalheSerializer(item).data)
+
+
+class SaidaHistoricoView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Histórico da saída", responses=HistoricoSerializer(many=True))
+    def get(self, request: Request, saida_id: uuid.UUID) -> Response:
+        registros = consulta.historico_saida(_ator_id(request), saida_id)
+        return Response(HistoricoSerializer(registros, many=True).data)
+
+
+class SaidaEnviosView(APIView):
+    permission_classes = (exige_permissao(PERM_SAIDAS_ENVIAR),)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+
+    @extend_schema(
+        summary="Registrar envio de recurso para a saída",
+        request=RegistrarEnvioSaidaSerializer,
+        responses={201: SaidaDetalheSerializer},
+    )
+    def post(self, request: Request, saida_id: uuid.UUID) -> Response:
+        dados = _validar(RegistrarEnvioSaidaSerializer, request.data)
+        item = saidas.enviar_recurso(
+            _ator_id(request),
+            saida_id,
+            valor=_dinheiro_positivo(dados["valor"]),
+            arquivo=dados.get("comprovante"),
+            enviado_em=dados.get("enviado_em"),
+            complemento_id=dados.get("complemento_id"),
+        )
+        return Response(SaidaDetalheSerializer(item).data, status=status.HTTP_201_CREATED)
+
+
+class SaidaEnvioComprovanteView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Baixar comprovante de envio", responses={200: OpenApiTypes.BINARY})
+    def get(self, request: Request, saida_id: uuid.UUID, envio_id: uuid.UUID) -> HttpResponse:
+        return saidas.baixar_comprovante_envio(_ator_id(request), saida_id, envio_id)
+
+
+class SaidaPrestacoesView(APIView):
+    permission_classes = (LeGestao,)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+
+    @extend_schema(
+        summary="Enviar prestação de contas da saída",
+        request=RegistrarPrestacaoSerializer,
+        responses={201: SaidaDetalheSerializer},
+    )
+    def post(self, request: Request, saida_id: uuid.UUID) -> Response:
+        dados = _validar(RegistrarPrestacaoSerializer, request.data)
+        item = saidas.prestar_contas(
+            _ator_id(request),
+            saida_id,
+            valor=_dinheiro_positivo(dados["valor"]),
+            descricao=dados["descricao"],
+            arquivo=dados.get("comprovante"),
+        )
+        return Response(SaidaDetalheSerializer(item).data, status=status.HTTP_201_CREATED)
+
+
+class SaidaPrestacaoComprovanteView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(summary="Baixar comprovante de prestação", responses={200: OpenApiTypes.BINARY})
+    def get(self, request: Request, saida_id: uuid.UUID, prestacao_id: uuid.UUID) -> HttpResponse:
+        return saidas.baixar_comprovante_prestacao(_ator_id(request), saida_id, prestacao_id)
+
+
+class SaidaDevolverPrestacaoView(APIView):
+    permission_classes = (exige_permissao(PERM_SAIDAS_LIQUIDAR),)
+
+    @extend_schema(
+        summary="Devolver prestação de contas para ajuste",
+        request=DevolverPrestacaoSerializer,
+        responses=SaidaDetalheSerializer,
+    )
+    def post(self, request: Request, saida_id: uuid.UUID) -> Response:
+        dados = _validar(DevolverPrestacaoSerializer, request.data)
+        item = saidas.devolver_prestacao(
+            _ator_id(request),
+            saida_id,
+            motivo_id=dados["motivo_id"],
+            texto=dados["texto"],
+        )
+        return Response(SaidaDetalheSerializer(item).data)
+
+
+class SaidaDevolucoesView(APIView):
+    permission_classes = (LeGestao,)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+
+    @extend_schema(
+        summary="Registrar devolução de sobra vinculada à saída",
+        request=RegistrarDevolucaoSaidaSerializer,
+        responses={201: EntradaSerializer},
+    )
+    def post(self, request: Request, saida_id: uuid.UUID) -> Response:
+        dados = _validar(RegistrarDevolucaoSaidaSerializer, request.data)
+        item = saidas.devolver_sobra(
+            _ator_id(request),
+            saida_id,
+            valor=_dinheiro_positivo(dados["valor"]),
+            data_devolucao=dados.get("data"),
+            categoria_id=dados.get("categoria_id"),
+            origem=dados["origem"],
+            evidencia_texto=dados["evidencia_texto"],
+            arquivo=dados.get("comprovante"),
+        )
+        return Response(EntradaSerializer(item).data, status=status.HTTP_201_CREATED)
+
+
+class SaidaComplementosView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Solicitar complemento de recurso para saída em conferência",
+        request=PedirComplementoSerializer,
+        responses={201: ComplementoCriadoSerializer},
+    )
+    def post(self, request: Request, saida_id: uuid.UUID) -> Response:
+        dados = _validar(PedirComplementoSerializer, request.data)
+        itens = [{"descricao": i["descricao"], "valor": str(i["valor"])} for i in dados["itens"]]
+        item = saidas.pedir_complemento(
+            _ator_id(request),
+            saida_id,
+            itens=itens,
+            descricao=dados["descricao"],
+            cotacao_id=dados.get("cotacao_id"),
+            aprovador_indicado_id=dados.get("aprovador_indicado_id"),
+        )
+        return Response(ComplementoCriadoSerializer(item).data, status=status.HTTP_201_CREATED)
+
+
+class SaidaLiquidarView(APIView):
+    permission_classes = (exige_permissao(PERM_SAIDAS_LIQUIDAR),)
+
+    @extend_schema(
+        summary="Liquidar saída após fechamento de contas",
+        request=LiquidarSaidaSerializer,
+        responses=SaidaDetalheSerializer,
+    )
+    def post(self, request: Request, saida_id: uuid.UUID) -> Response:
+        dados = _validar(LiquidarSaidaSerializer, request.data)
+        item = saidas.liquidar(_ator_id(request), saida_id, justificativa=dados["justificativa"])
+        return Response(SaidaDetalheSerializer(item).data)
+
+
+class SaidaEstornarView(APIView):
+    permission_classes = (exige_permissao(PERM_FINANCEIRO_ESTORNAR),)
+
+    @extend_schema(
+        summary="Estornar saída liquidada",
+        request=RegistrarEstornoSerializer,
+        responses={201: EstornoSaidaRespostaSerializer},
+    )
+    def post(self, request: Request, saida_id: uuid.UUID) -> Response:
+        return _executar_estorno(request, saida_id, estornos.estornar_saida, EstornoSaidaRespostaSerializer)
+
+
+class EntradaEstornarView(APIView):
+    permission_classes = (exige_permissao(PERM_FINANCEIRO_ESTORNAR),)
+
+    @extend_schema(
+        summary="Estornar entrada validada",
+        request=RegistrarEstornoSerializer,
+        responses={201: EstornoEntradaRespostaSerializer},
+    )
+    def post(self, request: Request, entrada_id: uuid.UUID) -> Response:
+        return _executar_estorno(
+            request, entrada_id, estornos.estornar_entrada, EstornoEntradaRespostaSerializer
+        )
+
+
+class CobrancaEstornarView(APIView):
+    permission_classes = (exige_permissao(PERM_FINANCEIRO_ESTORNAR),)
+
+    @extend_schema(
+        summary="Estornar cobrança paga",
+        request=RegistrarEstornoSerializer,
+        responses={201: EstornoCobrancaRespostaSerializer},
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        return _executar_estorno(
+            request, cobranca_id, estornos.estornar_cobranca, EstornoCobrancaRespostaSerializer
+        )
+
+
+class EstornosView(APIView):
+    permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Listar lançamentos de estorno",
+        parameters=[ConsultaEstornosSerializer],
+        responses=PaginaEstornosSerializer,
+    )
+    def get(self, request: Request) -> Response:
+        filtros = _validar(ConsultaEstornosSerializer, request.query_params)
+        pagina = estornos.listar(
+            _ator_id(request),
+            alvo_tipo=filtros.get("alvo_tipo"),
+            antes=filtros.get("antes"),
+            limite=filtros["limite"],
+        )
+        return Response(PaginaEstornosSerializer(pagina).data)

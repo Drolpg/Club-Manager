@@ -118,6 +118,21 @@ def _serializar_pagamento(
     }
 
 
+def serializar_estorno_resumo(alvo: Any, cache: dict[uuid.UUID, PessoaInfo]) -> dict[str, Any] | None:
+    """Serializa o resumo de um estorno vinculado a saída, entrada ou cobrança."""
+    estorno_obj: Estorno | None = getattr(alvo, "estorno", None)
+    if estorno_obj is None:
+        return None
+    return {
+        "id": estorno_obj.id,
+        "valor": estorno_obj.valor,
+        "motivo_texto": estorno_obj.motivo_texto,
+        "justificativa": estorno_obj.justificativa,
+        "registrado_por": _pessoa_dict(estorno_obj.registrado_por_id, cache),
+        "registrado_em": estorno_obj.registrado_em,
+    }
+
+
 def serializar_detalhe(cobranca: Cobranca, *, ator_id: uuid.UUID) -> dict[str, Any]:
     usuario = exigir_diretor_ativo(ator_id)
     cache: dict[uuid.UUID, PessoaInfo] = {}
@@ -219,6 +234,7 @@ def serializar_detalhe(cobranca: Cobranca, *, ator_id: uuid.UUID) -> dict[str, A
             else None
         ),
         "parcelas": [_serializar_item(p, cache) for p in cobranca.parcelas.all()],
+        "estorno": serializar_estorno_resumo(cobranca, cache),
         "acoes": acoes_cobranca_disponiveis(fatos),
     }
 
@@ -472,7 +488,6 @@ def serializar_detalhe_saida(saida: Saida, *, ator_id: uuid.UUID) -> dict[str, A
     except BusinessError:
         itens = []
 
-    estorno_obj: Estorno | None = getattr(saida, "estorno", None)
     return {
         **base,
         "itens": itens,
@@ -553,18 +568,7 @@ def serializar_detalhe_saida(saida: Saida, *, ator_id: uuid.UUID) -> dict[str, A
             for d in saida.devolucoes.all()
         ],
         "complementos": [_serializar_complemento(c) for c in saida.complementos.all()],
-        "estorno": (
-            {
-                "id": estorno_obj.id,
-                "valor": estorno_obj.valor,
-                "motivo_texto": estorno_obj.motivo_texto,
-                "justificativa": estorno_obj.justificativa,
-                "registrado_por": _pessoa_dict(estorno_obj.registrado_por_id, cache),
-                "registrado_em": estorno_obj.registrado_em,
-            }
-            if estorno_obj is not None
-            else None
-        ),
+        "estorno": serializar_estorno_resumo(saida, cache),
         "acoes": acoes_saida_disponiveis(fatos_saida(saida, ator_id)),
     }
 

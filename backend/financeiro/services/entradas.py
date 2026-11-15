@@ -49,6 +49,7 @@ def serializar_entrada(
         "tipo": entrada.tipo,
         "categoria_id": entrada.categoria_id,
         "categoria_nome": entrada.categoria_nome,
+        "saida_id": entrada.saida_id,
         "valor": entrada.valor,
         "data": entrada.data,
         "origem": entrada.origem,
@@ -62,6 +63,7 @@ def serializar_entrada(
         "decisao_texto": entrada.decisao_texto,
         "registrada_em": entrada.registrada_em,
         "decidido_em": entrada.decidido_em,
+        "estorno": consulta.serializar_estorno_resumo(entrada, pessoas),
         "acoes": acoes_entrada_disponiveis(fatos),
     }
 
