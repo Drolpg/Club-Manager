@@ -13,10 +13,15 @@ from financeiro.http.views import (
     ChavePixReativarView,
     ChavesPixView,
     CobrancaCancelarView,
+    CobrancaComprovanteView,
     CobrancaDetalheView,
     CobrancaHistoricoView,
     CobrancaLoteView,
+    CobrancaPagamentosView,
+    CobrancaReciboView,
+    CobrancaRejeitarPagamentoView,
     CobrancasView,
+    CobrancaValidarPagamentoView,
     MinhasCobrancasView,
 )
 
@@ -81,5 +86,30 @@ urlpatterns = [
         "cobrancas/<uuid:cobranca_id>/cancelar/",
         CobrancaCancelarView.as_view(),
         name="financeiro-cobranca-cancelar",
+    ),
+    path(
+        "cobrancas/<uuid:cobranca_id>/pagamentos/",
+        CobrancaPagamentosView.as_view(),
+        name="financeiro-cobranca-pagamentos",
+    ),
+    path(
+        "cobrancas/<uuid:cobranca_id>/pagamentos/<uuid:pagamento_id>/comprovante/",
+        CobrancaComprovanteView.as_view(),
+        name="financeiro-cobranca-comprovante",
+    ),
+    path(
+        "cobrancas/<uuid:cobranca_id>/validar-pagamento/",
+        CobrancaValidarPagamentoView.as_view(),
+        name="financeiro-cobranca-validar-pagamento",
+    ),
+    path(
+        "cobrancas/<uuid:cobranca_id>/rejeitar-pagamento/",
+        CobrancaRejeitarPagamentoView.as_view(),
+        name="financeiro-cobranca-rejeitar-pagamento",
+    ),
+    path(
+        "cobrancas/<uuid:cobranca_id>/recibo/",
+        CobrancaReciboView.as_view(),
+        name="financeiro-cobranca-recibo",
     ),
 ]

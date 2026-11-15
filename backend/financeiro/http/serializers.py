@@ -6,11 +6,12 @@ from rest_framework import serializers
 
 from financeiro.domain.pix import TipoChavePix
 from financeiro.domain.transicoes import SituacaoCobranca
-from financeiro.models import NaturezaCategoria
+from financeiro.models import FormaPagamento, NaturezaCategoria
 
 _NATUREZAS = [c.value for c in NaturezaCategoria]
 _TIPOS_PIX = [t.value for t in TipoChavePix]
 _SITUACOES_COBRANCA = [s.value for s in SituacaoCobranca]
+_FORMAS_PAGAMENTO = [f.value for f in FormaPagamento]
 
 
 def _dinheiro(**extra: Any) -> serializers.DecimalField:
@@ -230,5 +231,17 @@ class NovoLoteCobrancasSerializer(_CamposComunsCobrancaSerializer):
 
 
 class CancelarCobrancaSerializer(serializers.Serializer[Any]):
+    motivo_id = serializers.UUIDField()
+    texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+class RegistrarPagamentoSerializer(serializers.Serializer[Any]):
+    forma = serializers.ChoiceField(choices=_FORMAS_PAGAMENTO)
+    data_pagamento = serializers.DateField()
+    recebedor_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+    comprovante = serializers.FileField(required=False, allow_null=True, default=None)
+
+
+class DecidirPagamentoSerializer(serializers.Serializer[Any]):
     motivo_id = serializers.UUIDField()
     texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")

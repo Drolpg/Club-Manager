@@ -3,15 +3,22 @@
 import uuid
 from typing import Any
 
+from django.http import HttpResponse
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.exceptions import NotAuthenticated
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from financeiro.domain.autorizacao import PERM_COBRANCAS_CANCELAR, PERM_COBRANCAS_CRIAR
+from financeiro.domain.autorizacao import (
+    PERM_COBRANCAS_CANCELAR,
+    PERM_COBRANCAS_CRIAR,
+    PERM_PAGAMENTOS_VALIDAR,
+)
 from financeiro.erros import erro
 from financeiro.http.permissions import DiretorAtivo, EhAdmin, LeGestao, exige_permissao
 from financeiro.http.serializers import (
@@ -24,6 +31,7 @@ from financeiro.http.serializers import (
     ConsultaChavesPixSerializer,
     ConsultaCobrancasSerializer,
     ConsultaMinhasCobrancasSerializer,
+    DecidirPagamentoSerializer,
     EditarChavePixSerializer,
     HistoricoSerializer,
     NomeCategoriaSerializer,
@@ -32,8 +40,9 @@ from financeiro.http.serializers import (
     NovaCobrancaSerializer,
     NovoLoteCobrancasSerializer,
     PaginaCobrancasSerializer,
+    RegistrarPagamentoSerializer,
 )
-from financeiro.services import categorias, chaves_pix, cobrancas, consulta
+from financeiro.services import categorias, chaves_pix, cobrancas, consulta, pagamentos
 from kernel.dinheiro import Dinheiro
 
 
@@ -361,3 +370,79 @@ class CobrancaCancelarView(APIView):
         )
         detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
         return Response(CobrancaDetalheSerializer(detalhe).data)
+
+
+class CobrancaPagamentosView(APIView):
+    permission_classes = (DiretorAtivo,)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+
+    @extend_schema(
+        summary="Registrar pagamento de cobrança",
+        request=RegistrarPagamentoSerializer,
+        responses={201: CobrancaDetalheSerializer},
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        ator_id = _ator_id(request)
+        dados = _validar(RegistrarPagamentoSerializer, request.data)
+        cobranca = pagamentos.registrar(
+            ator_id,
+            cobranca_id,
+            forma=dados["forma"],
+            data_pagamento=dados["data_pagamento"],
+            recebedor_id=dados.get("recebedor_id"),
+            arquivo=dados.get("comprovante"),
+        )
+        detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
+        return Response(CobrancaDetalheSerializer(detalhe).data, status=status.HTTP_201_CREATED)
+
+
+class CobrancaComprovanteView(APIView):
+    permission_classes = (DiretorAtivo,)
+
+    @extend_schema(summary="Baixar comprovante privado", responses={200: OpenApiTypes.BINARY})
+    def get(self, request: Request, cobranca_id: uuid.UUID, pagamento_id: uuid.UUID) -> HttpResponse:
+        return pagamentos.baixar_comprovante(_ator_id(request), cobranca_id, pagamento_id)
+
+
+class CobrancaValidarPagamentoView(APIView):
+    permission_classes = (exige_permissao(PERM_PAGAMENTOS_VALIDAR),)
+
+    @extend_schema(
+        summary="Validar pagamento",
+        request=DecidirPagamentoSerializer,
+        responses=CobrancaDetalheSerializer,
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        ator_id = _ator_id(request)
+        dados = _validar(DecidirPagamentoSerializer, request.data)
+        cobranca = pagamentos.validar(
+            ator_id, cobranca_id, motivo_id=dados["motivo_id"], texto=dados["texto"]
+        )
+        detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
+        return Response(CobrancaDetalheSerializer(detalhe).data)
+
+
+class CobrancaRejeitarPagamentoView(APIView):
+    permission_classes = (exige_permissao(PERM_PAGAMENTOS_VALIDAR),)
+
+    @extend_schema(
+        summary="Rejeitar pagamento",
+        request=DecidirPagamentoSerializer,
+        responses=CobrancaDetalheSerializer,
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        ator_id = _ator_id(request)
+        dados = _validar(DecidirPagamentoSerializer, request.data)
+        cobranca = pagamentos.rejeitar(
+            ator_id, cobranca_id, motivo_id=dados["motivo_id"], texto=dados["texto"]
+        )
+        detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
+        return Response(CobrancaDetalheSerializer(detalhe).data)
+
+
+class CobrancaReciboView(APIView):
+    permission_classes = (DiretorAtivo,)
+
+    @extend_schema(summary="Emitir recibo PDF da cobrança paga", responses={200: OpenApiTypes.BINARY})
+    def get(self, request: Request, cobranca_id: uuid.UUID) -> HttpResponse:
+        return pagamentos.emitir_recibo(_ator_id(request), cobranca_id)
