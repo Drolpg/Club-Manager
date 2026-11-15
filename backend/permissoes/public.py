@@ -20,10 +20,12 @@ from permissoes.services.consulta import (
     ItemInfo,
     classificacao_de,
     le_gestao,
+    listar_setores_ativos,
     nome_da_permissao,
     permissoes_de,
     pode,
     quem_pode,
+    setor_por_id,
     usuarios_ativos_com_cargo,
 )
 
@@ -53,10 +55,12 @@ __all__ = (
     "TipoDeOrigem",
     "classificacao_de",
     "le_gestao",
+    "listar_setores_ativos",
     "nome_da_permissao",
     "permissoes_de",
     "pode",
     "quem_pode",
     "registrar_permissao",
+    "setor_por_id",
     "usuarios_ativos_com_cargo",
 )

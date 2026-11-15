@@ -166,7 +166,7 @@ Só o dono do projeto muda um status para aceito ou resolvido.
 | ADR-010 | Motor de aprovações | Um aprovador por versão; o que exige duas decisões são duas solicitações ligadas; versões e decisões imutáveis, também no banco; tipos se registram no motor | Aprovação por vários setores na mesma solicitação | Aceita |
 | ADR-011 | Auditoria | Registro só de inserção, na mesma transação, com gatilho no banco que recusa `UPDATE` e `DELETE`; guarda só IDs | — | Aceita |
 | ADR-012 | Primeiro admin | Comando `criar_admin` que lê a senha sem ecoar e não a aceita por argumento; nenhuma senha padrão | Senha ou usuário padrão | Aceita |
-| ADR-013 | Estornos e cancelamentos | Lançamento novo ligado ao original; estado final imutável | Edição do registro | Pendente (M7) |
+| ADR-013 | Estornos e cancelamentos | Lançamento novo ligado ao original; estado final imutável | Edição do registro | Aceita |
 | ADR-014 | Armazenamento de anexos | Abstração `STORAGES` do Django (`FileSystemStorage` em `MEDIA_ROOT` com volume `media-data`, download só por rota autenticada da API com `nosniff` e `no-store`; `InMemoryStorage` nos testes) | Armazenamento externo em objeto na etapa 1; `bytea` no banco | Aceita |
 | ADR-015 | Provedor de e-mail | SMTP genérico por configuração; escolha do provedor na produção | — | Não bloqueia (M12) |
 | ADR-016 | CI/CD, deploy e dimensionamento | CI no plano gratuito do GitHub Actions; deploy, HTTPS, backup e rollback na instância única | — | Pendente (M12) |

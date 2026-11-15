@@ -9,7 +9,9 @@ import {
   type Versao,
 } from '../api/aprovacoes'
 import { Alerta, Pagina, Selecao } from '../componentes'
+import { financeiro, isConteudoGasto, type VisaoDoCaixa } from '../api/financeiro'
 import { AcoesDaSolicitacao } from './AcoesDaSolicitacao'
+import { CartoesDoCaixa, DetalhesConteudoGasto } from './apoioSaidas'
 import { dataEHora, reais } from '../formatos'
 import {
   DECISAO_DA_SOLICITACAO,
@@ -245,7 +247,15 @@ function DecisaoDaVersao({ versao }: { versao: Versao }) {
   )
 }
 
-function VersaoDaSolicitacao({ versao, temValor }: { versao: Versao; temValor: boolean }) {
+function VersaoDaSolicitacao({
+  versao,
+  temValor,
+  tipo,
+}: {
+  versao: Versao
+  temValor: boolean
+  tipo: string
+}) {
   return (
     <section aria-label={`Versão ${versao.numero}`}>
       <h3>
@@ -270,7 +280,11 @@ function VersaoDaSolicitacao({ versao, temValor }: { versao: Versao; temValor: b
         )}
       </dl>
       <h4>Conteúdo</h4>
-      <Conteudo valor={versao.conteudo} />
+      {tipo === 'financeiro.gasto' && isConteudoGasto(versao.conteudo) ? (
+        <DetalhesConteudoGasto conteudo={versao.conteudo} />
+      ) : (
+        <Conteudo valor={versao.conteudo} />
+      )}
       <DecisaoDaVersao versao={versao} />
     </section>
   )
@@ -297,6 +311,7 @@ export function DetalheDeSolicitacao() {
   const { id = '' } = useParams()
   const [detalhe, definirDetalhe] = useState<DetalheDaSolicitacao | null>(null)
   const [historico, definirHistorico] = useState<RegistroDoHistorico[]>([])
+  const [caixa, definirCaixa] = useState<VisaoDoCaixa | null>(null)
   const [erro, definirErro] = useState<unknown>(null)
   // Sobe depois de cada comando, para o detalhe e o histórico virem de novo da API.
   const [recarga, definirRecarga] = useState(0)
@@ -308,6 +323,14 @@ export function DetalheDeSolicitacao() {
         if (!vivo) return
         definirDetalhe(encontrado)
         definirHistorico(registros)
+        if (encontrado.tipo === 'financeiro.gasto' && encontrado.situacao === 'EM_ANALISE') {
+          void financeiro
+            .caixa()
+            .then((cx) => vivo && definirCaixa(cx))
+            .catch(() => undefined)
+        } else {
+          definirCaixa(null)
+        }
       })
       .catch((falha) => vivo && definirErro(falha))
     return () => {
@@ -335,10 +358,18 @@ export function DetalheDeSolicitacao() {
       <p>Solicitante: {detalhe.solicitante.nome}</p>
       {detalhe.aprovador_indicado && <p>Aprovador indicado: {detalhe.aprovador_indicado.nome}</p>}
       <Alerta>{erro ? mensagemDoErro(erro) : null}</Alerta>
+      {caixa && detalhe.tipo === 'financeiro.gasto' && detalhe.situacao === 'EM_ANALISE' && (
+        <CartoesDoCaixa caixa={caixa} />
+      )}
       <AcoesDaSolicitacao detalhe={detalhe} aoMudar={() => definirRecarga((atual) => atual + 1)} />
       <h2>Versões</h2>
       {[...detalhe.versoes].reverse().map((versao) => (
-        <VersaoDaSolicitacao key={versao.numero} versao={versao} temValor={detalhe.tem_valor} />
+        <VersaoDaSolicitacao
+          key={versao.numero}
+          versao={versao}
+          temValor={detalhe.tem_valor}
+          tipo={detalhe.tipo}
+        />
       ))}
       <Historico registros={historico} />
     </Pagina>

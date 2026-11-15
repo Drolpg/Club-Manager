@@ -7,7 +7,9 @@ import {
   type Motivo,
 } from '../api/aprovacoes'
 import { Alerta, Campo, Selecao } from '../componentes'
+import { financeiro, isConteudoGasto, type ConteudoGasto, type ReferenciasGastos } from '../api/financeiro'
 import { errosPorCampo, mensagemDoErro } from '../mensagens'
+import { ListaDeItensEditavel, type ItemEditavel } from './apoioSaidas'
 
 const ROTULO: Record<Acao, string> = {
   retirar: 'Retirar',
@@ -99,6 +101,9 @@ function FormularioDaAcao({
 }) {
   const motivos = useMotivos(acao)
   const atual = detalhe.versoes.find((v) => v.numero === detalhe.numero_da_versao_atual)
+  const ehGasto = detalhe.tipo === 'financeiro.gasto' && isConteudoGasto(atual?.conteudo)
+  const gastoInicial: ConteudoGasto | null = ehGasto ? (atual?.conteudo as ConteudoGasto) : null
+
   const [motivoId, definirMotivoId] = useState('')
   const [texto, definirTexto] = useState('')
   const [mensagem, definirMensagem] = useState('')
@@ -106,9 +111,41 @@ function FormularioDaAcao({
   const [justificativa, definirJustificativa] = useState('')
   const [motivo, definirMotivo] = useState('')
   const [conteudo, definirConteudo] = useState(() => JSON.stringify(atual?.conteudo ?? {}, null, 2))
+  const [refsGasto, definirRefsGasto] = useState<ReferenciasGastos | null>(null)
+  const [gastoDesc, definirGastoDesc] = useState(() => gastoInicial?.descricao ?? '')
+  const [gastoCat, definirGastoCat] = useState(() => gastoInicial?.categoria_id ?? '')
+  const [gastoSetor, definirGastoSetor] = useState(() => gastoInicial?.setor_id ?? '')
+  const [gastoItens, definirGastoItens] = useState<ItemEditavel[]>(() =>
+    gastoInicial?.itens.map((it, idx) => ({ chave: idx + 1, descricao: it.descricao, valor: it.valor })) ?? [
+      { chave: 1, descricao: '', valor: '' },
+    ],
+  )
+  const [gastoCotacaoId] = useState<string | null>(() => gastoInicial?.cotacao_id ?? null)
   const [erro, definirErro] = useState<unknown>(null)
   const [enviando, definirEnviando] = useState(false)
   const campos = errosPorCampo(erro)
+
+  useEffect(() => {
+    if (!ehGasto || (acao !== 'reenviar' && acao !== 'editar')) return
+    let vivo = true
+    financeiro
+      .referenciasGastos()
+      .then((dados) => vivo && definirRefsGasto(dados))
+      .catch(() => undefined)
+    return () => {
+      vivo = false
+    }
+  }, [ehGasto, acao])
+
+  function conteudoEstruturado(): Record<string, unknown> {
+    return {
+      descricao: gastoDesc,
+      categoria_id: gastoCat,
+      setor_id: gastoSetor,
+      itens: gastoItens.map((it) => ({ descricao: it.descricao, valor: it.valor })),
+      cotacao_id: gastoCotacaoId,
+    }
+  }
 
   function corpo(): Record<string, unknown> {
     switch (acao) {
@@ -122,9 +159,9 @@ function FormularioDaAcao({
       case 'cancelar':
         return { motivo }
       case 'reenviar':
-        return { conteudo: lerConteudo(conteudo) }
+        return { conteudo: ehGasto ? conteudoEstruturado() : lerConteudo(conteudo) }
       case 'editar':
-        return { conteudo: lerConteudo(conteudo), justificativa }
+        return { conteudo: ehGasto ? conteudoEstruturado() : lerConteudo(conteudo), justificativa }
       default:
         return {}
     }
@@ -204,15 +241,38 @@ function FormularioDaAcao({
   } else if (acao === 'reenviar' || acao === 'editar') {
     camposDaAcao = (
       <>
-        <div className="campo">
-          <label htmlFor={`conteudo-${detalhe.id}`}>Conteúdo (JSON)</label>
-          <textarea
-            id={`conteudo-${detalhe.id}`}
-            rows={8}
-            value={conteudo}
-            onChange={(evento) => definirConteudo(evento.target.value)}
-          />
-        </div>
+        {ehGasto ? (
+          <>
+            <Campo rotulo="Descrição geral" value={gastoDesc} aoMudar={definirGastoDesc} erros={campos.descricao} />
+            <Selecao rotulo="Categoria de saída" value={gastoCat} aoMudar={definirGastoCat}>
+              <option value="">Escolha a categoria</option>
+              {(refsGasto?.categorias_saida ?? []).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome}
+                </option>
+              ))}
+            </Selecao>
+            <Selecao rotulo="Setor" value={gastoSetor} aoMudar={definirGastoSetor}>
+              <option value="">Escolha o setor</option>
+              {(refsGasto?.setores ?? []).map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.nome}
+                </option>
+              ))}
+            </Selecao>
+            <ListaDeItensEditavel itens={gastoItens} aoMudar={definirGastoItens} erros={campos.itens} />
+          </>
+        ) : (
+          <div className="campo">
+            <label htmlFor={`conteudo-${detalhe.id}`}>Conteúdo (JSON)</label>
+            <textarea
+              id={`conteudo-${detalhe.id}`}
+              rows={8}
+              value={conteudo}
+              onChange={(evento) => definirConteudo(evento.target.value)}
+            />
+          </div>
+        )}
         {acao === 'editar' && (
           <AreaDeTexto
             rotulo="Justificativa (opcional)"

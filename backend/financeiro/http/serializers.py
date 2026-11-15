@@ -6,13 +6,15 @@ from rest_framework import serializers
 
 from financeiro.domain.competencia import Periodicidade
 from financeiro.domain.pix import TipoChavePix
-from financeiro.domain.transicoes import SituacaoCobranca, SituacaoEntrada
-from financeiro.models import DecisaoQuestionamento, FormaPagamento, NaturezaCategoria
+from financeiro.domain.transicoes import SituacaoCobranca, SituacaoEntrada, SituacaoSaida
+from financeiro.models import AlvoEstorno, DecisaoQuestionamento, FormaPagamento, NaturezaCategoria
 
 _NATUREZAS = [c.value for c in NaturezaCategoria]
 _TIPOS_PIX = [t.value for t in TipoChavePix]
 _SITUACOES_COBRANCA = [s.value for s in SituacaoCobranca]
 _SITUACOES_ENTRADA = [s.value for s in SituacaoEntrada]
+_SITUACOES_SAIDA = [s.value for s in SituacaoSaida]
+_ALVOS_ESTORNO = [a.value for a in AlvoEstorno]
 _FORMAS_PAGAMENTO = [f.value for f in FormaPagamento]
 _PERIODICIDADES = [p.value for p in Periodicidade]
 _DECISOES_QUESTIONAMENTO = [d.value for d in DecisaoQuestionamento]
@@ -35,6 +37,15 @@ class HistoricoSerializer(serializers.Serializer[Any]):
     justificativa = serializers.CharField(allow_blank=True)
     dados = serializers.DictField()
     criado_em = serializers.DateTimeField()
+
+
+class EstornoResumoSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    valor = _dinheiro()
+    motivo_texto = serializers.CharField()
+    justificativa = serializers.CharField()
+    registrado_por = PessoaSerializer()
+    registrado_em = serializers.DateTimeField()
 
 
 # --- Categorias ---
@@ -190,6 +201,7 @@ class CobrancaDetalheSerializer(CobrancaItemSerializer):
     convocacao = ConvocacaoSerializer(allow_null=True)
     renegociacao = RenegociacaoSerializer(allow_null=True)
     parcelas = CobrancaItemSerializer(many=True)
+    estorno = EstornoResumoSerializer(allow_null=True)
     acoes = serializers.ListField(child=serializers.CharField())
 
 
@@ -361,6 +373,7 @@ class EntradaSerializer(serializers.Serializer[Any]):
     tipo = serializers.CharField()
     categoria_id = serializers.UUIDField()
     categoria_nome = serializers.CharField()
+    saida_id = serializers.UUIDField(allow_null=True)
     valor = _dinheiro()
     data = serializers.DateField()  # type: ignore[assignment]
     origem = serializers.CharField()
@@ -374,6 +387,7 @@ class EntradaSerializer(serializers.Serializer[Any]):
     decisao_texto = serializers.CharField(allow_blank=True)
     registrada_em = serializers.DateTimeField()
     decidido_em = serializers.DateTimeField(allow_null=True)
+    estorno = EstornoResumoSerializer(allow_null=True)
     acoes = serializers.ListField(child=serializers.CharField())
 
 
@@ -415,3 +429,271 @@ class NovaEntradaSerializer(serializers.Serializer[Any]):
 class DecidirEntradaSerializer(serializers.Serializer[Any]):
     motivo_id = serializers.UUIDField()
     texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+# --- Gastos, Saídas, Caixa e Estornos ---
+
+
+class VisaoDoCaixaSerializer(serializers.Serializer[Any]):
+    total_entradas_validadas = _dinheiro()
+    total_saidas_liquidadas = _dinheiro()
+    total_comprometido = _dinheiro()
+
+
+class ReferenciaItemSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    nome = serializers.CharField()
+
+
+class ReferenciasGastosSerializer(serializers.Serializer[Any]):
+    categorias_saida = ReferenciaItemSerializer(many=True)
+    categorias_entrada = ReferenciaItemSerializer(many=True)
+    setores = ReferenciaItemSerializer(many=True)
+    aprovadores_gastos = PessoaSerializer(many=True)
+    diretores_ativos = PessoaSerializer(many=True)
+
+
+class UploadCotacaoSerializer(serializers.Serializer[Any]):
+    arquivo = serializers.FileField()
+
+
+class CotacaoSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    nome = serializers.CharField()
+    mime = serializers.CharField()
+    tamanho = serializers.IntegerField()
+    criada_em = serializers.DateTimeField()
+
+
+class ItemGastoSerializer(serializers.Serializer[Any]):
+    descricao = serializers.CharField(max_length=160, allow_blank=True)
+    valor = _dinheiro()
+
+
+class NovaSolicitacaoGastoSerializer(serializers.Serializer[Any]):
+    descricao = serializers.CharField(max_length=200, allow_blank=True)
+    categoria_id = serializers.UUIDField()
+    setor_id = serializers.UUIDField()
+    itens = ItemGastoSerializer(many=True)
+    cotacao_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+    aprovador_indicado_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+    evento_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+
+
+class SolicitacaoGastoCriadaSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    tipo = serializers.CharField()
+    situacao = serializers.CharField()
+    solicitante_id = serializers.UUIDField()
+    aprovador_indicado_id = serializers.UUIDField(allow_null=True)
+    versao_atual = serializers.IntegerField()
+    valor = _dinheiro(allow_null=True)
+    resumo = serializers.CharField()
+    conteudo = serializers.DictField()
+
+
+class ConsultaSaidasSerializer(serializers.Serializer[Any]):
+    situacao = serializers.ChoiceField(choices=_SITUACOES_SAIDA, required=False)
+    categoria_id = serializers.UUIDField(required=False)
+    setor_id = serializers.UUIDField(required=False)
+    solicitante_id = serializers.UUIDField(required=False)
+    evento_id = serializers.UUIDField(required=False)
+    de = serializers.DateField(required=False)
+    ate = serializers.DateField(required=False)
+    pendentes_envio = serializers.BooleanField(required=False, default=False)
+    pendentes_prestacao = serializers.BooleanField(required=False, default=False)
+    atrasadas = serializers.BooleanField(required=False, default=False)
+    antes = serializers.UUIDField(required=False)
+    limite = serializers.IntegerField(min_value=1, max_value=50, default=20)
+
+
+class SaidaItemSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    solicitacao_id = serializers.UUIDField()
+    versao_aprovada = serializers.IntegerField()
+    solicitante = PessoaSerializer()
+    categoria_id = serializers.UUIDField()
+    categoria_nome = serializers.CharField()
+    setor_id = serializers.UUIDField()
+    setor_nome = serializers.CharField()
+    evento_id = serializers.UUIDField(allow_null=True)
+    descricao = serializers.CharField()
+    valor_aprovado = _dinheiro()
+    valor_aprovado_total = _dinheiro()
+    total_enviado = _dinheiro()
+    total_gasto = _dinheiro(allow_null=True)
+    total_devolvido_validado = _dinheiro()
+    total_devolvido_pendente = _dinheiro()
+    valor_nao_reembolsado = _dinheiro()
+    situacao = serializers.CharField()
+    em_atraso = serializers.BooleanField()
+    tem_complemento_aprovado_para_enviar = serializers.BooleanField()
+    tem_complemento_em_andamento = serializers.BooleanField()
+    primeiro_envio_em = serializers.DateTimeField(allow_null=True)
+    criada_em = serializers.DateTimeField()
+    atualizada_em = serializers.DateTimeField()
+
+
+class PaginaSaidasSerializer(serializers.Serializer[Any]):
+    itens = SaidaItemSerializer(many=True)
+    tem_mais = serializers.BooleanField()
+
+
+class CotacaoResumoSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    nome = serializers.CharField()
+    disponivel = serializers.BooleanField()
+
+
+class EnvioSaidaSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    valor = _dinheiro()
+    complemento_id = serializers.UUIDField(allow_null=True)
+    enviado_por = PessoaSerializer()
+    enviado_em = serializers.DateTimeField()
+    comprovante_disponivel = serializers.BooleanField()
+    comprovante_nome = serializers.CharField(allow_blank=True)
+
+
+class PrestacaoSaidaSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    valor = _dinheiro()
+    descricao = serializers.CharField(allow_blank=True)
+    registrada_por = PessoaSerializer()
+    registrada_em = serializers.DateTimeField()
+    situacao = serializers.CharField()
+    comprovante_disponivel = serializers.BooleanField()
+    comprovante_nome = serializers.CharField(allow_blank=True)
+    devolvida_por = PessoaSerializer(allow_null=True)
+    motivo_devolucao_texto = serializers.CharField(allow_blank=True)
+    texto_devolucao = serializers.CharField(allow_blank=True)
+    devolvida_em = serializers.DateTimeField(allow_null=True)
+
+
+class DevolucaoSaidaSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    valor = _dinheiro()
+    data = serializers.DateField()  # type: ignore[assignment]
+    origem = serializers.CharField()
+    evidencia_texto = serializers.CharField(allow_blank=True)
+    situacao = serializers.CharField()
+    registrada_por = PessoaSerializer()
+    registrada_em = serializers.DateTimeField()
+    decidido_por = PessoaSerializer(allow_null=True)
+    motivo_texto = serializers.CharField(allow_blank=True)
+    decisao_texto = serializers.CharField(allow_blank=True)
+    decidido_em = serializers.DateTimeField(allow_null=True)
+    comprovante_disponivel = serializers.BooleanField()
+    comprovante_nome = serializers.CharField(allow_blank=True)
+
+
+class ComplementoSaidaSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    solicitacao_id = serializers.UUIDField()
+    valor = _dinheiro()
+    situacao = serializers.CharField()
+    aprovado_em = serializers.DateTimeField(allow_null=True)
+    decidido_em = serializers.DateTimeField(allow_null=True)
+    criado_em = serializers.DateTimeField()
+    envio_id = serializers.UUIDField(allow_null=True)
+
+
+class SaidaDetalheSerializer(SaidaItemSerializer):
+    itens = ItemGastoSerializer(many=True)
+    liquidacao_justificativa = serializers.CharField(allow_blank=True)
+    liquidada_por = PessoaSerializer(allow_null=True)
+    liquidada_em = serializers.DateTimeField(allow_null=True)
+    cancelada_em = serializers.DateTimeField(allow_null=True)
+    cotacao = CotacaoResumoSerializer(allow_null=True)
+    envios = EnvioSaidaSerializer(many=True)
+    prestacoes = PrestacaoSaidaSerializer(many=True)
+    devolucoes = DevolucaoSaidaSerializer(many=True)
+    complementos = ComplementoSaidaSerializer(many=True)
+    estorno = EstornoResumoSerializer(allow_null=True)
+    acoes = serializers.ListField(child=serializers.CharField())
+
+
+class RegistrarEnvioSaidaSerializer(serializers.Serializer[Any]):
+    valor = _dinheiro()
+    enviado_em = serializers.DateTimeField(required=False, allow_null=True, default=None)
+    complemento_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+    comprovante = serializers.FileField(required=False, allow_null=True, default=None)
+
+
+class RegistrarPrestacaoSerializer(serializers.Serializer[Any]):
+    valor = _dinheiro()
+    descricao = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+    comprovante = serializers.FileField(required=False, allow_null=True, default=None)
+
+
+class DevolverPrestacaoSerializer(serializers.Serializer[Any]):
+    motivo_id = serializers.UUIDField()
+    texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+class RegistrarDevolucaoSaidaSerializer(serializers.Serializer[Any]):
+    valor = _dinheiro()
+    data = serializers.DateField(required=False, allow_null=True, default=None)  # type: ignore[assignment]
+    categoria_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+    origem = serializers.CharField(max_length=150, required=False, allow_blank=True, default="")
+    evidencia_texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+    comprovante = serializers.FileField(required=False, allow_null=True, default=None)
+
+
+class PedirComplementoSerializer(serializers.Serializer[Any]):
+    itens = ItemGastoSerializer(many=True)
+    descricao = serializers.CharField(max_length=200, required=False, allow_blank=True, default="")
+    cotacao_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+    aprovador_indicado_id = serializers.UUIDField(required=False, allow_null=True, default=None)
+
+
+class ComplementoCriadoSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    saida_id = serializers.UUIDField()
+    solicitacao_id = serializers.UUIDField()
+    valor = _dinheiro()
+    situacao = serializers.CharField()
+
+
+class LiquidarSaidaSerializer(serializers.Serializer[Any]):
+    justificativa = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+class RegistrarEstornoSerializer(serializers.Serializer[Any]):
+    motivo_id = serializers.UUIDField()
+    justificativa = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+class ConsultaEstornosSerializer(serializers.Serializer[Any]):
+    alvo_tipo = serializers.ChoiceField(choices=_ALVOS_ESTORNO, required=False)
+    antes = serializers.UUIDField(required=False)
+    limite = serializers.IntegerField(min_value=1, max_value=50, default=20)
+
+
+class EstornoItemSerializer(serializers.Serializer[Any]):
+    id = serializers.UUIDField()
+    alvo_tipo = serializers.CharField()
+    alvo_id = serializers.UUIDField()
+    valor = _dinheiro()
+    motivo_id = serializers.UUIDField()
+    motivo_texto = serializers.CharField()
+    justificativa = serializers.CharField()
+    registrado_por = PessoaSerializer()
+    registrado_em = serializers.DateTimeField()
+
+
+class PaginaEstornosSerializer(serializers.Serializer[Any]):
+    itens = EstornoItemSerializer(many=True)
+    tem_mais = serializers.BooleanField()
+
+
+class EstornoSaidaRespostaSerializer(EstornoItemSerializer):
+    registro = SaidaDetalheSerializer()
+
+
+class EstornoEntradaRespostaSerializer(EstornoItemSerializer):
+    registro = EntradaSerializer()
+
+
+class EstornoCobrancaRespostaSerializer(EstornoItemSerializer):
+    registro = CobrancaDetalheSerializer()

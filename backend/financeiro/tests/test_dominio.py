@@ -190,16 +190,21 @@ class TestQrCodeSvg:
 
 class TestTransicoes:
     def test_INV_COB_02_situacoes_finais_nao_aceitam_comandos(self) -> None:
-        finais = (
-            SituacaoCobranca.PAGA,
+        # Adendo P4 (M7): `PAGA` aceita apenas `ESTORNAR`, enquanto `ESTORNADA` e as demais finais
+        # não aceitam nenhum comando.
+        finais_imutaveis = (
             SituacaoCobranca.ISENTA,
             SituacaoCobranca.CANCELADA,
             SituacaoCobranca.PERDOADA,
             SituacaoCobranca.RENEGOCIADA,
+            SituacaoCobranca.ESTORNADA,
         )
-        for sit in finais:
+        for sit in finais_imutaveis:
             for cmd in ComandoCobranca:
                 assert not transicao_cobranca_permitida(sit, cmd), f"{sit} não aceita {cmd}"
+        for cmd in ComandoCobranca:
+            esperado = cmd == ComandoCobranca.ESTORNAR
+            assert transicao_cobranca_permitida(SituacaoCobranca.PAGA, cmd) is esperado
 
     def test_INV_COB_07_estado_sem_pagamento(self) -> None:
         hoje = date(2026, 11, 15)

@@ -17,6 +17,7 @@ import {
 } from '../mensagens'
 import { AcoesDaCobranca } from './AcoesDaCobranca'
 import { QrCodePix } from './QrCodePix'
+import { BlocoEstorno } from './apoioSaidas'
 
 /** Detalhe da cobrança: Pix copia e cola, QR Code SVG seguro, comprovantes, recibo e ações. */
 export function DetalheDaCobranca() {
@@ -175,6 +176,8 @@ export function DetalheDaCobranca() {
           </p>
         </section>
       )}
+
+      {detalhe.estorno && <BlocoEstorno estorno={detalhe.estorno} />}
 
       <section aria-label="Histórico">
         <h2>Histórico</h2>

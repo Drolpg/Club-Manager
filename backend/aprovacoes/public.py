@@ -19,7 +19,7 @@ from typing import Any
 
 from aprovacoes.domain.transicoes import Situacao
 from aprovacoes.services import execucao, solicitacoes
-from aprovacoes.services.execucao import situacao_de
+from aprovacoes.services.execucao import SolicitacaoInfo, obter_solicitacao, situacao_de
 from aprovacoes.services.motivos import motivo_aplicado
 from aprovacoes.tipos import (
     Acontecimento,
@@ -54,15 +54,23 @@ def encerrar(solicitacao_id: uuid.UUID, *, ator_id: uuid.UUID | None = None) -> 
     execucao.encerrar(solicitacao_id, ator_id=ator_id)
 
 
+def cancelar(solicitacao_id: uuid.UUID, *, ator_id: uuid.UUID, motivo: str) -> None:
+    """Cancela a solicitação com motivo pelo solicitante enquanto ainda é possível."""
+    solicitacoes.cancelar(ator_id=ator_id, solicitacao_id=solicitacao_id, motivo=motivo)
+
+
 __all__ = (
     "Acontecimento",
     "ConteudoPreparado",
     "MudancaDeSolicitacao",
     "Situacao",
+    "SolicitacaoInfo",
+    "cancelar",
     "encerrar",
     "enviar",
     "iniciar_execucao",
     "motivo_aplicado",
+    "obter_solicitacao",
     "registrar_tipo",
     "registrar_tipo_de_decisao",
     "situacao_de",

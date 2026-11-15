@@ -13,6 +13,7 @@ class SituacaoCobranca(StrEnum):
     CANCELADA = "CANCELADA"
     PERDOADA = "PERDOADA"
     RENEGOCIADA = "RENEGOCIADA"
+    ESTORNADA = "ESTORNADA"
 
 
 SITUACOES_FINAIS_COBRANCA = frozenset(
@@ -22,6 +23,7 @@ SITUACOES_FINAIS_COBRANCA = frozenset(
         SituacaoCobranca.CANCELADA,
         SituacaoCobranca.PERDOADA,
         SituacaoCobranca.RENEGOCIADA,
+        SituacaoCobranca.ESTORNADA,
     }
 )
 
@@ -40,6 +42,7 @@ class ComandoCobranca(StrEnum):
     PERDOAR = "perdoar"
     RENEGOCIAR = "renegociar"
     MANTER_DIVIDA = "manter_divida"
+    ESTORNAR = "estornar"
 
 
 _TRANSICOES_COBRANCA: dict[SituacaoCobranca, frozenset[ComandoCobranca]] = {
@@ -73,6 +76,7 @@ _TRANSICOES_COBRANCA: dict[SituacaoCobranca, frozenset[ComandoCobranca]] = {
             ComandoCobranca.REJEITAR_PAGAMENTO,
         }
     ),
+    SituacaoCobranca.PAGA: frozenset({ComandoCobranca.ESTORNAR}),
 }
 
 
@@ -103,16 +107,84 @@ class SituacaoEntrada(StrEnum):
     EM_VALIDACAO = "EM_VALIDACAO"
     VALIDADA = "VALIDADA"
     REJEITADA = "REJEITADA"
+    ESTORNADA = "ESTORNADA"
 
 
 class ComandoEntrada(StrEnum):
     VALIDAR = "validar"
     REJEITAR = "rejeitar"
+    ESTORNAR = "estornar"
+
+
+_TRANSICOES_ENTRADA: dict[SituacaoEntrada, frozenset[ComandoEntrada]] = {
+    SituacaoEntrada.EM_VALIDACAO: frozenset({ComandoEntrada.VALIDAR, ComandoEntrada.REJEITAR}),
+    SituacaoEntrada.VALIDADA: frozenset({ComandoEntrada.ESTORNAR}),
+}
 
 
 def transicao_entrada_permitida(situacao: SituacaoEntrada, comando: ComandoEntrada) -> bool:
-    """Entrada só recebe validação ou rejeição enquanto está em validação."""
-    return situacao == SituacaoEntrada.EM_VALIDACAO and comando in (
-        ComandoEntrada.VALIDAR,
-        ComandoEntrada.REJEITAR,
-    )
+    """Entrada recebe decisão em validação e só pode ser estornada depois de validada."""
+    return comando in _TRANSICOES_ENTRADA.get(situacao, frozenset())
+
+
+class SituacaoSaida(StrEnum):
+    AGUARDANDO_ENVIO = "AGUARDANDO_ENVIO"
+    RECURSO_ENVIADO = "RECURSO_ENVIADO"
+    EM_CONFERENCIA = "EM_CONFERENCIA"
+    LIQUIDADA = "LIQUIDADA"
+    CANCELADA = "CANCELADA"
+    ESTORNADA = "ESTORNADA"
+
+
+SITUACOES_FINAIS_SAIDA = frozenset(
+    {
+        SituacaoSaida.LIQUIDADA,
+        SituacaoSaida.CANCELADA,
+        SituacaoSaida.ESTORNADA,
+    }
+)
+SITUACOES_ATIVAS_SAIDA = frozenset(
+    {
+        SituacaoSaida.AGUARDANDO_ENVIO,
+        SituacaoSaida.RECURSO_ENVIADO,
+        SituacaoSaida.EM_CONFERENCIA,
+    }
+)
+
+
+class ComandoSaida(StrEnum):
+    ENVIAR_RECURSO = "enviar_recurso"
+    PRESTAR_CONTAS = "prestar_contas"
+    DEVOLVER_PRESTACAO = "devolver_prestacao"
+    DEVOLVER_SOBRA = "devolver_sobra"
+    PEDIR_COMPLEMENTO = "pedir_complemento"
+    LIQUIDAR = "liquidar"
+    CANCELAR = "cancelar"
+    ESTORNAR = "estornar"
+
+
+_TRANSICOES_SAIDA: dict[SituacaoSaida, frozenset[ComandoSaida]] = {
+    SituacaoSaida.AGUARDANDO_ENVIO: frozenset({ComandoSaida.ENVIAR_RECURSO, ComandoSaida.CANCELAR}),
+    SituacaoSaida.RECURSO_ENVIADO: frozenset(
+        {
+            ComandoSaida.ENVIAR_RECURSO,
+            ComandoSaida.PRESTAR_CONTAS,
+            ComandoSaida.DEVOLVER_SOBRA,
+        }
+    ),
+    SituacaoSaida.EM_CONFERENCIA: frozenset(
+        {
+            ComandoSaida.ENVIAR_RECURSO,
+            ComandoSaida.DEVOLVER_PRESTACAO,
+            ComandoSaida.DEVOLVER_SOBRA,
+            ComandoSaida.PEDIR_COMPLEMENTO,
+            ComandoSaida.LIQUIDAR,
+        }
+    ),
+    SituacaoSaida.LIQUIDADA: frozenset({ComandoSaida.ESTORNAR}),
+}
+
+
+def transicao_saida_permitida(situacao: SituacaoSaida, comando: ComandoSaida) -> bool:
+    """Informa se a situação atual da saída aceita o comando (INV-SAI-07, INV-SAI-08)."""
+    return comando in _TRANSICOES_SAIDA.get(situacao, frozenset())

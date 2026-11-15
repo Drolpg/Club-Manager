@@ -16,6 +16,7 @@ export type SituacaoCobranca =
   | 'CANCELADA'
   | 'PERDOADA'
   | 'RENEGOCIADA'
+  | 'ESTORNADA'
 export type AcaoCobranca =
   | 'registrar_pagamento'
   | 'validar_pagamento'
@@ -28,13 +29,50 @@ export type AcaoCobranca =
   | 'perdoar'
   | 'renegociar'
   | 'manter_divida'
+  | 'estornar'
 export type FormaPagamento = 'COMPROVANTE' | 'EM_MAO'
 export type SituacaoPagamento = 'EM_VALIDACAO' | 'VALIDADO' | 'REJEITADO'
 export type Periodicidade = 'MENSAL' | 'SEMANAL' | 'ANUAL'
 export type SituacaoSuspensao = 'VIGENTE' | 'ENCERRADA'
-export type SituacaoEntrada = 'EM_VALIDACAO' | 'VALIDADA' | 'REJEITADA'
-export type AcaoEntrada = 'validar' | 'rejeitar'
+export type SituacaoEntrada = 'EM_VALIDACAO' | 'VALIDADA' | 'REJEITADA' | 'ESTORNADA'
+export type AcaoEntrada = 'validar' | 'rejeitar' | 'estornar'
 export type DecisaoQuestionamento = 'ISENTAR' | 'CANCELAR' | 'MANTER'
+export type SituacaoSaida =
+  | 'AGUARDANDO_ENVIO'
+  | 'RECURSO_ENVIADO'
+  | 'EM_CONFERENCIA'
+  | 'LIQUIDADA'
+  | 'CANCELADA'
+  | 'ESTORNADA'
+export type AcaoSaida =
+  | 'enviar_recurso'
+  | 'prestar_contas'
+  | 'devolver_prestacao'
+  | 'devolver_sobra'
+  | 'pedir_complemento'
+  | 'liquidar'
+  | 'estornar'
+export type AlvoEstorno = 'SAIDA' | 'ENTRADA' | 'COBRANCA'
+
+export interface EstornoResumo {
+  id: string
+  valor: string
+  motivo_texto: string
+  justificativa: string
+  registrado_por: PessoaFinanceira
+  registrado_em: string
+}
+
+export interface EstornoItem extends EstornoResumo {
+  alvo_tipo: AlvoEstorno
+  alvo_id: string
+  motivo_id: string
+}
+
+export interface PaginaEstornos {
+  itens: EstornoItem[]
+  tem_mais: boolean
+}
 
 export interface Categoria {
   id: string
@@ -141,6 +179,7 @@ export interface CobrancaDetalhe extends CobrancaItem {
   convocacao: Convocacao | null
   renegociacao: Renegociacao | null
   parcelas: CobrancaItem[]
+  estorno?: EstornoResumo | null
   acoes: AcaoCobranca[]
 }
 
@@ -184,6 +223,7 @@ export interface Entrada {
   tipo: 'SEM_DEVEDOR' | 'DEVOLUCAO_SAIDA'
   categoria_id: string
   categoria_nome: string
+  saida_id?: string | null
   valor: string
   data: string
   origem: string
@@ -197,6 +237,7 @@ export interface Entrada {
   decisao_texto: string
   registrada_em: string
   decidido_em: string | null
+  estorno?: EstornoResumo | null
   acoes: AcaoEntrada[]
 }
 
@@ -241,9 +282,215 @@ export interface FiltrosEntradas {
   antes?: string
 }
 
+export interface VisaoDoCaixa {
+  total_entradas_validadas: string
+  total_saidas_liquidadas: string
+  total_comprometido: string
+}
+
+export interface ReferenciaItem {
+  id: string
+  nome: string
+}
+
+export interface ReferenciasGastos {
+  categorias_saida: ReferenciaItem[]
+  categorias_entrada: ReferenciaItem[]
+  setores: ReferenciaItem[]
+  aprovadores_gastos: PessoaFinanceira[]
+  diretores_ativos: PessoaFinanceira[]
+}
+
+export interface Cotacao {
+  id: string
+  nome: string
+  mime: string
+  tamanho: number
+  criada_em: string
+}
+
+export interface ItemDeGasto {
+  descricao: string
+  valor: string
+}
+
+export interface ConteudoGasto {
+  descricao: string
+  categoria_id: string
+  categoria_nome: string
+  setor_id: string
+  setor_nome: string
+  itens: ItemDeGasto[]
+  cotacao_id: string | null
+  cotacao_nome: string
+  saida_origem_id: string | null
+  evento_id: string | null
+}
+
+export function isConteudoGasto(valor: unknown): valor is ConteudoGasto {
+  if (typeof valor !== 'object' || valor === null) return false
+  const reg = valor as Record<string, unknown>
+  return typeof reg.descricao === 'string' && Array.isArray(reg.itens) && typeof reg.categoria_id === 'string'
+}
+
+export interface SolicitacaoGastoCriada {
+  id: string
+  tipo: string
+  situacao: string
+  solicitante_id: string
+  aprovador_indicado_id: string | null
+  versao_atual: number
+  valor: string | null
+  resumo: string
+  conteudo: ConteudoGasto
+}
+
+export interface FiltrosSaidas {
+  situacao?: string
+  categoria_id?: string
+  setor_id?: string
+  solicitante_id?: string
+  de?: string
+  ate?: string
+  pendentes_envio?: boolean
+  pendentes_prestacao?: boolean
+  atrasadas?: boolean
+  antes?: string
+}
+
+export interface SaidaItem {
+  id: string
+  solicitacao_id: string
+  versao_aprovada: number
+  solicitante: PessoaFinanceira
+  categoria_id: string
+  categoria_nome: string
+  setor_id: string
+  setor_nome: string
+  evento_id: string | null
+  descricao: string
+  valor_aprovado: string
+  valor_aprovado_total: string
+  total_enviado: string
+  total_gasto: string | null
+  total_devolvido_validado: string
+  total_devolvido_pendente: string
+  valor_nao_reembolsado: string
+  situacao: SituacaoSaida
+  em_atraso: boolean
+  tem_complemento_aprovado_para_enviar: boolean
+  tem_complemento_em_andamento: boolean
+  primeiro_envio_em: string | null
+  criada_em: string
+  atualizada_em: string
+}
+
+export interface PaginaSaidas {
+  itens: SaidaItem[]
+  tem_mais: boolean
+}
+
+export interface CotacaoResumo {
+  id: string
+  nome: string
+  disponivel: boolean
+}
+
+export interface EnvioSaida {
+  id: string
+  valor: string
+  complemento_id: string | null
+  enviado_por: PessoaFinanceira
+  enviado_em: string
+  comprovante_disponivel: boolean
+  comprovante_nome: string
+}
+
+export interface PrestacaoSaida {
+  id: string
+  valor: string
+  descricao: string
+  registrada_por: PessoaFinanceira
+  registrada_em: string
+  situacao: 'VIGENTE' | 'DEVOLVIDA'
+  comprovante_disponivel: boolean
+  comprovante_nome: string
+  devolvida_por: PessoaFinanceira | null
+  motivo_devolucao_texto: string
+  texto_devolucao: string
+  devolvida_em: string | null
+}
+
+export interface DevolucaoSaida {
+  id: string
+  valor: string
+  data: string
+  origem: string
+  evidencia_texto: string
+  situacao: SituacaoEntrada
+  registrada_por: PessoaFinanceira
+  registrada_em: string
+  decidido_por: PessoaFinanceira | null
+  motivo_texto: string
+  decisao_texto: string
+  decidido_em: string | null
+  comprovante_disponivel: boolean
+  comprovante_nome: string
+}
+
+export interface ComplementoSaida {
+  id: string
+  solicitacao_id: string
+  valor: string
+  situacao: string
+  aprovado_em: string | null
+  decidido_em: string | null
+  criado_em: string
+  envio_id: string | null
+}
+
+export interface SaidaDetalhe extends SaidaItem {
+  itens: ItemDeGasto[]
+  liquidacao_justificativa: string
+  liquidada_por: PessoaFinanceira | null
+  liquidada_em: string | null
+  cancelada_em: string | null
+  cotacao: CotacaoResumo | null
+  envios: EnvioSaida[]
+  prestacoes: PrestacaoSaida[]
+  devolucoes: DevolucaoSaida[]
+  complementos: ComplementoSaida[]
+  estorno: EstornoResumo | null
+  acoes: AcaoSaida[]
+}
+
+export interface ComplementoCriado {
+  id: string
+  saida_id: string
+  solicitacao_id: string
+  valor: string
+  situacao: string
+}
+
+export interface EstornoSaidaResposta extends EstornoItem {
+  registro: SaidaDetalhe
+}
+
+export interface EstornoEntradaResposta extends EstornoItem {
+  registro: Entrada
+}
+
+export interface EstornoCobrancaResposta extends EstornoItem {
+  registro: CobrancaDetalhe
+}
+
 export const PERM_COBRANCAS_CRIAR = 'financeiro.cobrancas.criar'
 export const PERM_COBRANCAS_SUSPENDER = 'financeiro.cobrancas.suspender'
 export const PERM_ENTRADAS_REGISTRAR = 'financeiro.entradas.registrar'
+export const PERM_GASTOS_APROVAR = 'gastos.aprovar'
+export const PERM_SAIDAS_ENVIAR = 'saidas.enviar'
+export const PERM_SAIDAS_LIQUIDAR = 'saidas.liquidar'
+export const PERM_FINANCEIRO_ESTORNAR = 'financeiro.estornar'
 
 export const TIPO_DECISAO_FINANCEIRO: Record<string, string> = {
   validar_pagamento: 'financeiro.pagamento_validar',
@@ -255,6 +502,8 @@ export const TIPO_DECISAO_FINANCEIRO: Record<string, string> = {
   manter_divida: 'financeiro.divida_decidir',
   entrada_validar: 'financeiro.entrada_validar',
   entrada_rejeitar: 'financeiro.entrada_rejeitar',
+  devolver_prestacao: 'financeiro.prestacao_devolver',
+  estornar: 'financeiro.estornar',
 }
 
 export const POR_PAGINA = 20
@@ -270,6 +519,18 @@ export function urlReciboCobranca(cobrancaId: string): string {
 
 export function urlComprovanteEntrada(entradaId: string): string {
   return `/api/v1${base}/entradas/${entradaId}/comprovante/`
+}
+
+export function urlCotacao(cotacaoId: string): string {
+  return `/api/v1${base}/cotacoes/${cotacaoId}/`
+}
+
+export function urlComprovanteEnvioSaida(saidaId: string, envioId: string): string {
+  return `/api/v1${base}/saidas/${saidaId}/envios/${envioId}/comprovante/`
+}
+
+export function urlComprovantePrestacaoSaida(saidaId: string, prestacaoId: string): string {
+  return `/api/v1${base}/saidas/${saidaId}/prestacoes/${prestacaoId}/comprovante/`
 }
 
 function query(params: Record<string, string | boolean | number | undefined>): string {
@@ -447,4 +708,89 @@ export const financeiro = {
     apiPost<Entrada>(`${base}/entradas/${id}/validar/`, corpo),
   rejeitarEntrada: (id: string, corpo: { motivo_id: string; texto: string }) =>
     apiPost<Entrada>(`${base}/entradas/${id}/rejeitar/`, corpo),
+
+  caixa: () => apiGet<VisaoDoCaixa>(`${base}/caixa/`),
+  referenciasGastos: () => apiGet<ReferenciasGastos>(`${base}/referencias-gastos/`),
+  enviarCotacao: (arquivo: File) => {
+    const fd = new FormData()
+    fd.set('arquivo', arquivo)
+    return apiPostForm<Cotacao>(`${base}/cotacoes/`, fd)
+  },
+  abrirGasto: (dados: {
+    descricao: string
+    categoria_id: string
+    setor_id: string
+    itens: ItemDeGasto[]
+    cotacao_id?: string | null
+    aprovador_indicado_id?: string | null
+  }) => apiPost<SolicitacaoGastoCriada>(`${base}/gastos/`, dados),
+
+  saidas: (filtros: FiltrosSaidas = {}) =>
+    apiGet<PaginaSaidas>(`${base}/saidas/${query({ ...filtros, limite: POR_PAGINA })}`),
+  detalheSaida: (id: string) => apiGet<SaidaDetalhe>(`${base}/saidas/${id}/`),
+  historicoSaida: (id: string) => apiGet<HistoricoFinanceiro[]>(`${base}/saidas/${id}/historico/`),
+  enviarRecursoSaida: (
+    id: string,
+    dados: { valor: string; enviado_em?: string; complemento_id?: string | null; comprovante: File },
+  ) => {
+    const fd = new FormData()
+    fd.set('valor', dados.valor)
+    if (dados.enviado_em) fd.set('enviado_em', dados.enviado_em)
+    if (dados.complemento_id) fd.set('complemento_id', dados.complemento_id)
+    fd.set('comprovante', dados.comprovante)
+    return apiPostForm<SaidaDetalhe>(`${base}/saidas/${id}/envios/`, fd)
+  },
+  prestarContas: (id: string, dados: { valor: string; descricao: string; comprovante?: File | null }) => {
+    if (dados.comprovante) {
+      const fd = new FormData()
+      fd.set('valor', dados.valor)
+      fd.set('descricao', dados.descricao)
+      fd.set('comprovante', dados.comprovante)
+      return apiPostForm<SaidaDetalhe>(`${base}/saidas/${id}/prestacoes/`, fd)
+    }
+    return apiPost<SaidaDetalhe>(`${base}/saidas/${id}/prestacoes/`, {
+      valor: dados.valor,
+      descricao: dados.descricao,
+    })
+  },
+  devolverPrestacao: (id: string, corpo: { motivo_id: string; texto: string }) =>
+    apiPost<SaidaDetalhe>(`${base}/saidas/${id}/devolver-prestacao/`, corpo),
+  devolverSobra: (
+    id: string,
+    dados: { valor: string; data?: string; evidencia_texto?: string; comprovante?: File | null },
+  ) => {
+    if (dados.comprovante) {
+      const fd = new FormData()
+      fd.set('valor', dados.valor)
+      if (dados.data) fd.set('data', dados.data)
+      if (dados.evidencia_texto) fd.set('evidencia_texto', dados.evidencia_texto)
+      fd.set('comprovante', dados.comprovante)
+      return apiPostForm<Entrada>(`${base}/saidas/${id}/devolucoes/`, fd)
+    }
+    return apiPost<Entrada>(`${base}/saidas/${id}/devolucoes/`, {
+      valor: dados.valor,
+      ...(dados.data ? { data: dados.data } : {}),
+      ...(dados.evidencia_texto ? { evidencia_texto: dados.evidencia_texto } : {}),
+    })
+  },
+  pedirComplemento: (
+    id: string,
+    dados: {
+      itens: ItemDeGasto[]
+      descricao?: string
+      cotacao_id?: string | null
+      aprovador_indicado_id?: string | null
+    },
+  ) => apiPost<ComplementoCriado>(`${base}/saidas/${id}/complementos/`, dados),
+  liquidarSaida: (id: string, justificativa = '') =>
+    apiPost<SaidaDetalhe>(`${base}/saidas/${id}/liquidar/`, { justificativa }),
+
+  estornarSaida: (id: string, corpo: { motivo_id: string; justificativa: string }) =>
+    apiPost<EstornoSaidaResposta>(`${base}/saidas/${id}/estornar/`, corpo),
+  estornarEntrada: (id: string, corpo: { motivo_id: string; justificativa: string }) =>
+    apiPost<EstornoEntradaResposta>(`${base}/entradas/${id}/estornar/`, corpo),
+  estornarCobranca: (id: string, corpo: { motivo_id: string; justificativa: string }) =>
+    apiPost<EstornoCobrancaResposta>(`${base}/cobrancas/${id}/estornar/`, corpo),
+  estornos: (opcoes: { alvo_tipo?: string; antes?: string } = {}) =>
+    apiGet<PaginaEstornos>(`${base}/estornos/${query({ ...opcoes, limite: POR_PAGINA })}`),
 }

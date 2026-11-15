@@ -394,3 +394,28 @@ def test_acoes_do_detalhe_coincidem_com_o_que_as_rotas_aceitam(
         else:
             assert resposta.status_code in (403, 422), (papel, situacao, comando, resposta.content)
     assert set(acoes) <= set(COMANDOS)
+
+
+def test_api_publica_obter_solicitacao_e_cancelar(
+    tipo_de_teste: TipoDeTeste, diretor_com_cargo: Usuario
+) -> None:
+    from decimal import Decimal
+
+    from kernel.errors import BusinessError
+
+    sol = enviada(diretor_com_cargo)
+    info = public.obter_solicitacao(sol.id)
+    assert isinstance(info, public.SolicitacaoInfo)
+    assert info.id == sol.id
+    assert info.tipo == TIPO
+    assert info.situacao == public.Situacao.EM_ANALISE
+    assert info.solicitante_id == diretor_com_cargo.id
+    assert info.versao_atual == 1
+    assert info.valor == Decimal("150.00")
+
+    with pytest.raises(BusinessError) as exc:
+        public.obter_solicitacao(uuid.uuid4())
+    assert exc.value.code == "NOT_FOUND"
+
+    public.cancelar(sol.id, ator_id=diretor_com_cargo.id, motivo="Cancelado via API pública")
+    assert public.situacao_de(sol.id) == public.Situacao.CANCELADA

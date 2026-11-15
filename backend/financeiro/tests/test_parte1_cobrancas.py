@@ -62,14 +62,14 @@ def test_CA02_admin_mantem_categorias_sem_apagar_e_outros_sao_negados(
     )
 
     criada = client_admin.post(
-        "/api/v1/financeiro/categorias/", {"nome": "Material esportivo", "natureza": "SAIDA"}
+        "/api/v1/financeiro/categorias/", {"nome": "Uniformes de treino", "natureza": "SAIDA"}
     )
     assert criada.status_code == 201
     cat_id = criada.json()["id"]
 
     # Duplicada na mesma natureza -> 409; em natureza oposta -> 201.
     dup = client_admin.post(
-        "/api/v1/financeiro/categorias/", {"nome": "material esportivo", "natureza": "SAIDA"}
+        "/api/v1/financeiro/categorias/", {"nome": "uniformes de treino", "natureza": "SAIDA"}
     )
     assert dup.status_code == 409
     assert dup.json()["error"]["code"] == "CATEGORIA_JA_EXISTE"

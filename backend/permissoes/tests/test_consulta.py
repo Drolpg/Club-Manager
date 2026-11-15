@@ -371,3 +371,23 @@ def test_minhas_exige_sessao(client: APIClient) -> None:
     resposta = client.get(f"{BASE}minhas/")
 
     assert (resposta.status_code, resposta.json()["error"]["code"]) == (401, "NOT_AUTHENTICATED")
+
+
+def test_api_publica_consulta_setores_ativos_e_por_id() -> None:
+    fin = _setor("Financeiro")
+    fut = _setor("Futebol")
+    fut.desativar()
+    fut.save()
+
+    item = permissoes.setor_por_id(fin.id)
+    assert item is not None
+    assert item.nome == "Financeiro"
+    assert item.ativo is True
+    assert permissoes.setor_por_id(uuid.uuid4()) is None
+
+    ativos = permissoes.listar_setores_ativos()
+    assert any(s.id == fin.id for s in ativos)
+    assert all(s.id != fut.id for s in ativos)
+    inativo = permissoes.setor_por_id(fut.id)
+    assert inativo is not None
+    assert inativo.ativo is False
