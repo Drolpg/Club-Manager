@@ -107,36 +107,36 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Status |
 | --- | --- | --- |
-| RF-046 | O admin cria e desativa categorias de entrada e de saída | Aprovado |
-| RF-047 | O admin cadastra e desativa chaves Pix de destino | Aprovado |
-| RF-048 | Quem tem a permissão cria uma cobrança avulsa para um diretor, com valor, vencimento, categoria, limite de inadimplência e chave Pix | Aprovado |
-| RF-049 | Quem tem a permissão cria a mesma cobrança avulsa para vários diretores de uma vez | Aprovado |
-| RF-050 | Quem tem a permissão cria, altera e desativa a recorrência de um diretor (por exemplo, a mensalidade, com o valor dele) | Aprovado |
-| RF-051 | O sistema gera automaticamente as cobranças das recorrências, uma por competência | Aprovado |
-| RF-052 | O sistema gera, para cada cobrança, o Pix copia e cola e o QR Code com o valor | Aprovado |
-| RF-053 | O sistema notifica o devedor quando a cobrança é criada e no dia do vencimento | Aprovado |
-| RF-054 | O devedor registra o pagamento de uma cobrança, anexando o comprovante | Aprovado |
-| RF-055 | O devedor registra um pagamento feito em dinheiro, indicando o usuário que recebeu | Aprovado |
-| RF-056 | O sistema notifica quem pode validar pagamentos quando um pagamento é registrado | Aprovado |
-| RF-057 | Quem tem a permissão valida o pagamento, com motivo de decisão; a cobrança fica paga e o devedor é notificado | Aprovado |
-| RF-058 | Quem tem a permissão rejeita o pagamento, com motivo de decisão; o devedor é notificado para refazer | Aprovado |
-| RF-059 | O devedor baixa o recibo em PDF de uma cobrança paga | Aprovado |
-| RF-060 | O sistema marca como atrasada a cobrança vencida sem pagamento validado e notifica o devedor e quem responde pelo financeiro | Aprovado |
-| RF-061 | O devedor questiona uma cobrança, com texto | Aprovado |
-| RF-062 | Quem tem a permissão decide o questionamento (isentar, cancelar ou manter), com motivo; o devedor é notificado | Aprovado |
-| RF-063 | Quem tem a permissão de isentar isenta uma cobrança, com justificativa | Aprovado |
-| RF-064 | Quem tem a permissão suspende, por um período e com justificativa, a geração das cobranças recorrentes de um diretor, e encerra a suspensão | Aprovado |
-| RF-065 | Quem tem a permissão cancela uma cobrança, com motivo | Aprovado |
-| RF-066 | O sistema convoca o devedor quando o limite de inadimplência da cobrança acaba, e notifica quem responde pelo financeiro | Aprovado |
-| RF-067 | O devedor convocado registra a justificativa da dívida | Aprovado |
-| RF-068 | Quem tem a permissão perdoa uma dívida atrasada, com motivo | Aprovado |
-| RF-069 | Quem tem a permissão renegocia uma dívida atrasada em parcelas, com motivo | Aprovado |
-| RF-070 | Quem tem a permissão mantém a dívida depois da convocação, com motivo | Aprovado |
-| RF-071 | Quem tem a permissão registra uma entrada sem devedor (patrocínio, rifa, ajuda), com comprovante ou evidência em texto | Aprovado |
-| RF-072 | Quem tem a permissão valida ou rejeita uma entrada, com motivo | Aprovado |
-| RF-123 | O sistema lembra o devedor 3 dias antes do vencimento, se ele ainda não registrou o pagamento | Aprovado |
-| RF-124 | O devedor consulta as próprias cobranças, mesmo sem cargo | Aprovado |
-| RF-125 | O sistema avisa quem opera o financeiro quando um diretor com cobranças em aberto é desativado | Aprovado |
+| RF-046 | O admin cria e desativa categorias de entrada e de saída | Implementado |
+| RF-047 | O admin cadastra e desativa chaves Pix de destino | Implementado |
+| RF-048 | Quem tem a permissão cria uma cobrança avulsa para um diretor, com valor, vencimento, categoria, limite de inadimplência e chave Pix | Implementado |
+| RF-049 | Quem tem a permissão cria a mesma cobrança avulsa para vários diretores de uma vez | Implementado |
+| RF-050 | Quem tem a permissão cria, altera e desativa a recorrência de um diretor (por exemplo, a mensalidade, com o valor dele) | Implementado |
+| RF-051 | O sistema gera automaticamente as cobranças das recorrências, uma por competência | Implementado |
+| RF-052 | O sistema gera, para cada cobrança, o Pix copia e cola e o QR Code com o valor | Implementado |
+| RF-053 | O sistema notifica o devedor quando a cobrança é criada e no dia do vencimento | Implementado |
+| RF-054 | O devedor registra o pagamento de uma cobrança, anexando o comprovante | Implementado |
+| RF-055 | O devedor registra um pagamento feito em dinheiro, indicando o usuário que recebeu | Implementado |
+| RF-056 | O sistema notifica quem pode validar pagamentos quando um pagamento é registrado | Implementado |
+| RF-057 | Quem tem a permissão valida o pagamento, com motivo de decisão; a cobrança fica paga e o devedor é notificado | Implementado |
+| RF-058 | Quem tem a permissão rejeita o pagamento, com motivo de decisão; o devedor é notificado para refazer | Implementado |
+| RF-059 | O devedor baixa o recibo em PDF de uma cobrança paga | Implementado |
+| RF-060 | O sistema marca como atrasada a cobrança vencida sem pagamento validado e notifica o devedor e quem responde pelo financeiro | Implementado |
+| RF-061 | O devedor questiona uma cobrança, com texto | Implementado |
+| RF-062 | Quem tem a permissão decide o questionamento (isentar, cancelar ou manter), com motivo; o devedor é notificado | Implementado |
+| RF-063 | Quem tem a permissão de isentar isenta uma cobrança, com justificativa | Implementado |
+| RF-064 | Quem tem a permissão suspende, por um período e com justificativa, a geração das cobranças recorrentes de um diretor, e encerra a suspensão | Implementado |
+| RF-065 | Quem tem a permissão cancela uma cobrança, com motivo | Implementado |
+| RF-066 | O sistema convoca o devedor quando o limite de inadimplência da cobrança acaba, e notifica quem responde pelo financeiro | Implementado |
+| RF-067 | O devedor convocado registra a justificativa da dívida | Implementado |
+| RF-068 | Quem tem a permissão perdoa uma dívida atrasada, com motivo | Implementado |
+| RF-069 | Quem tem a permissão renegocia uma dívida atrasada em parcelas, com motivo | Implementado |
+| RF-070 | Quem tem a permissão mantém a dívida depois da convocação, com motivo | Implementado |
+| RF-071 | Quem tem a permissão registra uma entrada sem devedor (patrocínio, rifa, ajuda), com comprovante ou evidência em texto | Implementado |
+| RF-072 | Quem tem a permissão valida ou rejeita uma entrada, com motivo | Implementado |
+| RF-123 | O sistema lembra o devedor 3 dias antes do vencimento, se ele ainda não registrou o pagamento | Implementado |
+| RF-124 | O devedor consulta as próprias cobranças, mesmo sem cargo | Implementado |
+| RF-125 | O sistema avisa quem opera o financeiro quando um diretor com cobranças em aberto é desativado | Implementado |
 
 ##### Financeiro — gasto e prestação de contas (M7)
 
@@ -278,8 +278,7 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | Marco | Pergunta |
 | --- | --- |
-| M6 | Algum aplicativo de banco recusa o Pix copia e cola gerado sem integração bancária? |
-| M6 | Onde ficam os anexos (comprovantes) e como tratar os dados bancários de terceiros que eles podem conter? |
+| M6 | Algum aplicativo de banco recusa o Pix copia e cola gerado sem integração bancária? (Risco 3: BR Code EMV + CRC16 conferido em testes; validação em aplicativos bancários reais pendente do dono) |
 | M7 | Como o estorno se liga ao lançamento original sem editar o registro liquidado? |
 | M8 | A aprovação de eventos varia por categoria de evento? |
 | M9 | Haverá comentários e reações no feed, e pastas ou acesso restrito por cargo nos documentos? |
@@ -356,6 +355,11 @@ Em `VALIDATION_ERROR`, `details` traz os motivos por campo.
 | `NAO_ESTA_CONTESTADA_NEM_RETIRADA`, `NAO_ESTA_RECUSADA`, `NAO_PODE_EDITAR`, `NAO_PODE_CANCELAR` | 422 | Reenviar, reabrir, editar ou cancelar fora da situação certa |
 | `TETO_SEM_VALOR` | 422 | Teto sugerido numa solicitação cujo tipo não tem valor |
 | `MOTIVO_JA_EXISTE` | 409 | Motivo com o texto de outro do mesmo tipo de decisão, ativo ou inativo (sem diferenciar maiúsculas) |
+| `SO_O_DEVEDOR`, `DEVEDOR_NAO_VALIDA`, `DEVEDOR_NAO_DECIDE`, `REGISTRADOR_NAO_VALIDA` | 403 | Ação exclusiva do devedor ou tentativa de autovalidação/autodecisão no financeiro |
+| `CATEGORIA_JA_EXISTE` | 409 | Categoria com o mesmo nome e natureza |
+| `CHAVE_PIX_PADRAO_NAO_CONFIGURADA`, `CHAVE_PIX_INATIVA`, `CATEGORIA_INATIVA`, `DEVEDOR_INATIVO`, `RECEBEDOR_INVALIDO` | 422 | Dependência ausente ou inativa em cobrança, pagamento, recorrência ou entrada |
+| `VALOR_INVALIDO`, `VENCIMENTO_NO_PASSADO`, `PARCELAS_INVALIDAS`, `COBRANCA_JA_GERADA` | 422 | Valores inválidos ou duplicidade de competência |
+| `NAO_ACEITA_PAGAMENTO`, `NAO_ESTA_EM_VALIDACAO`, `NAO_ACEITA_QUESTIONAMENTO`, `QUESTIONAMENTO_JA_ABERTO`, `SEM_QUESTIONAMENTO_ABERTO`, `NAO_PODE_ISENTAR`, `SEM_CONVOCACAO_ABERTA`, `NAO_ESTA_ATRASADA`, `NAO_ESTA_PAGA`, `SUSPENSAO_JA_ENCERRADA` | 422 | Comando incompatível com a situação atual de cobrança, pagamento, entrada ou suspensão |
 | `INTERNAL_ERROR` | 500 | Erro inesperado; o detalhe fica só no log, com o `X-Request-ID` da resposta |
 
 Login, recuperação de senha, reenvio de verificação e convite inválido respondem do mesmo jeito exista a conta (ou o
@@ -390,6 +394,11 @@ convite) ou não.
 | Fila de pendências | `GET aprovacoes/fila/` | Admin ou diretor ativo com cargo: só o que ele pode decidir |
 | Motivos de decisão | `GET aprovacoes/motivos/` (`?tipo_de_decisao=`; `?todos=1` traz os inativos, só para o admin) | Admin ou diretor ativo com cargo |
 | | `POST aprovacoes/motivos/`; `POST …/{id}/editar/`, `…/desativar/`, `…/reativar/`; `GET aprovacoes/tipos-de-decisao/` | Admin |
+| Categorias e chaves Pix | `GET financeiro/categorias/`, `GET financeiro/chaves-pix/` (`?todas=1` admin); `POST`, `renomear/`/`editar/`, `marcar-padrao/`, `desativar/`, `reativar/`, `historico/` | Leitura: diretor ativo com cargo; escrita e histórico: admin |
+| Minhas cobranças | `GET financeiro/minhas-cobrancas/` (`?situacao=`, `?antes=`, `?limite=`) | Qualquer diretor ativo (com ou sem cargo) |
+| Cobranças e pagamentos | `GET`, `POST financeiro/cobrancas/`, `POST …/lote/`; `GET …/{id}/` (`pix_copia_e_cola`, `qrcode_svg`, `acoes`), `historico/`, `recibo/`; `POST …/pagamentos/`, `validar-pagamento/`, `rejeitar-pagamento/`, `questionar/`, `questionamento/decidir/`, `isentar/`, `cancelar/`, `justificar-divida/`, `perdoar/`, `renegociar/`, `manter-divida/`; `GET …/pagamentos/{pag_id}/comprovante/` | Leitura de gestão (`cobrancas/`), devedor nas próprias (`minhas-cobrancas/`, detalhe, pagar, questionar, justificar, comprovante, recibo) e permissões específicas na escrita e no comprovante |
+| Recorrências e suspensões | `GET`, `POST financeiro/recorrencias/`, `POST …/{id}/editar/`, `desativar/`, `GET …/historico/`; `GET`, `POST financeiro/suspensoes/`, `POST …/{id}/encerrar/`, `GET …/historico/` | Leitura: diretor com cargo; escrita: `cobrancas.criar` e `cobrancas.suspender` |
+| Entradas sem devedor | `GET`, `POST financeiro/entradas/`, `GET …/resumo/`, `GET …/{id}/`, `historico/`, `comprovante/`, `POST …/validar/`, `rejeitar/` | Leitura: diretor com cargo; escrita: `entradas.registrar`, `entradas.validar` (≠ registrador) |
 | Contrato | `GET schema/`, `GET docs/` | Admin |
 
 Notificação nunca é alterada nem apagada: não há rota `DELETE` nem preferência que desligue o registro; a rota `ler`
@@ -424,7 +433,7 @@ Solicitação, versão, decisão e motivo nunca são apagados, e versão e decis
 | `aprovacoes` | Solicitação (com Versão e Decisão) | `EM_ANALISE`, `RETIRADA`, `CONTESTADA`, `RECUSADA`, `APROVADA`, `EM_EXECUCAO`, `ENCERRADA`, `CANCELADA` |
 | `financeiro` | Cobrança | `ABERTA`, `EM_VALIDACAO`, `ATRASADA`, `PAGA`, `ISENTA`, `CANCELADA`, `PERDOADA`, `RENEGOCIADA` |
 | `financeiro` | Saída | `AGUARDANDO_ENVIO`, `RECURSO_ENVIADO`, `EM_CONFERENCIA`, `LIQUIDADA`, `CANCELADA`, `ESTORNADA` |
-| `financeiro` | Entrada, Recorrência, Suspensão, Renegociação | Definidos na spec técnica de cada feature do M6 |
+| `financeiro` | Entrada, Recorrência, Suspensão, Renegociação | `Entrada`: `EM_VALIDACAO`, `VALIDADA`, `REJEITADA` (`ESTORNADA` no M7); `Recorrência`: ativa/inativa; `Suspensão`: `VIGENTE`, `ENCERRADA`; `Renegociação`: imutável após criação |
 | `eventos` | Evento | `EM_APROVACAO`, `PUBLICADO`, `RECUSADO`, `REALIZADO`, `CANCELADO` (derivado das duas solicitações por uma função só, `situacao_do_evento`) |
 
 Os módulos de apoio (`acesso`, `permissoes`, `notificacoes`, `auditoria`, `comunicacao`, `marca`, `relatorios`) usam

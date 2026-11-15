@@ -17,7 +17,7 @@ do board quando ele existir; até lá fica `—`.
 | M3 Permissões e auditoria | Cargos, setores, concessões, painel do admin, trilha | RF-015 a RF-027, RF-118 | Concluído (na `dev`) | 2026-11-13 | — |
 | M4 Notificações | Registro, e-mail, caixa de entrada, preferências, agendador | RF-028 a RF-032, RF-119, RNF-10 | Concluído (na `dev`) | 2026-11-13 | — |
 | M5 Motor de aprovações | Solicitação com versões, decisões, motivos, fila | RF-033 a RF-045, RF-120 a RF-122 | Concluído (na `dev`) | 2026-11-14 | — |
-| M6 Financeiro: entradas | Cobranças, recorrência, Pix, validação, inadimplência, entradas | RF-046 a RF-072, RF-123 a RF-125 | Spec funcional aprovada | | — |
+| M6 Financeiro: entradas | Cobranças, recorrência, Pix, validação, inadimplência, entradas | RF-046 a RF-072, RF-123 a RF-125 | Concluído (na `dev`) | 2026-11-14 | — |
 | M7 Financeiro: saídas | Solicitação de gasto, envio, prestação, liquidação, estorno | RF-073 a RF-083, RF-126 a RF-128 | Spec funcional aprovada | | — |
 | M8 Eventos | Proposta, orçamento, calendário, realização, cancelamento | RF-084 a RF-093, RF-129 a RF-131 | Spec funcional aprovada | | — |
 | M9 Feed, documentos e perfil | Comunicados, documentos, atas, perfil | RF-094 a RF-101 | Pendente | | — |
@@ -25,7 +25,7 @@ do board quando ele existir; até lá fica `—`.
 | M11 Personalização | Escudo, cores, temas, ícones | RF-112 a RF-115 | Pendente | | — |
 | M12 Produção | Deploy, backup, rollback, segurança, ponta a ponta, limpeza do legado | RNF-02, RNF-05, RNF-07, RNF-14 | Pendente | | — |
 
-Marcos concluídos foram aprovados pelo dono do projeto na data indicada. O próximo é o M6.
+Marcos concluídos foram aprovados pelo dono do projeto na data indicada. O próximo é o M7.
 
 ## Dependências
 
@@ -118,16 +118,16 @@ contexto (M6 a M9, consumidas no M10); configuração de marca (M11).
 Maior marco, dividido em seis features, nesta ordem. O critério de aceite (cobrança recorrente gerada sozinha,
 notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 
-- [ ] Categorias, chaves Pix e cobrança avulsa, com Pix copia e cola e QR Code (RF-046 a RF-049, RF-052, RF-053, RF-065)
-- [ ] Pagamento, validação, rejeição e recibo (RF-054 a RF-059)
-- [ ] Recorrência, geração automática e suspensão (RF-050, RF-051, RF-064)
-- [ ] Atraso, questionamento e isenção (RF-060 a RF-063)
-- [ ] Inadimplência: convocação, perdão e renegociação (RF-066 a RF-070)
-- [ ] Entradas sem devedor (RF-071, RF-072)
-- [ ] Decidir o armazenamento de anexos (ADR-014) antes do primeiro comprovante
-- [ ] Reavaliar a LGPD com os comprovantes, que podem conter dados bancários de terceiros
+- [x] Categorias, chaves Pix e cobrança avulsa, com Pix copia e cola e QR Code (RF-046 a RF-049, RF-052, RF-053, RF-065)
+- [x] Pagamento, validação, rejeição e recibo (RF-054 a RF-059)
+- [x] Recorrência, geração automática e suspensão (RF-050, RF-051, RF-064)
+- [x] Atraso, questionamento e isenção (RF-060 a RF-063)
+- [x] Inadimplência: convocação, perdão e renegociação (RF-066 a RF-070)
+- [x] Entradas sem devedor (RF-071, RF-072)
+- [x] Decidir o armazenamento de anexos (ADR-014) antes do primeiro comprovante
+- [x] Reavaliar a LGPD com os comprovantes, que podem conter dados bancários de terceiros
 - [ ] Testar o Pix copia e cola em aplicativos de banco reais (risco 3)
-- [ ] Revisão de segurança e auditoria de coerência do marco
+- [x] Revisão de segurança e auditoria de coerência do marco
 
 ### M7 — Financeiro: saídas
 
@@ -189,7 +189,6 @@ notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 | Pendência | Quando | Dono |
 | --- | --- | --- |
 | IDs dos cartões do board para cada marco | Antes de abrir o M6 | Dono do projeto |
-| Armazenamento de anexos (ADR-014) | Spec técnica do M6 | Dono do projeto |
 | Estornos e cancelamentos como lançamentos ligados (ADR-013) | Spec técnica do M7 | Dono do projeto |
 | Provedor de e-mail (ADR-015) | M12 | Dono do projeto |
 | CI/CD, deploy e dimensionamento da instância (ADR-016) | M12 | Dono do projeto |
