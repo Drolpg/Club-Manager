@@ -8,10 +8,10 @@ seção "Como reproduzir" dele.
 
 | Campo | Valor |
 | --- | --- |
-| Atualizado em | 2026-11-13 |
+| Atualizado em | 2026-11-15 |
 | Diagrama base | [02-plan](02-plan.md), seção Containers |
 | Responsável | o dono do projeto |
-| Escopo desta versão | Marcos M2 (identidade e acesso), M3 (permissões e auditoria), M4 (notificações), M5 (aprovações) e M6 (financeiro: entradas e cobranças). Cada marco seguinte acrescenta as ameaças do que entrega |
+| Escopo desta versão | Marcos M2 (identidade e acesso), M3 (permissões e auditoria), M4 (notificações), M5 (aprovações), M6 (financeiro: entradas e cobranças) e M7 (financeiro: saídas, prestação de contas e estornos). Cada marco seguinte acrescenta as ameaças do que entrega |
 
 Feito uma vez neste marco, como desvio registrado em [03-tasks](03-tasks.md) (elemento do nível 3), porque o sistema passa a
 guardar dados pessoais e a controlar o acesso a dados financeiros.
@@ -167,6 +167,31 @@ inadimplência e renegociação, entradas sem devedor, armazenamento de anexos e
 | Concorrência em validação dupla ou duplicata recorrente | `select_for_update()`, índices únicos parciais (`EM_VALIDACAO`, competência) e unicidade atômica | Implementada (M6) | CA-22; `test_parte2_pagamentos.py`, `test_parte3_recorrencias.py` |
 | XSS via SVG do QR Code ou textos | Renderização declarativa em `<QrCodePix />` sem `dangerouslySetInnerHTML` | Implementada (M6) | `frontend/src/financeiro.test.tsx` |
 | BR Code recusado por algum banco real | Payload EMV + CRC16 conferido nos testes e nos contêineres; resta teste manual com bancos reais | Pendente do dono (risco 3) | [02-plan](02-plan.md) § 6 |
+
+### M7: financeiro — gastos, saídas, prestação de contas e estornos
+
+Elementos novos: upload e download de cotações (`Cotacao`), solicitações estruturadas de gasto e complemento
+(`financeiro.gasto` no motor `aprovacoes`), aggregate `Saida` (`Envio`, `PrestacaoDeContas`, `Complemento`),
+devolução de sobra ligada a `Entrada` (`saida`), rotina diária de lembretes (5 e 7 dias), visão do caixa
+(`total_entradas_validadas`, `total_saidas_liquidadas`, `total_comprometido`) e aggregate imutável `Estorno`
+(`ADR-013`).
+
+| Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
+| --- | --- | --- | --- | --- | --- | --- |
+| Solicitação de gasto e cancelamento pré-envio | — | Cancelar ou editar gasto após o dinheiro sair → primeiro `Envio` transiciona a solicitação para `EM_EXECUCAO` (`select_for_update()`), travando edição e cancelamento no motor | Abertura, reaprovação e cancelamento automático gravados na auditoria (`SAIDA_ABERTA`, `SAIDA_CANCELADA`) com IDs e versões | Visão do caixa e lista de solicitações de gasto restritas a quem lê gestão (`403` para diretor sem cargo) | Limite de itens > 0, soma positiva em `Decimal` e payload validado pelo tipo | Solicitante não aprova o próprio gasto sem permissão específica (`INV-SOL-02`) |
+| `Cotacao`, `Envio` e `PrestacaoDeContas` (anexos) | — | SVG/HTML disfarçado de comprovante → `kernel/anexos.py` valida magic bytes (PDF, PNG, JPEG, WebP) e tamanho <= 5 MB, gravando em chave opaca `<contexto>/<uuid7>.<ext>` | Metadados (`chave`, `nome`, `tamanho`) gravados na entidade e na auditoria; nunca o binário nem caminho em disco | Download apenas via rotas autenticadas `LeGestao` (`cotacoes/{id}/`, `saidas/{id}/envios/{eid}/comprovante/`, `prestacoes/{pid}/comprovante/`) com `X-Content-Type-Options: nosniff` e `Cache-Control: private, no-store`; omitido fora de gestão | Sem endereço direto para `MEDIA_ROOT`; `Envio` sem comprovante é recusado | Diretor sem cargo recebe `403` sem confirmar se o ID existe; envio exige `saidas.enviar`; prestação exige ser o solicitante (`SO_O_SOLICITANTE`) |
+| Devolução de sobra e liquidação (`INV-ENT-04`, `INV-SAI-05`) | — | Liquidar saída antes da validação da devolução ou com envio/complemento concorrente → `select_for_update()` na saída + `DEVOLUCAO_PENDENTE` (`422`); excesso sem reembolso exige justificativa | `PRESTACAO_REGISTRADA`, `PRESTACAO_DEVOLVIDA` (com `motivo_id` e snapshot), `COMPLEMENTO_*` e `SAIDA_LIQUIDADA` auditados na mesma transação | **Vazamento de comprovante bancário na devolução:** `devolucoes` usa sigilo de `Entrada` — quem tem `saidas.liquidar` sem `entradas.validar` recebe `403` ao baixar comprovante de devolução (`INV-ENT-04`) e `comprovante_disponivel=false` no JSON | Limite de devolução `<= total_enviado`; no máximo um `Complemento` em andamento por índice único parcial e uma `PrestacaoDeContas` vigente | Quem pediu o gasto não liquida (`SOLICITANTE_NAO_LIQUIDA`), não devolve prestação e não valida devolução (`REGISTRADOR_NAO_VALIDA`), inclusive com `acesso.total` |
+| Estorno (`ADR-013`) | — | Alterar registro liquidado/pago/validado ou estornar duas vezes → `OneToOneField(PROTECT)` + `CheckConstraint` de exclusividade por `alvo_tipo` + recusa de `UPDATE`/`DELETE` em `Estorno` + tabela de transições proíbe saída de `ESTORNADA`; devolução de saída `LIQUIDADA` é bloqueada (`NAO_PODE_ESTORNAR`) | Dupla trilha na mesma transação (`SAIDA_ESTORNADA` / `ENTRADA_ESTORNADA` / `COBRANCA_ESTORNADA` e `ESTORNO_REGISTRADO`) com `motivo_id`, snapshot e justificativa obrigatória | Recibo PDF de cobrança estornada retorna `422 NAO_ESTA_PAGA` | Consulta paginada por cursor com limite <= 50 | Permissão `financeiro.estornar` nasce restrita ao admin (sem atribuição automática a setores, `P7`) |
+| Visão do caixa, rotina diária e site | — | XSS em textos livres de gastos, prestações ou estornos → React renderiza campos como texto (`DetalhesConteudoGasto`, `BlocoEstorno`, `DetalheDaSaida`) | Execuções de lembretes 5d/7d notificam por chave idempotente sem duplicar alerta | Devoluções ligadas (`saida__isnull=False`) ficam fora de `total_entradas_validadas` (zero dupla contagem); diretor sem cargo é redirecionado fora de `/saidas` e `/gastos/novo` | Lembretes idempotentes por `lembrete_5_dias_em` e `aviso_7_dias_em` sob `select_for_update()` | Botões no site apenas refletem `acoes` calculadas no backend; rotas e serviços revalidam tudo (teste de paridade) |
+
+| Ameaça | Mitigação | Status | Registro |
+| --- | --- | --- | --- |
+| Sigilo da devolução quebrado por quem liquida | `pode_ver_comprovante_entrada` aplicado também em `devolucoes` do detalhe e na rota de download (`403`) | Implementada (M7) | `INV-ENT-04`; `test_parte10_saidas_http.py` e E2E |
+| Cancelamento ou alteração após transferência financeira | Transição atômica `Solicitacao -> EM_EXECUCAO` no primeiro `Envio` (`INV-SAI-08`, `INV-SOL-09`) | Implementada (M7) | `CA-10`; `test_parte8_saidas_servicos.py` |
+| Autoliquidação ou ação fora do solicitante | `avaliar_saida` centraliza segregação (`SO_O_SOLICITANTE`, `SOLICITANTE_NAO_LIQUIDA`), inclusive com `acesso.total`, com teste de paridade | Implementada (M7) | `CA-12`, `CA-25`; `test_parte10_saidas_http.py` |
+| Estorno duplo, retroativo inconsistente ou alteração de saldo final | Modelo imutável `Estorno` (`OneToOneField` + `CheckConstraint`), bloqueio de devolução de saída liquidada e remoção de recibo estornado | Implementada (M7) | `ADR-013`, `INV-SAI-09`; `test_parte9_estornos_e_caixa.py` |
+| Acesso a anexos de gasto por diretor sem cargo | `LeGestao` nas rotas de cotação, envio e prestação + `nosniff` e `private, no-store` | Implementada (M7) | `P6`; `test_parte10_saidas_http.py` e E2E |
+| Notificações repetidas de atraso em reexecução | `lembrete_5_dias_em` / `aviso_7_dias_em` gravados sob `select_for_update()` + chave idempotente | Implementada (M7) | `RF-126`, `CA-14`; `test_parte9_estornos_e_caixa.py` |
 
 ## 2. Avaliação de LGPD
 
@@ -562,3 +587,81 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/schema/     
 | Verificação do backend (`1181` testes, cobertura `94.32%`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run pip-audit` |
 | Verificação do site (`173` testes, cobertura global `88.38%` Stmts / `90.37%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
 | Exercício nos contêineres e Mailpit | `docker compose up -d --build` (saúde, Pix, recorrência idempotente, e-mail, comprovante e recibo `%PDF-1.4`) |
+
+## 6. Relatório de vulnerabilidades — M7
+
+| Campo | Valor |
+| --- | --- |
+| Projeto | Club Manager |
+| Escopo | Feature `financeiro/gastos-e-prestacao-de-contas`: `permissoes.public`, `aprovacoes.public`, domínio/serviços/rotas M7 de `financeiro`, rotina diária e telas React de gastos/saídas/estorno |
+| Data da execução | 2026-11-15 |
+| Responsável | o dono do projeto |
+| Ferramentas | SCA: `pip-audit` e `npm audit --audit-level=high`. SAST: `ruff check --select S .`, `mypy .`, `oxlint --deny-warnings`, `tsc -b`, `lint-imports`. DAST: não executado (M12). Revisão por ameaça e fluxo ponta a ponta HTTP nos contêineres Docker Compose |
+| Especificação | RNF-07; [01-spec](01-spec.md) § 1 (M7); `ADR-013`; modelo de ameaças § 1 (M7) |
+| Achados aceitos sem correção | Nenhum achado novo em aberto no M7 (mantidos apenas DAST, HTTPS/HSTS, SPF/DKIM e cifragem em disco previstos no M12, além do risco 3 do M6) |
+
+### 1. Contexto e escopo
+
+O M7 entrega o fluxo completo de saídas financeiras e desfazimento controlado: upload de cotações (`Cotacao`),
+abertura estruturada de gastos (`financeiro.gasto` no motor `aprovacoes`), visão consolidada do caixa durante a
+análise e no painel de saídas, criação única de `Saida` na aprovação, envio de recurso com comprovante e trava
+pós-envio (`EM_EXECUCAO`), prestação de contas, devolução de prestação com motivo, devolução de sobra ligada
+a `Entrada` (mantendo `INV-ENT-04`), pedido e envio de complemento, liquidação com encerramento no motor,
+lembretes idempotentes de 5 e 7 dias e estorno imutável (`Estorno`, `ADR-013`) de saída liquidada, entrada
+validada ou cobrança paga.
+
+### 2. Frentes
+
+| Frente | Ferramenta | O que cobre | Mapeamento OWASP |
+| --- | --- | --- | --- |
+| SCA | `pip-audit`; `npm audit --audit-level=high` | Dependências Python e Node | A06 |
+| SAST e arquitetura | `ruff check --select S .`, `mypy .`, `lint-imports`, `oxlint --deny-warnings`, `tsc -b` | Padrões inseguros em Python/TS, tipagem estrita e fronteiras entre contextos | A01, A02, A03, A05 |
+| Revisão por ameaça e contêineres | `1202` testes backend (`93,02%`), `186` testes site (`89,51%` Stmts / `83,44%` Branch), fluxo HTTP ponta a ponta sobre Caddy + Gunicorn + PostgreSQL + Redis + Celery Worker | Segregação de funções, sigilo de anexos (`INV-ENT-04`, `P6`), trava pós-envio, unicidade de estorno, cabeçalhos, esquema OpenAPI autenticado (`401`) e UIDs sem privilégio (`10001`) | A01, A03, A04, A05 |
+| DAST | Não executado | — | — |
+
+### 3. Como reproduzir
+
+```text
+# em backend/
+uv run poe audit
+uv run ruff check --select S .
+uv run poe verify
+
+# em frontend/
+npm audit --audit-level=high
+npm run verify
+
+# com o sistema no ar (na raiz)
+docker compose up -d --build --wait
+docker compose exec -T api id
+docker compose exec -T web id
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/health/     # 200
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/schema/     # 401
+```
+
+### 4. Resultado: inicial → correções → final
+
+| Frente | Severidade | Inicial | Final | Variação |
+| --- | --- | --- | --- | --- |
+| SCA backend (`pip-audit`) | Qualquer | 0 | 0 | — |
+| SCA site (`npm audit --audit-level=high`) | Crítica, alta | 0 | 0 | — |
+| SAST (`ruff --select S`, `mypy`, `oxlint`) | Qualquer | 0 | 0 | — |
+| Revisão por ameaça e fluxo E2E | Média, baixa | 0 novos abertos | 0 | — |
+
+### 5. Controles verificados e lacunas
+
+| Controle ou lacuna | Resultado / Situação | Evidência |
+| --- | --- | --- |
+| Anexos de gasto (`P6`) e sigilo de devolução (`INV-ENT-04`) | Cotação e comprovante de envio com `nosniff` e `private, no-store`; `403` para diretor sem cargo e `403` para titular com `saidas.liquidar` sem `entradas.validar` no comprovante da devolução | E2E nos contêineres + `test_parte10_saidas_http.py` |
+| Segregação e paridade `acoes` ↔ rotas (`RN-012`) | `SO_O_SOLICITANTE`, `SOLICITANTE_NAO_LIQUIDA`, `REGISTRADOR_NAO_VALIDA` e restrição inicial de `financeiro.estornar` conferidas no domínio, serviço e rota (inclusive com `acesso.total`) | `test_parte7_saidas_dominio.py`, `test_parte8_saidas_servicos.py`, `test_parte10_saidas_http.py` |
+| Imutabilidade pós-liquidação e estorno (`ADR-013`) | `Estorno` com `OneToOneField(PROTECT)`, `CheckConstraint`, bloqueio de alteração/exclusão em modelo e impossibilidade de estornar devolução de saída liquidada | `test_parte9_estornos_e_caixa.py`, `test_migracoes.py` e E2E |
+| Contêineres, migração e worker assíncrono | `api` e `worker` em `uid=10001(app)`, `web` em `uid=10001(web)`, migração `0003` aplicada no boot, `/api/v1/schema/` retornando `401` sem sessão e tarefas de e-mail executadas pelo Celery via Mailpit | `docker compose up -d --build --wait`, logs `api`/`worker` |
+| DAST, HTTPS/HSTS, SPF/DKIM e cifragem de disco | Previsto para o M12 com ambiente de produção | [02-plan](02-plan.md) § 6 (D-03, M12) |
+
+### 6. Evidências
+
+| Evidência | Onde |
+| --- | --- |
+| Verificação do backend (`1202` testes, cobertura `93,02%`, `lint-imports` `1 kept / 0 broken`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run poe audit` |
+| Verificação do site (`186` testes, cobertura global `89,51%` Stmts / `83,44%` Branch / `91,46%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
+| Fluxo ponta a ponta real no Compose | `docker compose up -d --build --wait` (web `200`, health `200`, schema `401`, cotação → gasto → aprovação → caixa comprometido → envio → prestação → devolução `INV-ENT-04` `403`/`200` → validação → liquidação → estorno → caixa zerado → worker e-mails `succeeded`) |

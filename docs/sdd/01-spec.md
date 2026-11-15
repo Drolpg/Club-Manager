@@ -142,20 +142,20 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Status |
 | --- | --- | --- |
-| RF-073 | O solicitante envia uma solicitação de gasto com descrição, categoria, setor, itens (descrição e valor) e, se houver, cotação anexa | Aprovado |
-| RF-074 | O sistema abre a saída quando a solicitação de gasto é aprovada, e o valor passa a constar como comprometido | Aprovado |
-| RF-075 | Quem tem a permissão registra o envio do recurso, anexando o comprovante de envio | Aprovado |
-| RF-076 | O solicitante presta contas, informando o valor gasto e anexando o comprovante de gasto ou uma justificativa em texto | Aprovado |
-| RF-077 | Quem responde pelo financeiro consulta as prestações de contas pendentes | Aprovado |
-| RF-078 | O solicitante registra a devolução da diferença, ligada à saída, quando gastou menos do que recebeu | Aprovado |
-| RF-079 | O solicitante envia uma solicitação de complemento, ligada à saída, quando gastou mais do que recebeu | Aprovado |
-| RF-080 | Quem tem a permissão devolve uma prestação de contas ao solicitante para correção, com motivo | Aprovado |
-| RF-081 | Quem tem a permissão liquida a saída depois de conferir a prestação de contas | Aprovado |
-| RF-082 | Quem tem a permissão cancela uma saída antes do envio do recurso, com motivo | Aprovado |
-| RF-083 | Quem tem a permissão estorna um registro liquidado (saída, entrada ou cobrança paga), com justificativa, gerando um lançamento ligado ao original | Aprovado |
-| RF-126 | O sistema lembra o solicitante da prestação de contas aos 5 dias do envio e, vencido o prazo de 7 dias, avisa também quem liquida | Aprovado |
-| RF-127 | O aprovador de um gasto vê o total validado de entradas, o liquidado de saídas e o comprometido | Aprovado |
-| RF-128 | Quem envia recursos registra, na mesma saída, o envio da diferença de um complemento aprovado | Aprovado |
+| RF-073 | O solicitante envia uma solicitação de gasto com descrição, categoria, setor, itens (descrição e valor) e, se houver, cotação anexa | Implementado |
+| RF-074 | O sistema abre a saída quando a solicitação de gasto é aprovada, e o valor passa a constar como comprometido | Implementado |
+| RF-075 | Quem tem a permissão registra o envio do recurso, anexando o comprovante de envio | Implementado |
+| RF-076 | O solicitante presta contas, informando o valor gasto e anexando o comprovante de gasto ou uma justificativa em texto | Implementado |
+| RF-077 | Quem responde pelo financeiro consulta as prestações de contas pendentes | Implementado |
+| RF-078 | O solicitante registra a devolução da diferença, ligada à saída, quando gastou menos do que recebeu | Implementado |
+| RF-079 | O solicitante envia uma solicitação de complemento, ligada à saída, quando gastou mais do que recebeu | Implementado |
+| RF-080 | Quem tem a permissão devolve uma prestação de contas ao solicitante para correção, com motivo | Implementado |
+| RF-081 | Quem tem a permissão liquida a saída depois de conferir a prestação de contas | Implementado |
+| RF-082 | Quem tem a permissão cancela uma saída antes do envio do recurso, com motivo | Implementado |
+| RF-083 | Quem tem a permissão estorna um registro liquidado (saída, entrada ou cobrança paga), com justificativa, gerando um lançamento ligado ao original | Implementado |
+| RF-126 | O sistema lembra o solicitante da prestação de contas aos 5 dias do envio e, vencido o prazo de 7 dias, avisa também quem liquida | Implementado |
+| RF-127 | O aprovador de um gasto vê o total validado de entradas, o liquidado de saídas e o comprometido | Implementado |
+| RF-128 | Quem envia recursos registra, na mesma saída, o envio da diferença de um complemento aprovado | Implementado |
 
 ##### Eventos (M8)
 
@@ -279,7 +279,6 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | Marco | Pergunta |
 | --- | --- |
 | M6 | Algum aplicativo de banco recusa o Pix copia e cola gerado sem integração bancária? (Risco 3: BR Code EMV + CRC16 conferido em testes; validação em aplicativos bancários reais pendente do dono) |
-| M7 | Como o estorno se liga ao lançamento original sem editar o registro liquidado? |
 | M8 | A aprovação de eventos varia por categoria de evento? |
 | M9 | Haverá comentários e reações no feed, e pastas ou acesso restrito por cargo nos documentos? |
 | M10 | O que entra no dashboard básico, qual o período exibido e como se calcula o saldo acumulado? |
@@ -431,9 +430,9 @@ Solicitação, versão, decisão e motivo nunca são apagados, e versão e decis
 | Módulo | Aggregate | Estados |
 | --- | --- | --- |
 | `aprovacoes` | Solicitação (com Versão e Decisão) | `EM_ANALISE`, `RETIRADA`, `CONTESTADA`, `RECUSADA`, `APROVADA`, `EM_EXECUCAO`, `ENCERRADA`, `CANCELADA` |
-| `financeiro` | Cobrança | `ABERTA`, `EM_VALIDACAO`, `ATRASADA`, `PAGA`, `ISENTA`, `CANCELADA`, `PERDOADA`, `RENEGOCIADA` |
+| `financeiro` | Cobrança | `ABERTA`, `EM_VALIDACAO`, `ATRASADA`, `PAGA`, `ISENTA`, `CANCELADA`, `PERDOADA`, `RENEGOCIADA`, `ESTORNADA` |
 | `financeiro` | Saída | `AGUARDANDO_ENVIO`, `RECURSO_ENVIADO`, `EM_CONFERENCIA`, `LIQUIDADA`, `CANCELADA`, `ESTORNADA` |
-| `financeiro` | Entrada, Recorrência, Suspensão, Renegociação | `Entrada`: `EM_VALIDACAO`, `VALIDADA`, `REJEITADA` (`ESTORNADA` no M7); `Recorrência`: ativa/inativa; `Suspensão`: `VIGENTE`, `ENCERRADA`; `Renegociação`: imutável após criação |
+| `financeiro` | Entrada, Recorrência, Suspensão, Renegociação | `Entrada`: `EM_VALIDACAO`, `VALIDADA`, `REJEITADA`, `ESTORNADA`; `Recorrência`: ativa/inativa; `Suspensão`: `VIGENTE`, `ENCERRADA`; `Renegociação`: imutável após criação |
 | `eventos` | Evento | `EM_APROVACAO`, `PUBLICADO`, `RECUSADO`, `REALIZADO`, `CANCELADO` (derivado das duas solicitações por uma função só, `situacao_do_evento`) |
 
 Os módulos de apoio (`acesso`, `permissoes`, `notificacoes`, `auditoria`, `comunicacao`, `marca`, `relatorios`) usam
