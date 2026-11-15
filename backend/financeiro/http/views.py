@@ -19,6 +19,7 @@ from financeiro.domain.autorizacao import (
     PERM_COBRANCAS_CRIAR,
     PERM_COBRANCAS_ISENTAR,
     PERM_COBRANCAS_SUSPENDER,
+    PERM_DIVIDAS_DECIDIR,
     PERM_PAGAMENTOS_VALIDAR,
     PERM_QUESTIONAMENTOS_DECIDIR,
 )
@@ -36,12 +37,14 @@ from financeiro.http.serializers import (
     ConsultaMinhasCobrancasSerializer,
     ConsultaRecorrenciasSerializer,
     ConsultaSuspensoesSerializer,
+    DecidirDividaSerializer,
     DecidirPagamentoSerializer,
     DecidirQuestionamentoSerializer,
     EditarChavePixSerializer,
     EditarRecorrenciaSerializer,
     HistoricoSerializer,
     IsentarCobrancaSerializer,
+    JustificarDividaSerializer,
     NomeCategoriaSerializer,
     NovaCategoriaSerializer,
     NovaChavePixSerializer,
@@ -53,6 +56,7 @@ from financeiro.http.serializers import (
     QuestionarCobrancaSerializer,
     RecorrenciaSerializer,
     RegistrarPagamentoSerializer,
+    RenegociarDividaSerializer,
     SuspensaoSerializer,
 )
 from financeiro.services import (
@@ -60,6 +64,7 @@ from financeiro.services import (
     chaves_pix,
     cobrancas,
     consulta,
+    inadimplencia,
     pagamentos,
     questionamentos,
     recorrencias,
@@ -449,6 +454,90 @@ class CobrancaDecidirQuestionamentoView(APIView):
             ator_id=ator_id,
             cobranca_id=cobranca_id,
             decisao=dados["decisao"],
+            motivo_id=dados["motivo_id"],
+            texto=dados["texto"],
+        )
+        detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
+        return Response(CobrancaDetalheSerializer(detalhe).data)
+
+
+class CobrancaJustificarDividaView(APIView):
+    permission_classes = (DiretorAtivo,)
+
+    @extend_schema(
+        summary="Justificar dívida após convocação (devedor)",
+        request=JustificarDividaSerializer,
+        responses=CobrancaDetalheSerializer,
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        ator_id = _ator_id(request)
+        dados = _validar(JustificarDividaSerializer, request.data)
+        cobranca = inadimplencia.justificar_divida(
+            ator_id=ator_id,
+            cobranca_id=cobranca_id,
+            texto=dados["texto"],
+        )
+        detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
+        return Response(CobrancaDetalheSerializer(detalhe).data)
+
+
+class CobrancaPerdoarView(APIView):
+    permission_classes = (exige_permissao(PERM_DIVIDAS_DECIDIR),)
+
+    @extend_schema(
+        summary="Perdoar cobrança atrasada",
+        request=DecidirDividaSerializer,
+        responses=CobrancaDetalheSerializer,
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        ator_id = _ator_id(request)
+        dados = _validar(DecidirDividaSerializer, request.data)
+        cobranca = inadimplencia.perdoar(
+            ator_id=ator_id,
+            cobranca_id=cobranca_id,
+            motivo_id=dados["motivo_id"],
+            texto=dados["texto"],
+        )
+        detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
+        return Response(CobrancaDetalheSerializer(detalhe).data)
+
+
+class CobrancaRenegociarView(APIView):
+    permission_classes = (exige_permissao(PERM_DIVIDAS_DECIDIR),)
+
+    @extend_schema(
+        summary="Renegociar cobrança atrasada em parcelas",
+        request=RenegociarDividaSerializer,
+        responses=CobrancaDetalheSerializer,
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        ator_id = _ator_id(request)
+        dados = _validar(RenegociarDividaSerializer, request.data)
+        cobranca = inadimplencia.renegociar(
+            ator_id=ator_id,
+            cobranca_id=cobranca_id,
+            motivo_id=dados["motivo_id"],
+            texto=dados["texto"],
+            parcelas=dados["parcelas"],
+        )
+        detalhe = consulta.serializar_detalhe(cobranca, ator_id=ator_id)
+        return Response(CobrancaDetalheSerializer(detalhe).data)
+
+
+class CobrancaManterDividaView(APIView):
+    permission_classes = (exige_permissao(PERM_DIVIDAS_DECIDIR),)
+
+    @extend_schema(
+        summary="Manter dívida após convocação",
+        request=DecidirDividaSerializer,
+        responses=CobrancaDetalheSerializer,
+    )
+    def post(self, request: Request, cobranca_id: uuid.UUID) -> Response:
+        ator_id = _ator_id(request)
+        dados = _validar(DecidirDividaSerializer, request.data)
+        cobranca = inadimplencia.manter_divida(
+            ator_id=ator_id,
+            cobranca_id=cobranca_id,
             motivo_id=dados["motivo_id"],
             texto=dados["texto"],
         )

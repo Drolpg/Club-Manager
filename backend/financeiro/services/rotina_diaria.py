@@ -14,7 +14,7 @@ from financeiro.domain.competencia import (
     competencias_a_gerar,
     suspensa_na_data,
 )
-from financeiro.domain.transicoes import SituacaoCobranca
+from financeiro.domain.transicoes import SituacaoCobranca, data_limite_convocacao
 from financeiro.models import Cobranca, Recorrencia, SituacaoSuspensao, Suspensao
 from financeiro.services import avisos
 from kernel.dinheiro import Dinheiro
@@ -155,6 +155,41 @@ def _marcar_atrasadas(hoje: date) -> int:
     return marcadas
 
 
+def _convocar_inadimplentes(hoje: date) -> int:
+    ids = list(
+        Cobranca.objects.filter(
+            situacao=SituacaoCobranca.ATRASADA,
+            convocacao__isnull=True,
+        ).values_list("id", flat=True)
+    )
+    convocadas = 0
+    for cid in ids:
+        with transaction.atomic():
+            cobranca = Cobranca.objects.select_for_update().get(pk=cid)
+            limite = data_limite_convocacao(
+                cobranca.vencimento,
+                cobranca.limite_de_inadimplencia,
+                cobranca.dias_pausados_inadimplencia,
+            )
+            if hoje < limite:
+                continue
+            conv = cobranca.convocar(agora=timezone.now())
+            if conv is not None:
+                auditoria.registrar(
+                    acao="COBRANCA_DEVEDOR_CONVOCADO",
+                    ator_id=None,
+                    item_tipo="cobranca",
+                    item_id=cobranca.id,
+                    dados={
+                        "data_limite": limite.isoformat(),
+                        "data_referencia": hoje.isoformat(),
+                    },
+                )
+                avisos.devedor_convocado(cobranca)
+                convocadas += 1
+    return convocadas
+
+
 def executar(hoje: date | None = None) -> dict[str, int]:
     """Executa toda a rotina diária financeira de forma idempotente para `hoje`."""
     data_ref = hoje or timezone.localdate()
@@ -163,5 +198,5 @@ def executar(hoje: date | None = None) -> dict[str, int]:
         "lembretes_3_dias": _enviar_lembretes_3_dias(data_ref),
         "lembretes_vencimento": _enviar_lembretes_vencimento(data_ref),
         "atrasadas": _marcar_atrasadas(data_ref),
-        "convocadas": 0,
+        "convocadas": _convocar_inadimplentes(data_ref),
     }

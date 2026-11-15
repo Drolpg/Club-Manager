@@ -264,6 +264,27 @@ class DecidirQuestionamentoSerializer(serializers.Serializer[Any]):
     texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
 
 
+class JustificarDividaSerializer(serializers.Serializer[Any]):
+    texto = serializers.CharField(min_length=2, max_length=1000)
+
+
+class DecidirDividaSerializer(serializers.Serializer[Any]):
+    motivo_id = serializers.UUIDField()
+    texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+class ParcelaRenegociacaoSerializer(serializers.Serializer[Any]):
+    # Sem min_value: valores <= 0 são recusados no domínio como 422 VALOR_INVALIDO.
+    valor = _dinheiro()
+    vencimento = serializers.DateField()
+
+
+class RenegociarDividaSerializer(serializers.Serializer[Any]):
+    motivo_id = serializers.UUIDField()
+    texto = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+    parcelas = ParcelaRenegociacaoSerializer(many=True, allow_empty=True)
+
+
 # --- Recorrências e Suspensões ---
 
 
