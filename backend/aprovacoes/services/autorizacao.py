@@ -55,4 +55,5 @@ def fatos_de(solicitacao: Solicitacao, ator_id: uuid.UUID) -> Fatos:
         tem_auto_aprovacao=tipos.AUTO_APROVAR in do_ator,
         pode_reabrir_de_outros=tipos.REABRIR_DE_OUTROS in do_ator,
         pode_cancelar_de_outros=tipos.CANCELAR_DE_OUTROS in do_ator,
+        tipo_so_pelo_modulo_dono=definicao is not None and definicao.so_pelo_modulo_dono,
     )

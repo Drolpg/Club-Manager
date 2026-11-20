@@ -16,6 +16,7 @@ SO_O_SOLICITANTE = "SO_O_SOLICITANTE"
 SOLICITANTE_NAO_DECIDE = "SOLICITANTE_NAO_DECIDE"
 APROVADOR_NAO_INDICADO = "APROVADOR_NAO_INDICADO"
 APROVADOR_INVALIDO = "APROVADOR_INVALIDO"
+COMANDO_DO_MODULO_DONO = "COMANDO_DO_MODULO_DONO"
 
 # O que o usuário pede pela API. Enviar tem fatos próprios; iniciar a execução e encerrar são do módulo dono.
 COMANDOS_DO_USUARIO: tuple[Comando, ...] = (
@@ -30,6 +31,10 @@ COMANDOS_DO_USUARIO: tuple[Comando, ...] = (
 )
 _SO_DO_SOLICITANTE = frozenset({Comando.RETIRAR, Comando.REENVIAR, Comando.EDITAR})
 _DECISOES = frozenset({Comando.APROVAR, Comando.CONTESTAR, Comando.RECUSAR})
+# Num tipo só pelo módulo dono, esses comandos só chegam pela API pública do motor (adendo 2).
+_DO_MODULO_DONO = frozenset(
+    {Comando.RETIRAR, Comando.REENVIAR, Comando.EDITAR, Comando.REABRIR, Comando.CANCELAR}
+)
 
 
 @dataclass(frozen=True)
@@ -59,6 +64,7 @@ class Fatos:
     tem_auto_aprovacao: bool
     pode_reabrir_de_outros: bool
     pode_cancelar_de_outros: bool
+    tipo_so_pelo_modulo_dono: bool = False
 
 
 @dataclass(frozen=True)
@@ -130,6 +136,8 @@ def avaliar(comando: Comando, fatos: Fatos) -> Avaliacao:
     quem = _quem_pode(comando, fatos)
     if not quem.pode:
         return quem
+    if fatos.tipo_so_pelo_modulo_dono and comando in _DO_MODULO_DONO:
+        return _nao(COMANDO_DO_MODULO_DONO)
     if not transicao_permitida(fatos.situacao, comando):
         return _nao(ERRO_DE_SITUACAO[comando])
     return quem

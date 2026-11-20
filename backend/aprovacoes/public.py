@@ -9,6 +9,8 @@
 - `iniciar_execucao(solicitacao_id, ator_id=None)` e `encerrar(solicitacao_id, ator_id=None)`: só o módulo
   dono os chama, e não há rota para eles. `ator_id` nulo quando é o sistema.
 - `situacao_de(solicitacao_id)`: a situação atual, como `Situacao`.
+- `nova_versao_pelo_dono(...)` e `cancelar_pelo_dono(...)`: só o módulo dono, que já conferiu quem age
+  (adendo 2); um tipo registrado com `so_pelo_modulo_dono=True` só muda por elas.
 - `registrar_tipo_de_decisao(codigo, nome)`: um módulo declara os tipos de decisão dele ao iniciar (RN-011).
 - `motivo_aplicado(motivo_id, tipo_de_decisao)`: o texto do motivo a copiar na decisão; recusa motivo
   inexistente, inativo ou de outro tipo de decisão com `VALIDATION_ERROR` em `motivo_id`.
@@ -39,7 +41,11 @@ def enviar(
 ) -> uuid.UUID:
     """Envia uma solicitação em nome do solicitante, com as mesmas regras da rota, e devolve o ID dela."""
     solicitacao = solicitacoes.enviar(
-        ator_id=solicitante_id, tipo=tipo, conteudo=conteudo, aprovador_indicado_id=aprovador_indicado_id
+        ator_id=solicitante_id,
+        tipo=tipo,
+        conteudo=conteudo,
+        aprovador_indicado_id=aprovador_indicado_id,
+        pelo_dono=True,
     )
     return solicitacao.id
 
@@ -55,8 +61,37 @@ def encerrar(solicitacao_id: uuid.UUID, *, ator_id: uuid.UUID | None = None) -> 
 
 
 def cancelar(solicitacao_id: uuid.UUID, *, ator_id: uuid.UUID, motivo: str) -> None:
-    """Cancela a solicitação com motivo pelo solicitante enquanto ainda é possível."""
+    """Cancela com motivo, com as regras da rota: o solicitante, ou quem tem `solicitacoes.cancelar`."""
     solicitacoes.cancelar(ator_id=ator_id, solicitacao_id=solicitacao_id, motivo=motivo)
+
+
+def nova_versao_pelo_dono(
+    solicitacao_id: uuid.UUID,
+    *,
+    tipo: str,
+    ator_id: uuid.UUID,
+    conteudo: dict[str, Any],
+    justificativa: str = "",
+) -> None:
+    """Só o módulo dono, que já conferiu quem age: versão nova pela transição da situação atual (adendo 2).
+
+    Aprovada → editar; contestada ou retirada → reenviar; recusada → reabrir (justificativa obrigatória); em
+    análise → retirar e reenviar. Nas outras, `NAO_PODE_EDITAR`. Tipo diferente do informado: `ValueError`.
+    """
+    solicitacoes.nova_versao_pelo_dono(
+        solicitacao_id=solicitacao_id,
+        tipo=tipo,
+        ator_id=ator_id,
+        conteudo=conteudo,
+        justificativa=justificativa,
+    )
+
+
+def cancelar_pelo_dono(
+    solicitacao_id: uuid.UUID, *, tipo: str, ator_id: uuid.UUID | None, motivo: str
+) -> None:
+    """Só o módulo dono, que já conferiu quem age: cancela com motivo; ator nulo é o sistema (adendo 2)."""
+    solicitacoes.cancelar_pelo_dono(solicitacao_id=solicitacao_id, tipo=tipo, ator_id=ator_id, motivo=motivo)
 
 
 __all__ = (
@@ -66,10 +101,12 @@ __all__ = (
     "Situacao",
     "SolicitacaoInfo",
     "cancelar",
+    "cancelar_pelo_dono",
     "encerrar",
     "enviar",
     "iniciar_execucao",
     "motivo_aplicado",
+    "nova_versao_pelo_dono",
     "obter_solicitacao",
     "registrar_tipo",
     "registrar_tipo_de_decisao",

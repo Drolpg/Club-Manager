@@ -61,7 +61,10 @@ def _reais(valor: Decimal) -> str:
 
 
 def _nome(usuario_id: uuid.UUID | None) -> str:
-    usuario = acesso.usuario_por_id(usuario_id) if usuario_id else None
+    """O nome de quem agiu. Ator nulo é o sistema (adendo 2: comandos do módulo dono)."""
+    if usuario_id is None:
+        return "O sistema"
+    usuario = acesso.usuario_por_id(usuario_id)
     return usuario.nome if usuario else "Alguém"
 
 
@@ -218,7 +221,7 @@ def aprovacao_propria(solicitacao: Solicitacao, decisao: Decisao) -> None:
     )
 
 
-def saiu_da_fila(solicitacao: Solicitacao, *, ator_id: uuid.UUID, como: str) -> None:
+def saiu_da_fila(solicitacao: Solicitacao, *, ator_id: uuid.UUID | None, como: str) -> None:
     """Linha 8: retirada ou cancelada em análise → quem podia decidir, menos quem agiu (A7: só em análise)."""
     resumo = _resumo(solicitacao)
     texto = (
