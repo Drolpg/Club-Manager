@@ -53,15 +53,7 @@ def ao_desativar_usuario(evento: acesso.UsuarioDesativado) -> None:
         )
 
 
-def _tratar_complemento(mudanca: aprovacoes.MudancaDeSolicitacao, agora: datetime) -> None:
-    comp = (
-        Complemento.objects.select_for_update()
-        .select_related("saida")
-        .filter(solicitacao_id=mudanca.solicitacao_id)
-        .first()
-    )
-    if comp is None:
-        return
+def _tratar_complemento(mudanca: aprovacoes.MudancaDeSolicitacao, comp: Complemento, agora: datetime) -> None:
     if mudanca.acontecimento == aprovacoes.Acontecimento.APROVADA:
         comp.aprovar(agora, valor=mudanca.valor)
         auditoria.registrar(
@@ -174,8 +166,16 @@ def ao_mudar_solicitacao_de_gasto(mudanca: aprovacoes.MudancaDeSolicitacao) -> N
     """Reage às decisões/cancelamentos de solicitações `financeiro.gasto` na mesma transação."""
     info = aprovacoes.obter_solicitacao(mudanca.solicitacao_id)
     agora = timezone.now()
-    if info.conteudo.get("saida_origem_id"):
-        _tratar_complemento(mudanca, agora)
+    # É complemento quem tem o registro `Complemento`, e não quem traz `saida_origem_id` no conteúdo: o
+    # reenvio pela tela de aprovações monta o conteúdo sem esse campo (RF-079).
+    comp = (
+        Complemento.objects.select_for_update()
+        .select_related("saida")
+        .filter(solicitacao_id=mudanca.solicitacao_id)
+        .first()
+    )
+    if comp is not None:
+        _tratar_complemento(mudanca, comp, agora)
     else:
         _tratar_saida_inicial(mudanca, info, agora)
 

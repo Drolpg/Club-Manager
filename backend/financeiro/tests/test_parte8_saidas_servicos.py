@@ -442,3 +442,54 @@ def test_contrato_publico_eventos_m8_e_devolucao_compatibilidade_m6() -> None:
         saida_id=saida.id,
     )
     assert saida.devolucoes.filter(pk=dev_id).exists()
+
+
+def test_complemento_contestado_e_reenviado_pela_tela_continua_complemento() -> None:
+    """RF-079: reenviado com o conteúdo que a tela de aprovações monta, sem `saida_origem_id`, o complemento
+    continua complemento: aprovado, não abre outra saída e aprova o `Complemento` da saída de origem.
+    """
+    ctx = _setup_gastos()
+    _, saida = _abrir_e_aprovar(ctx)
+    saidas.enviar_recurso(ctx["enviador"].id, saida.id, valor=Dinheiro("300.00"), arquivo=_pdf("t.pdf"))
+    saidas.prestar_contas(
+        ctx["solicitante"].id, saida.id, valor=Dinheiro("380.00"), descricao="Preço subiu", arquivo=_png()
+    )
+    pedido = saidas.pedir_complemento(
+        ctx["solicitante"].id, saida.id, itens=[{"descricao": "Diferença", "valor": "80.00"}]
+    )
+    comp = Complemento.objects.get(pk=pedido["id"])
+    base = f"/api/v1/aprovacoes/solicitacoes/{comp.solicitacao_id}"
+
+    c_admin = APIClient()
+    c_admin.force_authenticate(user=ctx["admin"])
+    m_contestar = garantir_motivo(c_admin, "solicitacao.contestar")
+    resp = ctx["c_aprov"].post(
+        f"{base}/contestar/",
+        {"motivo_id": m_contestar, "mensagem": "Detalhe a diferença por item.", "texto": ""},
+        format="json",
+    )
+    assert resp.status_code == 200, resp.content
+
+    # O mesmo corpo de `conteudoEstruturado()` em `AcoesDaSolicitacao.tsx`: sem `saida_origem_id`.
+    resp = ctx["c_sol"].post(
+        f"{base}/reenviar/",
+        {
+            "conteudo": {
+                "descricao": "Complemento detalhado",
+                "categoria_id": str(ctx["cat_saida"].id),
+                "setor_id": str(ctx["setor"].id),
+                "itens": [{"descricao": "Diferença de 4 bolas", "valor": "80.00"}],
+                "cotacao_id": None,
+            }
+        },
+        format="json",
+    )
+    assert resp.status_code == 200, resp.content
+
+    _aprovar_solicitacao(ctx, comp.solicitacao_id)
+
+    assert not Saida.objects.filter(solicitacao_id=comp.solicitacao_id).exists()
+    comp.refresh_from_db()
+    assert comp.situacao == SituacaoComplemento.APROVADO
+    assert comp.valor == Decimal("80.00")
+    assert Saida.objects.filter(solicitante_id=ctx["solicitante"].id).count() == 1
