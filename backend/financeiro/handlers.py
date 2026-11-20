@@ -18,7 +18,7 @@ from financeiro.models import (
     SituacaoSuspensao,
     Suspensao,
 )
-from financeiro.services import avisos
+from financeiro.services import avisos, orcamentos
 from financeiro.tipos import OrcamentoDeEventoMudou
 from kernel import events
 from kernel.dinheiro import Dinheiro
@@ -106,8 +106,7 @@ def _tratar_saida_inicial(
         categoria = CategoriaFinanceira.objects.get(pk=uuid.UUID(str(conteudo["categoria_id"])))
         cot_raw = conteudo.get("cotacao_id")
         cotacao = Cotacao.objects.filter(pk=uuid.UUID(str(cot_raw))).first() if cot_raw else None
-        ev_raw = conteudo.get("evento_id")
-        evento_id = uuid.UUID(str(ev_raw)) if ev_raw else None
+        evento_id = orcamentos.evento_do_orcamento(mudanca.solicitacao_id)
         saida = Saida.abrir(
             solicitacao_id=mudanca.solicitacao_id,
             versao_aprovada=mudanca.versao,
@@ -179,11 +178,11 @@ def ao_mudar_solicitacao_de_gasto(mudanca: aprovacoes.MudancaDeSolicitacao) -> N
     else:
         _tratar_saida_inicial(mudanca, info, agora)
 
-    ev_raw = info.conteudo.get("evento_id")
-    if ev_raw:
+    evento_id = orcamentos.evento_do_orcamento(mudanca.solicitacao_id)
+    if evento_id is not None:
         events.publish(
             OrcamentoDeEventoMudou(
-                evento_id=uuid.UUID(str(ev_raw)),
+                evento_id=evento_id,
                 solicitacao_id=mudanca.solicitacao_id,
                 acontecimento=mudanca.acontecimento.value,
                 versao=mudanca.versao,

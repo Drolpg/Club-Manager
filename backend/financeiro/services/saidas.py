@@ -340,7 +340,6 @@ def pedir_complemento(
             "itens": itens,
             "cotacao_id": str(cotacao_id) if cotacao_id else None,
             "saida_origem_id": str(saida.id),
-            "evento_id": str(saida.evento_id) if saida.evento_id else None,
         },
     )
     info = aprovacoes.obter_solicitacao(sol_id)

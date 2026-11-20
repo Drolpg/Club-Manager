@@ -4,6 +4,7 @@
 - `obter_categoria_ativa` / `listar_categorias_ativas`: consulta de categorias sem expor ORM.
 - `registrar_devolucao_de_saida`: registra devolução de saída de eventos (`TipoEntrada.DEVOLUCAO`).
 - `resumo_entradas_validadas`: soma consolidada apenas das entradas com situação `VALIDADA`.
+- `abrir_solicitacao_orcamentaria` e `cancelar_orcamento_de_evento`: o orçamento de evento (adendo 1 do M7).
 """
 
 import uuid
@@ -16,7 +17,7 @@ from django.db import transaction
 from auditoria import public as auditoria
 from financeiro.erros import erro
 from financeiro.models import CategoriaFinanceira, Entrada, Saida, TipoEntrada
-from financeiro.services import avisos, gastos
+from financeiro.services import avisos, orcamentos
 from financeiro.services.consulta import (
     ResumoEntradasValidadas,
     VisaoDoCaixa,
@@ -128,18 +129,38 @@ def abrir_solicitacao_orcamentaria(
     aprovador_indicado_id: uuid.UUID | None = None,
     cotacao_id: uuid.UUID | None = None,
 ) -> uuid.UUID:
-    """Abre solicitação de gasto vinculada a um evento e devolve o ID da solicitação."""
-    info = gastos.abrir_solicitacao(
-        solicitante_id,
+    """Abre a solicitação de gasto do orçamento de um evento, com o vínculo, e devolve o ID dela.
+
+    O vínculo é o registro `OrcamentoDeEvento`, e não o conteúdo (adendo 1). Quem pode abrir o orçamento é
+    conferido por `eventos` antes de chamar.
+    """
+    return orcamentos.abrir(
+        solicitante_id=solicitante_id,
         descricao=descricao,
         categoria_id=categoria_id,
         setor_id=setor_id,
         itens=itens,
-        cotacao_id=cotacao_id,
-        aprovador_indicado_id=aprovador_indicado_id,
         evento_id=evento_id,
+        aprovador_indicado_id=aprovador_indicado_id,
+        cotacao_id=cotacao_id,
     )
-    return info.id
+
+
+def cancelar_orcamento_de_evento(
+    solicitacao_id: uuid.UUID,
+    *,
+    evento_id: uuid.UUID,
+    titulo_do_evento: str,
+    ator_id: uuid.UUID | None,
+    motivo: str,
+) -> None:
+    """Chamada por `eventos` ao cancelar o evento (adendo 1). Em análise, contestado, retirado, recusado ou
+    aprovado sem envio: cancela a solicitação (e a saída que aguardava envio). Com o recurso enviado: não
+    cancela nada e avisa quem liquida. Já cancelado: nada. Vínculo de outro evento: `ValueError`.
+    """
+    orcamentos.cancelar_com_o_evento(
+        solicitacao_id, evento_id=evento_id, titulo_do_evento=titulo_do_evento, ator_id=ator_id, motivo=motivo
+    )
 
 
 __all__ = (
@@ -148,6 +169,7 @@ __all__ = (
     "ResumoEntradasValidadas",
     "VisaoDoCaixa",
     "abrir_solicitacao_orcamentaria",
+    "cancelar_orcamento_de_evento",
     "listar_categorias_ativas",
     "obter_categoria_ativa",
     "registrar_devolucao_de_saida",

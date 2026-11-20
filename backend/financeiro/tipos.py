@@ -108,6 +108,7 @@ NOTIF_PRESTACAO_DEVOLVIDA = "financeiro.prestacao_devolvida"
 NOTIF_COMPLEMENTO_APROVADO = "financeiro.complemento_aprovado"
 NOTIF_SAIDA_LIQUIDADA = "financeiro.saida_liquidada"
 NOTIF_REGISTRO_ESTORNADO = "financeiro.registro_estornado"
+NOTIF_ORCAMENTO_DE_EVENTO_CANCELADO = "financeiro.orcamento_de_evento_cancelado"
 
 TIPOS_DE_NOTIFICACAO: tuple[tuple[str, bool, str], ...] = (
     (NOTIF_COBRANCA_CRIADA, True, "Uma nova cobrança foi emitida para você."),
@@ -137,6 +138,11 @@ TIPOS_DE_NOTIFICACAO: tuple[tuple[str, bool, str], ...] = (
     (NOTIF_COMPLEMENTO_APROVADO, True, "Um complemento de saída foi aprovado e aguarda envio."),
     (NOTIF_SAIDA_LIQUIDADA, False, "Sua saída de recurso foi liquidada."),
     (NOTIF_REGISTRO_ESTORNADO, False, "Um lançamento financeiro foi estornado."),
+    (
+        NOTIF_ORCAMENTO_DE_EVENTO_CANCELADO,
+        False,
+        "Um evento foi cancelado depois de o recurso do orçamento dele ter sido enviado.",
+    ),
 )
 
 

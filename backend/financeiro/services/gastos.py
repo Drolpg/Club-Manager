@@ -117,10 +117,9 @@ def preparar_solicitacao_de_gasto(
             if cotacao is None:
                 erros.setdefault("cotacao_id", []).append("Cotação não encontrada.")
 
-    ev_id: uuid.UUID | None = None
-    ev_raw = conteudo.get("evento_id")
-    if ev_raw not in (None, ""):
-        ev_id = _parse_uuid(ev_raw, "evento_id", erros)
+    if conteudo.get("evento_id") not in (None, ""):
+        # O vínculo com o evento é o registro `OrcamentoDeEvento`, nunca o conteúdo (adendo 1).
+        erros.setdefault("evento_id", []).append("O orçamento de evento é aberto pelo evento.")
 
     saida_origem_id: uuid.UUID | None = None
     origem_raw = conteudo.get("saida_origem_id")
@@ -154,7 +153,6 @@ def preparar_solicitacao_de_gasto(
             "cotacao_id": str(cotacao.id) if cotacao else None,
             "cotacao_nome": cotacao.nome if cotacao else "",
             "saida_origem_id": str(saida_origem_id) if saida_origem_id else None,
-            "evento_id": str(ev_id) if ev_id else None,
         },
         valor=total,
         resumo=desc_limpa,
@@ -171,7 +169,6 @@ def abrir_solicitacao(
     itens: list[dict[str, Any]],
     cotacao_id: uuid.UUID | None = None,
     aprovador_indicado_id: uuid.UUID | None = None,
-    evento_id: uuid.UUID | None = None,
 ) -> aprovacoes.SolicitacaoInfo:
     """Abre solicitação estruturada de gasto no motor de aprovações (RF-073, CA-01)."""
     autorizacao.exigir_leitura_gestao(ator_id)
@@ -183,7 +180,6 @@ def abrir_solicitacao(
             "setor_id": str(setor_id),
             "itens": itens,
             "cotacao_id": str(cotacao_id) if cotacao_id else None,
-            "evento_id": str(evento_id) if evento_id else None,
         },
         solicitante_id=ator_id,
         aprovador_indicado_id=aprovador_indicado_id,

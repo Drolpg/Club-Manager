@@ -477,7 +477,6 @@ class NovaSolicitacaoGastoSerializer(serializers.Serializer[Any]):
     itens = ItemGastoSerializer(many=True)
     cotacao_id = serializers.UUIDField(required=False, allow_null=True, default=None)
     aprovador_indicado_id = serializers.UUIDField(required=False, allow_null=True, default=None)
-    evento_id = serializers.UUIDField(required=False, allow_null=True, default=None)
 
 
 class SolicitacaoGastoCriadaSerializer(serializers.Serializer[Any]):
