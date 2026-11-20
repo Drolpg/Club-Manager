@@ -19,13 +19,14 @@ do board quando ele existir; até lá fica `—`.
 | M5 Motor de aprovações | Solicitação com versões, decisões, motivos, fila | RF-033 a RF-045, RF-120 a RF-122 | Concluído (na `dev`) | 2026-11-14 | — |
 | M6 Financeiro: entradas | Cobranças, recorrência, Pix, validação, inadimplência, entradas | RF-046 a RF-072, RF-123 a RF-125 | Concluído (na `dev`) | 2026-11-14 | — |
 | M7 Financeiro: saídas | Solicitação de gasto, envio, prestação, liquidação, estorno | RF-073 a RF-083, RF-126 a RF-128 | Concluído | 2026-11-15 | — |
-| M8 Eventos | Proposta, orçamento, calendário, realização, cancelamento | RF-084 a RF-093, RF-129 a RF-131 | Spec funcional aprovada | | — |
+| M8 Eventos | Proposta, orçamento, calendário, realização, cancelamento | RF-084 a RF-093, RF-129 a RF-131 | Em andamento (implementado; falta a auditoria e a aprovação) | | — |
 | M9 Feed, documentos e perfil | Comunicados, documentos, atas, perfil | RF-094 a RF-101 | Pendente | | — |
 | M10 Dashboard e relatórios | Dashboards, lista de transações, relatórios em PDF e CSV | RF-102 a RF-111 | Pendente | | — |
 | M11 Personalização | Escudo, cores, temas, ícones | RF-112 a RF-115 | Pendente | | — |
 | M12 Produção | Deploy, backup, rollback, segurança, ponta a ponta, limpeza do legado | RNF-02, RNF-05, RNF-07, RNF-14 | Pendente | | — |
 
-Marcos concluídos foram aprovados pelo dono do projeto na data indicada. O próximo é o M8.
+Marcos concluídos foram aprovados pelo dono do projeto na data indicada. O M8 está implementado e espera a
+auditoria de coerência e a aprovação.
 
 ## Dependências
 
@@ -140,12 +141,14 @@ notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 
 ### M8 — Eventos
 
-- [ ] Categorias e proposta de evento (RF-084, RF-085)
-- [ ] Solicitação orçamentária ligada ao evento (RF-086)
-- [ ] Publicação, calendário e histórico (RF-087, RF-088, RF-090)
-- [ ] Edição, realização e cancelamento (RF-089, RF-091 a RF-093, RF-130, RF-131)
-- [ ] Confirmação de presença (RF-129)
-- [ ] Revisão de segurança e auditoria de coerência do marco
+- [x] Categorias e proposta de evento (RF-084, RF-085)
+- [x] Solicitação orçamentária ligada ao evento (RF-086)
+- [x] Publicação, calendário e histórico (RF-087, RF-088, RF-090)
+- [x] Edição, realização e cancelamento (RF-089, RF-091 a RF-093, RF-130, RF-131)
+- [x] Confirmação de presença (RF-129)
+- [x] Revisão de segurança do marco
+- [ ] Auditoria de coerência do marco
+- [ ] Aprovação do marco pelo dono
 
 ### M9 — Feed, documentos e perfil
 

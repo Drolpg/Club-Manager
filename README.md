@@ -94,7 +94,17 @@ stateDiagram-v2
     RECURSO_ENVIADO --> EM_CONFERENCIA: prestar contas
     EM_CONFERENCIA --> LIQUIDADA: liquidar
   }
+  state "Evento" as E {
+    EM_APROVACAO --> PUBLICADO: solicitação do evento e orçamento aprovados
+    EM_APROVACAO --> RECUSADO: solicitação recusada
+    RECUSADO --> EM_APROVACAO: reabrir
+    PUBLICADO --> EM_APROVACAO: editar
+    PUBLICADO --> REALIZADO: confirmar realização
+    EM_APROVACAO --> CANCELADO: cancelar ou a data passou
+    PUBLICADO --> CANCELADO: cancelar
+  }
   S --> G: gasto aprovado
+  S --> E: solicitações do evento decididas
 ```
 
 ## Documentação
