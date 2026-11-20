@@ -99,3 +99,62 @@ def despublicado(evento: Evento) -> None:
         ),
         chave=f"evento-despublicado:{evento.id}:{evento.publicacoes}",
     )
+
+
+def realizacao_pendente(evento: Evento, etapa: str) -> None:
+    """Na data do evento, e 1 e 3 dias depois sem confirmação → proponente, quem aprova eventos e admins."""
+    textos = {
+        "NA_DATA": "chegou",
+        "UM_DIA": "foi ontem",
+        "TRES_DIAS": "foi há 3 dias",
+    }
+    _notificar(
+        tipos.NOTIF_REALIZACAO_PENDENTE,
+        {evento.proponente_id} | quem_aprova_eventos(),
+        evento,
+        titulo="Confirme se o evento aconteceu",
+        texto=(
+            f"A data do evento “{evento.titulo}” ({quando_e_onde(evento)}) {textos[etapa]}. Confirme a "
+            "realização ou cancele o evento."
+        ),
+        chave=f"evento-realizacao:{evento.id}:{etapa}:{evento.data_do_evento.isoformat()}",
+    )
+
+
+def realizado(evento: Evento, *, ator_id: uuid.UUID) -> None:
+    _notificar(
+        tipos.NOTIF_REALIZADO,
+        {evento.proponente_id} - {ator_id},
+        evento,
+        titulo="Evento realizado",
+        texto=f"O evento “{evento.titulo}” ({quando_e_onde(evento)}) foi confirmado como realizado.",
+        chave=f"evento-realizado:{evento.id}",
+    )
+
+
+def cancelado(evento: Evento, *, ator_id: uuid.UUID | None) -> None:
+    _notificar(
+        tipos.NOTIF_CANCELADO,
+        diretores_com_cargo() - {ator_id},
+        evento,
+        titulo="Evento cancelado",
+        texto=(
+            f"O evento “{evento.titulo}” ({quando_e_onde(evento)}) foi cancelado. "
+            f"Motivo: {evento.cancelamento_motivo}"
+        ),
+        chave=f"evento-cancelado:{evento.id}",
+    )
+
+
+def cancelado_pela_data(evento: Evento) -> None:
+    _notificar(
+        tipos.NOTIF_CANCELADO_PELA_DATA,
+        {evento.proponente_id},
+        evento,
+        titulo="Evento cancelado pela data",
+        texto=(
+            f"O evento “{evento.titulo}” ({quando_e_onde(evento)}) foi cancelado porque a data passou sem "
+            "aprovação."
+        ),
+        chave=f"evento-cancelado-pela-data:{evento.id}",
+    )
