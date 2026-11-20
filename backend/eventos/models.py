@@ -156,6 +156,13 @@ class Evento(models.Model):
         return timezone.localdate(self.inicio)
 
     @property
+    def id_da_solicitacao_do_evento(self) -> uuid.UUID:
+        """Só fica nulo dentro da transação da proposta; depois dela, sempre existe."""
+        if self.solicitacao_do_evento_id is None:
+            raise RuntimeError(f"O evento {self.id} está sem a solicitação dele.")
+        return self.solicitacao_do_evento_id
+
+    @property
     def encerrado(self) -> bool:
         return SituacaoDoEvento(self.situacao) in ENCERRADAS
 
