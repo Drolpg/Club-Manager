@@ -168,4 +168,14 @@ describe('calendário sem eventos', () => {
     expect(screen.getByRole('button', { name: 'Próximo mês' }).closest('.navegacao-do-mes')).not.toBeNull()
   })
 
+  it('a grade e a barra do mês têm a mesma largura explícita, que não depende do conteúdo', async () => {
+    simularApi({ ...SESSAO, [`GET /eventos/calendario/?mes=${mesAtual()}`]: [] })
+
+    abrir('/eventos')
+
+    expect(await screen.findByText('Nenhum evento neste mês.')).toBeInTheDocument()
+    const barra = screen.getByRole('button', { name: 'Próximo mês' }).closest('.navegacao-do-mes')
+    expect(barra).toHaveClass('largura-do-calendario')
+    expect(screen.getByRole('grid')).toHaveClass('largura-do-calendario')
+  })
 })

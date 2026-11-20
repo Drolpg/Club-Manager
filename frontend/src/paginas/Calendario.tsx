@@ -75,7 +75,7 @@ export function Calendario() {
 
   return (
     <Pagina titulo="Calendário de eventos">
-      <div className="navegacao-do-mes">
+      <div className="navegacao-do-mes largura-do-calendario">
         <button type="button" onClick={() => mudarMes(-1)}>
           Mês anterior
         </button>
@@ -90,7 +90,7 @@ export function Calendario() {
       {itens === null && !erro && <p>Carregando…</p>}
       {itens?.length === 0 && <p>Nenhum evento neste mês.</p>}
       {/* A grade aparece sempre, também vazia ou carregando: o tamanho e os botões não mudam de lugar. */}
-      <div className="calendario" role="grid" aria-label={`${MESES[mes.mes]} de ${mes.ano}`}>
+      <div className="calendario largura-do-calendario" role="grid" aria-label={`${MESES[mes.mes]} de ${mes.ano}`}>
           {DIAS_DA_SEMANA.map((dia) => (
             <div key={dia} className="calendario-cabecalho" role="columnheader">
               {dia}

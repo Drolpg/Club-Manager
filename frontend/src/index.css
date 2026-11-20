@@ -316,12 +316,14 @@ td button {
 }
 
 .navegacao-do-mes {
-  width: 100%;
   justify-content: space-between;
 }
 
-.calendario {
-  width: 100%;
+/* A coluna de `.pagina` acompanha o conteúdo; a largura do calendário vem da janela, para a grade e a barra do mês
+   não encolherem num mês sem eventos. */
+.largura-do-calendario {
+  inline-size: min(calc(100vw - 2rem), 72rem);
+  justify-self: center;
 }
 
 button.marcado {
