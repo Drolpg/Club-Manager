@@ -138,13 +138,16 @@ function FormularioDaAcao({
   }, [ehGasto, acao])
 
   function conteudoEstruturado(): Record<string, unknown> {
-    return {
+    const conteudo: Record<string, unknown> = {
       descricao: gastoDesc,
       categoria_id: gastoCat,
       setor_id: gastoSetor,
       itens: gastoItens.map((it) => ({ descricao: it.descricao, valor: it.valor })),
       cotacao_id: gastoCotacaoId,
     }
+    // RF-079: o complemento reenviado guarda a saída de origem, para voltar às conferências do `preparar`.
+    if (gastoInicial?.saida_origem_id) conteudo.saida_origem_id = gastoInicial.saida_origem_id
+    return conteudo
   }
 
   function corpo(): Record<string, unknown> {
