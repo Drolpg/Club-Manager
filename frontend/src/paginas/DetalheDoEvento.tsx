@@ -26,7 +26,7 @@ function nomes(pessoas: Pessoa[]): string {
 }
 
 /** As decisões e os motivos vêm da rota do motor; o site não repete a regra (spec técnica do M8, CA-12). */
-function Solicitacao({ titulo, id }: { titulo: string; id: string }) {
+function Solicitacao({ titulo, id, versao }: { titulo: string; id: string; versao: number }) {
   const [detalhe, definirDetalhe] = useState<DetalheDaSolicitacao | null>(null)
 
   useEffect(() => {
@@ -34,7 +34,7 @@ function Solicitacao({ titulo, id }: { titulo: string; id: string }) {
       .detalhe(id)
       .then(definirDetalhe)
       .catch(() => undefined)
-  }, [id])
+  }, [id, versao])
 
   return (
     <section aria-label={titulo}>
@@ -62,7 +62,7 @@ function Solicitacao({ titulo, id }: { titulo: string; id: string }) {
   )
 }
 
-function Saida({ eventoId }: { eventoId: string }) {
+function Saida({ eventoId, versao }: { eventoId: string; versao: number }) {
   const [saidas, definirSaidas] = useState<SaidaDoEvento[]>([])
 
   useEffect(() => {
@@ -70,7 +70,7 @@ function Saida({ eventoId }: { eventoId: string }) {
       .saidas(eventoId)
       .then((pagina) => definirSaidas(pagina.itens))
       .catch(() => undefined)
-  }, [eventoId])
+  }, [eventoId, versao])
 
   return (
     <ul className="lista">
@@ -150,6 +150,8 @@ export function DetalheDoEvento() {
   if (!evento) return <Pagina titulo="Evento">{erro ? <Alerta>{mensagemDoErro(erro)}</Alerta> : <p>Carregando…</p>}</Pagina>
 
   const pode = (acao: string) => evento.acoes.includes(acao as never)
+  // O quadro de presenças só faz sentido no evento publicado ou realizado (regra 12).
+  const comPresencas = evento.situacao === 'PUBLICADO' || evento.situacao === 'REALIZADO'
   const atualizar = (novo: DetalheDoEvento) => {
     definirEvento(novo)
     definirVersao(versao + 1)
@@ -188,15 +190,17 @@ export function DetalheDoEvento() {
       <Alerta>{erro ? mensagemDoErro(erro) : null}</Alerta>
       {pode('editar') && <Link to={`/eventos/${evento.id}/editar`}>Editar evento</Link>}
 
-      <Solicitacao titulo="Solicitação do evento" id={evento.solicitacao_do_evento.id} />
+      {/* `versao` faz as solicitações e a saída serem lidas de novo depois de cada ação. */}
+      <Solicitacao titulo="Solicitação do evento" id={evento.solicitacao_do_evento.id} versao={versao} />
       {evento.orcamento && (
         <>
-          <Solicitacao titulo="Orçamento" id={evento.orcamento.solicitacao_id} />
-          <Saida eventoId={evento.id} />
+          <Solicitacao titulo="Orçamento" id={evento.orcamento.solicitacao_id} versao={versao} />
+          <Saida eventoId={evento.id} versao={versao} />
         </>
       )}
       {pode('vincular_orcamento') && <OrcamentoDoEvento evento={evento} aoConcluir={atualizar} />}
 
+      {comPresencas && (
       <section aria-label="Presenças">
         <h2>Presenças</h2>
         <p>Vão: {nomes(evento.presencas.vou)}</p>
@@ -204,11 +208,17 @@ export function DetalheDoEvento() {
         <p>Não responderam: {nomes(evento.presencas.sem_resposta)}</p>
         {pode('responder_presenca') && (
           <p>
-            <button type="button" aria-pressed={evento.presencas.minha === 'VOU'} onClick={() => void responder('VOU')}>
+            <button
+              type="button"
+              className={evento.presencas.minha === 'VOU' ? 'marcado' : undefined}
+              aria-pressed={evento.presencas.minha === 'VOU'}
+              onClick={() => void responder('VOU')}
+            >
               Vou
             </button>{' '}
             <button
               type="button"
+              className={evento.presencas.minha === 'NAO_VOU' ? 'marcado' : undefined}
               aria-pressed={evento.presencas.minha === 'NAO_VOU'}
               onClick={() => void responder('NAO_VOU')}
             >
@@ -217,6 +227,7 @@ export function DetalheDoEvento() {
           </p>
         )}
       </section>
+      )}
 
       {pode('reabrir') && (
         <FormularioComTexto

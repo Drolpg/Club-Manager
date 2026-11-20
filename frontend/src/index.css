@@ -314,3 +314,17 @@ td button {
   border-radius: 4px;
   background: var(--fundo-suave, #f2f2f2);
 }
+
+.navegacao-do-mes {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.calendario {
+  width: 100%;
+}
+
+button.marcado {
+  font-weight: 700;
+  outline: 2px solid currentColor;
+}

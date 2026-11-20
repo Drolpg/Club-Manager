@@ -89,8 +89,8 @@ export function Calendario() {
       <Alerta>{erro ? mensagemDoErro(erro) : null}</Alerta>
       {itens === null && !erro && <p>Carregando…</p>}
       {itens?.length === 0 && <p>Nenhum evento neste mês.</p>}
-      {itens && (
-        <div className="calendario" role="grid" aria-label={`${MESES[mes.mes]} de ${mes.ano}`}>
+      {/* A grade aparece sempre, também vazia ou carregando: o tamanho e os botões não mudam de lugar. */}
+      <div className="calendario" role="grid" aria-label={`${MESES[mes.mes]} de ${mes.ano}`}>
           {DIAS_DA_SEMANA.map((dia) => (
             <div key={dia} className="calendario-cabecalho" role="columnheader">
               {dia}
@@ -102,7 +102,7 @@ export function Calendario() {
           {dias.map((dia) => (
             <div key={dia} className="calendario-dia" role="gridcell">
               <span className="calendario-numero">{dia}</span>
-              {itens
+              {(itens ?? [])
                 .filter((item) => diaDe(item.inicio) === dia)
                 .map((item) => (
                   <Link key={item.id} to={`/eventos/${item.id}`} className="cartao-de-evento">
@@ -116,8 +116,7 @@ export function Calendario() {
                 ))}
             </div>
           ))}
-        </div>
-      )}
+      </div>
     </Pagina>
   )
 }
