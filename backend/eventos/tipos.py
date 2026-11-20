@@ -27,7 +27,10 @@ NOTIF_CANCELADO_PELA_DATA = "eventos.cancelado_pela_data"
 
 # Código → (pede ação, descrição).
 TIPOS_DE_NOTIFICACAO: dict[str, tuple[bool, str]] = {
-    NOTIF_MONTAR_ORCAMENTO: (True, "Um evento com custo foi aprovado e espera o orçamento."),
+    NOTIF_MONTAR_ORCAMENTO: (
+        True,
+        "A solicitação de um evento com custo foi aprovada e o evento espera o orçamento.",
+    ),
     NOTIF_PUBLICADO: (False, "Um evento entrou no calendário."),
     NOTIF_DESPUBLICADO: (False, "Um evento em que você disse que vai saiu do calendário."),
     NOTIF_REALIZACAO_PENDENTE: (True, "A data de um evento chegou: confirme se ele aconteceu."),

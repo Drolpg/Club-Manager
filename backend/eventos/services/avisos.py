@@ -63,7 +63,7 @@ def quem_disse_que_vai(evento: Evento) -> set[uuid.UUID]:
 
 
 def montar_orcamento(evento: Evento, *, chave: str) -> None:
-    """Evento aprovado e com custo, ainda sem orçamento → quem aprova eventos (pede ação; CA-05)."""
+    """Solicitação do evento aprovada, com custo e sem orçamento → quem aprova eventos (pede ação; CA-05)."""
     _notificar(
         tipos.NOTIF_MONTAR_ORCAMENTO,
         quem_aprova_eventos(),
@@ -94,8 +94,8 @@ def despublicado(evento: Evento) -> None:
         evento,
         titulo="Evento fora do calendário",
         texto=(
-            f"O evento “{evento.titulo}” ({quando_e_onde(evento)}) mudou e saiu do calendário até ser "
-            "aprovado de novo."
+            f"O evento “{evento.titulo}” ({quando_e_onde(evento)}) mudou e saiu do calendário até a "
+            "solicitação do evento ser aprovada de novo."
         ),
         chave=f"evento-despublicado:{evento.id}:{evento.publicacoes}",
     )
