@@ -7,11 +7,16 @@ import { DetalheDeSolicitacao, FilaDePendencias, ListaDeSolicitacoes } from './p
 import { MotivosDeDecisao } from './paginas/Motivos'
 import { Inicio } from './paginas/Inicio'
 import { CargosESetores, Permissoes, UsuarioDetalhe } from './paginas/Permissoes'
+import { Calendario } from './paginas/Calendario'
+import { CategoriasDeEvento } from './paginas/CategoriasDeEvento'
 import { Cobrancas } from './paginas/Cobrancas'
 import { ConfiguracaoFinanceira } from './paginas/ConfiguracaoFinanceira'
 import { DetalheDaCobranca } from './paginas/DetalheDaCobranca'
 import { DetalheDaSaida } from './paginas/DetalheDaSaida'
+import { DetalheDoEvento } from './paginas/DetalheDoEvento'
 import { Entradas } from './paginas/Entradas'
+import { FormularioDeEvento } from './paginas/FormularioDeEvento'
+import { HistoricoDeEventos } from './paginas/HistoricoDeEventos'
 import { MinhasCobrancas } from './paginas/MinhasCobrancas'
 import { NovaSolicitacaoDeGasto } from './paginas/NovaSolicitacaoDeGasto'
 import { Preferencias } from './paginas/Preferencias'
@@ -223,6 +228,54 @@ function App() {
             element={
               <Protegida soAdmin>
                 <ConfiguracaoFinanceira />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/eventos"
+            element={
+              <ProtegidaDeGestao>
+                <Calendario />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/eventos/historico"
+            element={
+              <ProtegidaDeGestao>
+                <HistoricoDeEventos />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/eventos/novo"
+            element={
+              <ProtegidaDeGestao>
+                <FormularioDeEvento />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/eventos/:id"
+            element={
+              <ProtegidaDeGestao>
+                <DetalheDoEvento />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/eventos/:id/editar"
+            element={
+              <ProtegidaDeGestao>
+                <FormularioDeEvento />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/admin/categorias-de-evento"
+            element={
+              <Protegida soAdmin>
+                <CategoriasDeEvento />
               </Protegida>
             }
           />

@@ -311,3 +311,30 @@ const ACAO_FINANCEIRA_AUDITADA: Record<string, string> = {
 export function rotuloDaAcaoFinanceira(acao: string): string {
   return ACAO_FINANCEIRA_AUDITADA[acao] ?? acao
 }
+
+export const SITUACAO_DO_EVENTO: Record<string, string> = {
+  EM_APROVACAO: 'Em aprovação',
+  PUBLICADO: 'Publicado',
+  RECUSADO: 'Recusado',
+  REALIZADO: 'Realizado',
+  CANCELADO: 'Cancelado',
+}
+
+const ACAO_NO_HISTORICO_DO_EVENTO: Record<string, string> = {
+  EVENTO_PROPOSTO: 'Evento proposto',
+  EVENTO_EDITADO: 'Evento editado',
+  EVENTO_REABERTO: 'Evento reaberto',
+  ORCAMENTO_VINCULADO: 'Orçamento aberto',
+  ORCAMENTO_DESVINCULADO: 'Orçamento desligado do evento',
+  EVENTO_PUBLICADO: 'Evento publicado',
+  EVENTO_DESPUBLICADO: 'Evento saiu do calendário',
+  EVENTO_RECUSADO: 'Evento recusado',
+  PRESENCA_RESPONDIDA: 'Presença respondida',
+  EVENTO_REALIZADO: 'Evento realizado',
+  EVENTO_CANCELADO: 'Evento cancelado',
+  AVISO_DE_REALIZACAO_ENVIADO: 'Lembrete de confirmação enviado',
+}
+
+export function rotuloDaAcaoNoEvento(acao: string): string {
+  return ACAO_NO_HISTORICO_DO_EVENTO[acao] ?? acao
+}

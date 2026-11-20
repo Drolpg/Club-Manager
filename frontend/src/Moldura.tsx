@@ -1,7 +1,7 @@
 import { Link, Outlet } from 'react-router'
 import { Sino } from './Sino'
 import { useSessao } from './sessao'
-import { CONVITES_GERENCIAR, ProvedorDeMinhas, temPermissao, useMinhas } from './useMinhas'
+import { CONVITES_GERENCIAR, EVENTOS_PROPOR, ProvedorDeMinhas, temPermissao, useMinhas } from './useMinhas'
 
 /**
  * A moldura comum das telas logadas: o nome de quem está logado, o menu, o sino e "Sair" (RF-031).
@@ -55,6 +55,16 @@ export function Moldura() {
           <nav aria-label="Saídas e gastos">
             <Link to="/saidas">Saídas e gastos</Link>
             <Link to="/gastos/novo">Pedir gasto</Link>
+          </nav>
+        )}
+        {(usuario.admin || usuario.tem_cargo) && (
+          <nav aria-label="Eventos">
+            <Link to="/eventos">Calendário</Link>
+            <Link to="/eventos/historico">Histórico</Link>
+            {(usuario.admin || temPermissao(minhas.detalhe, EVENTOS_PROPOR)) && (
+              <Link to="/eventos/novo">Propor evento</Link>
+            )}
+            {usuario.admin && <Link to="/admin/categorias-de-evento">Categorias de evento</Link>}
           </nav>
         )}
         <Link to="/preferencias">Preferências</Link>
