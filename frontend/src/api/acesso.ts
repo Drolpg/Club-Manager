@@ -71,6 +71,9 @@ export const acesso = {
   regenerarConvite: (id: string) => apiPost<ConviteGerado>(`${base}/convites/${id}/regenerar/`),
   revogarConvite: (id: string) => apiPost<Convite>(`${base}/convites/${id}/revogar/`),
 
+  alterarTelefone: (telefone: string) =>
+    apiPost<{ telefone: string }>(`${base}/telefone/`, { telefone }),
+
   usuarios: () => apiGet<Usuario[]>(`${base}/usuarios/`),
   acaoDeUsuario: (id: string, acao: AcaoDeUsuario) => apiPost<Usuario>(`${base}/usuarios/${id}/${acao}/`),
   historicoDeUsuario: (id: string) => apiGet<RegistroDoHistorico[]>(`${base}/usuarios/${id}/historico/`),

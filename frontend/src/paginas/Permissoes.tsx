@@ -349,6 +349,7 @@ export function UsuarioDetalhe() {
   return (
     <Pagina titulo={dados?.usuario?.nome ?? 'Usuário'}>
       <Link to="/admin/usuarios">Voltar</Link>
+      <Link to={`/admin/usuarios/${id}/perfil`}>Ver perfil</Link>
       <Alerta>{erro ? mensagemDoErro(erro) : null}</Alerta>
       {dados && (
         <>
