@@ -14,12 +14,25 @@ from acesso import public as acesso
 from comunicacao.domain.autorizacao import (
     acoes_do_comentario,
     acoes_do_comunicado,
+    acoes_do_documento,
     pode_ver_comunicado,
 )
 from comunicacao.domain.regras import TIPOS_DE_REACAO
-from comunicacao.domain.valores import SituacaoDoComentario, SituacaoDoComunicado
-from comunicacao.erros import erro
-from comunicacao.models import Comentario, Comunicado, Reacao, VinculoDeDocumento
+from comunicacao.domain.valores import (
+    SituacaoDoComentario,
+    SituacaoDoComunicado,
+    SituacaoDoDocumento,
+    TipoDeDocumento,
+)
+from comunicacao.erros import erro, invalido
+from comunicacao.models import (
+    Comentario,
+    Comunicado,
+    Documento,
+    Reacao,
+    VersaoDeDocumento,
+    VinculoDeDocumento,
+)
 from comunicacao.services.autorizacao import Quem, exigir_leitura_de_gestao, quem
 
 LIMITE_PADRAO = 20
@@ -269,3 +282,108 @@ def comentarios(
     nomes = _Nomes()
     itens = [_comentario(c, comunicado, ator, nomes) for c in achados[:tamanho]]
     return {"itens": itens, "tem_mais": len(achados) > tamanho}
+
+
+# --- documentos ---------------------------------------------------------------------------------------------
+
+
+def _arquivo(versao: VersaoDeDocumento) -> dict[str, Any]:
+    return {"nome": versao.nome, "mime": versao.mime, "tamanho": versao.tamanho}
+
+
+def _item_do_documento(
+    documento: Documento, ator: Quem, nomes: _Nomes, versoes: list[VersaoDeDocumento]
+) -> dict[str, Any]:
+    vigente = next(v for v in versoes if v.numero == documento.versao_atual)
+    categoria = None
+    if documento.categoria_id is not None:
+        categoria = {"id": documento.categoria_id, "nome": documento.categoria_nome}
+    return {
+        "id": documento.id,
+        "tipo": documento.tipo,
+        "titulo": documento.titulo,
+        "descricao": documento.descricao,
+        "categoria": categoria,
+        "data_da_reuniao": documento.data_da_reuniao,
+        "enviado_por": nomes.pessoa(documento.enviado_por_id),
+        "situacao": documento.situacao,
+        "versao_atual": documento.versao_atual,
+        "arquivo": _arquivo(vigente),
+        "criado_em": documento.criado_em,
+        "acoes": [c.value for c in acoes_do_documento(ator.fatos(documento=documento))],
+    }
+
+
+def _versoes_de(ids: list[uuid.UUID]) -> dict[uuid.UUID, list[VersaoDeDocumento]]:
+    por_documento: dict[uuid.UUID, list[VersaoDeDocumento]] = {i: [] for i in ids}
+    for versao in VersaoDeDocumento.objects.filter(documento_id__in=ids).order_by("numero"):
+        por_documento[versao.documento_id].append(versao)
+    return por_documento
+
+
+def documentos(
+    ator_id: uuid.UUID,
+    *,
+    categoria_id: uuid.UUID | None = None,
+    tipo: str | None = None,
+    titulo: str | None = None,
+    arquivados: bool = False,
+    antes: uuid.UUID | None = None,
+    limite: int | None = None,
+) -> dict[str, Any]:
+    """A lista padrão traz os vigentes; com `arquivados`, só os arquivados (CA-23). Mais novo primeiro."""
+    exigir_leitura_de_gestao(ator_id)
+    ator = quem(ator_id)
+    situacao = SituacaoDoDocumento.ARQUIVADO if arquivados else SituacaoDoDocumento.VIGENTE
+    qs = Documento.objects.filter(situacao=situacao.value)
+    if categoria_id is not None:
+        qs = qs.filter(categoria_id=categoria_id)
+    if tipo:
+        if tipo not in {t.value for t in TipoDeDocumento}:
+            raise invalido({"tipo": ["Escolha documento ou ata."]})
+        qs = qs.filter(tipo=tipo)
+    if titulo:
+        qs = qs.filter(titulo__icontains=titulo)
+    if antes is not None:
+        if not Documento.objects.filter(pk=antes).exists():
+            raise erro("NOT_FOUND")
+        qs = qs.filter(id__lt=antes)
+    tamanho = limite_valido(limite)
+    achados = list(qs.order_by("-id")[: tamanho + 1])
+    pagina = achados[:tamanho]
+    versoes = _versoes_de([d.id for d in pagina])
+    nomes = _Nomes()
+    itens = [_item_do_documento(d, ator, nomes, versoes[d.id]) for d in pagina]
+    return {"itens": itens, "tem_mais": len(achados) > tamanho}
+
+
+def detalhe_do_documento(ator_id: uuid.UUID, documento_id: uuid.UUID) -> dict[str, Any]:
+    """Dados, versões (a vigente e as `SUBSTITUIDA`) e os comunicados publicados que o indexam."""
+    exigir_leitura_de_gestao(ator_id)
+    ator = quem(ator_id)
+    documento = Documento.objects.filter(pk=documento_id).first()
+    if documento is None:
+        raise erro("NOT_FOUND")
+    nomes = _Nomes()
+    versoes = _versoes_de([documento.id])[documento.id]
+    item = _item_do_documento(documento, ator, nomes, versoes)
+    item["versoes"] = [
+        {
+            "numero": v.numero,
+            "motivo": v.motivo,
+            "enviada_por": nomes.pessoa(v.enviada_por_id),
+            "enviada_em": v.enviada_em,
+            "situacao": "VIGENTE" if v.numero == documento.versao_atual else "SUBSTITUIDA",
+            **_arquivo(v),
+        }
+        for v in versoes
+    ]
+    vinculos = VinculoDeDocumento.objects.filter(
+        documento=documento,
+        desvinculado_em__isnull=True,
+        comunicado__situacao=SituacaoDoComunicado.PUBLICADO.value,
+    ).select_related("comunicado")
+    item["comunicados"] = [
+        {"id": v.comunicado_id, "titulo": v.comunicado.titulo} for v in vinculos.order_by("-comunicado_id")
+    ]
+    return item
