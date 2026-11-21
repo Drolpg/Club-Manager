@@ -218,6 +218,37 @@ de eventos e as telas do calendário, do histórico e do detalhe.
 | Impasse entre cancelar e decidir | Estado final coerente; quem perdeu tenta de novo | Aceita (Q3) | Risco 11 em [02-plan](02-plan.md); `eventos/tests/test_parte5_concorrencia.py` |
 | Recurso enviado antes da publicação | A saída segue a prestação de contas; quem liquida é avisado | Aceita (Q4) | Risco 12 em [02-plan](02-plan.md) |
 
+### M9: feed e documentos
+
+Elementos novos: o módulo `comunicacao` (comunicado e suas versões, vínculo com documento, reação, comentário e
+suas versões, documento e suas versões, categoria de documento), o download de arquivo por rota autenticada, a
+generalização de `kernel/anexos.py` (rótulo e campo da mensagem), as duas notificações do módulo e as telas do
+feed, dos documentos e das categorias.
+
+| Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
+| --- | --- | --- | --- | --- | --- | --- |
+| Comunicado (publicar, editar, despublicar, fixar) | Agir em nome de outro → o ator vem da sessão | Alterar ou apagar comunicado → versões imutáveis (`VersaoDeComunicado`), `CheckConstraint`, `PROTECT` e gatilho de `DELETE` no banco; editar bloqueia a linha e guarda o antes e o depois | Cada ação audita com `dados` só de IDs e números de versão; o texto fica nas tabelas de versão, nunca na auditoria | Despublicado que o ator não vê responde 404, como se não existisse; a leitura de gestão vem antes da existência | Texto limitado (120 e 5000 caracteres) e validado no domínio | Editar ou despublicar o de outro → `avaliar` única para rota, serviço e `acoes`; fixar só com `comunicacao.gerenciar` |
+| Reação | Reagir por outro → o ator vem da sessão | Duas reações do mesmo diretor → único `(comunicado, diretor)` e bloqueio do comunicado; retirar marca a data, não apaga | Registrar, trocar e retirar auditados | Quem reagiu só para quem lê gestão | Quatro tipos fixos | Só quem lê gestão reage; só em comunicado publicado |
+| Comentário e moderação | Editar como outro → só o autor edita, nem a gerência | Texto com HTML ou script → guardado como veio e mostrado como texto; editar guarda a versão; ocultar não apaga | Ocultar e reexibir auditados, com o motivo em `justificativa`; trilha de quem ocultou | Oculto só para o autor, quem gerencia e o admin; a notificação não leva o texto do comentário | Texto limitado a 2000 caracteres; lista paginada | Autor não reexibe o que a gerência ocultou (P16); moderação por quem tem `comunicacao.gerenciar` |
+| Documento, ata e versões | Enviar como outro → o ator vem da sessão | Trocar o arquivo → versão nova, a anterior intacta e imutável (gatilho de `UPDATE` no banco); chave opaca `documentos/<uuid>.<ext>` | Envio, versão e arquivamento auditados com a referência do arquivo, nunca o conteúdo | **Dado pessoal em documento:** risco aceito pelo dono (R1, R2); aviso na tela de envio; nada é apagado | Limite de 5 MB e tipos fixos; versões acumulam disco (R6, gatilho de 70%) | Nova versão e arquivar só de quem enviou ou de `comunicacao.gerenciar`; versão e vínculo com documento arquivado recusados (P23) |
+| Download de arquivo | — | Chave de outro contexto adulterada no banco → recusada (`documentos/` apenas) | Leitura e download não são auditados (P13, adendo 1) | **Sem URL pública:** só pela rota autenticada, com leitura de gestão, `nosniff`, `no-store` e nome de arquivo sanitizado; sem cargo ou sem sessão, negado | Arquivo lido pela chave do banco, não pelo cliente | Versão antiga também exige a permissão; o arquivado continua baixável por quem lê |
+| Categoria de documento | — | Renomear ou apagar categoria usada → só desativa; o nome do documento guarda o do envio | Criar, renomear, desativar e reativar auditados | — | — | Só o admin mantém |
+| Notificação de comunicado e de comentário | — | — | Chave por fato (`comunicado-publicado:<id>`, `comentario-novo:<id>`) impede duplicata | Título e nome de quem agiu, nunca o texto; e-mail só em texto, sem HTML | — | Destinatários: diretores com cargo menos o autor; o autor do comunicado |
+| Site (feed, documentos, categorias) | — | XSS em título, texto, comentário, descrição e motivos → React renderiza como texto, com `white-space: pre-wrap` (testes) | — | Aviso de dado pessoal acima do campo de arquivo; o comentário oculto só aparece a quem a API o entrega | Listas paginadas até 50 | Botões só do que vem em `acoes`; cada rota confere de novo (teste de paridade) |
+
+| Ameaça | Mitigação | Status | Registro |
+| --- | --- | --- | --- |
+| Baixar arquivo sem permissão ou sem sessão | Rota autenticada com leitura de gestão; sem URL pública; `nosniff` e `no-store` | Implementada (M9) | `comunicacao/tests/test_parte4_categorias_e_download.py`, `test_parte6_http.py` |
+| Texto com script ou HTML no comunicado, no comentário, na descrição | Guardado como veio, mostrado como texto; e-mail só em texto | Implementada (M9) | `test_parte6_http.py`, `frontend/src/feed.test.tsx`, `frontend/src/documentos.test.tsx` |
+| Moderação indevida ou sem rastro | Ocultar é por quem gerencia, com motivo; o autor não reexibe o ocultado pela gerência; tudo auditado | Implementada (M9) | `test_parte2_reacoes_e_comentarios.py` |
+| Documento errado sem poder apagar | Nova versão com motivo, versão anterior consultável, arquivar | Implementada (M9) | `test_parte3_documentos_e_atas.py` |
+| Descobrir comunicado despublicado de outro | Responde 404; a leitura de gestão vem antes da existência | Implementada (M9) | `test_parte6_http.py` |
+| Agir sobre item de outra pessoa | `avaliar` única; paridade `acoes` ↔ rotas por papel e situação | Implementada (M9) | `test_parte6_http.py` |
+| Alterar versão ou apagar registro do módulo | `CheckConstraint`, `PROTECT` e gatilhos no banco | Implementada (M9) | `test_modelos.py`, `test_migracoes.py` |
+| Comandos simultâneos no mesmo item | Bloqueio da linha (comunicado, comentário, documento) e únicos no banco | Implementada (M9) | `test_parte5_concorrencia.py` |
+| Dado pessoal em documento ou ata visível a todos os diretores | Aviso na tela de envio; nada é apagado | Aceita (Q3, R1 e R2) | Spec funcional do feed |
+| Disco cheio por versões de documento | Limite de 5 MB e gatilho de 70% da ADR-014 | Aceita (R6) | [02-plan](02-plan.md) § 6 |
+
 ## 2. Avaliação de LGPD
 
 | Campo | Valor |
@@ -248,6 +279,7 @@ de eventos e as telas do calendário, do histórico e do detalhe.
 | Hash da senha, identificador do Google | Autenticação | M2 |
 | Registros de auditoria (quem fez o quê) | Rastreabilidade das decisões do clube | M2 em diante |
 | Cobranças, pagamentos e comprovantes do diretor | Controle financeiro do clube (download restrito e sigilo contra terceiros) | M6, M7 |
+| Comunicados, reações, comentários e documentos (texto livre e arquivos) | Comunicação entre os diretores e acervo do clube; tudo visível a todos os diretores com cargo, com aviso de dado pessoal na tela de envio de documento; nada é apagado | M9 |
 
 O sistema não trata dado sensível (saúde, biometria, religião) e não coleta CPF cadastral de usuários
 (RN-003); a única exceção é a chave Pix do clube tipo CPF cadastrada pelo admin, com aviso específico na tela.
@@ -768,3 +800,83 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/schema/     
 | Verificação do backend (`1634` testes, cobertura `93,76%`, `lint-imports` `1 kept / 0 broken`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run poe audit` |
 | Verificação do site (`199` testes, cobertura `89,55%` Stmts / `82,27%` Branch / `91,25%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
 | Fluxo ponta a ponta nos contêineres | `docker compose up -d --build --wait`; health `200`, schema `401`; percurso HTTP com 23 passos conferidos |
+
+## 8. Relatório de vulnerabilidades — M9 (feed e documentos)
+
+| Campo | Valor |
+| --- | --- |
+| Projeto | Club Manager |
+| Escopo | Feature `comunicacao/feed-e-documentos`: módulo `comunicacao`, ajuste de `kernel/anexos.py` e as telas do feed, dos documentos e das categorias. A feature do perfil (`relatorios/perfil-do-usuario`) terá o relatório próprio |
+| Data da execução | 2026-11-21 |
+| Responsável | o dono do projeto |
+| Ferramentas | SCA: `pip-audit` e `npm audit --audit-level=high`. SAST: `ruff check --select S .`, `mypy .`, `oxlint --deny-warnings`, `tsc -b`, `lint-imports`. DAST: não executado (M12). Revisão por ameaça e percurso HTTP nos contêineres |
+| Especificação | RNF-07; [01-spec](01-spec.md) § 1 (M9); modelo de ameaças § 1 (M9) |
+| Achados aceitos sem correção | Nenhum achado novo de vulnerabilidade. Riscos aceitos pelo dono: dado pessoal em documento e ata (R1, R2) e disco por versões (R6) |
+
+### 1. Contexto e escopo
+
+O M9 (feed) entrega os comunicados e as pautas, a fixação, a despublicação, as reações, os comentários com
+moderação, a aba de documentos com atas, versões e arquivamento, as categorias de documento e as duas
+notificações do módulo. O arquivo de documento é entregue só por rota autenticada. O texto livre é guardado como
+veio e mostrado como texto.
+
+### 2. Frentes
+
+| Frente | Ferramenta | O que cobre | Mapeamento OWASP |
+| --- | --- | --- | --- |
+| SCA | `pip-audit`; `npm audit --audit-level=high` | Dependências Python e Node (sem dependência nova no M9) | A06 |
+| SAST e arquitetura | `ruff check --select S .`, `mypy .`, `lint-imports`, `oxlint --deny-warnings`, `tsc -b`, teste de fronteira de `comunicacao` | Padrões inseguros, tipagem estrita e fronteiras entre contextos (CA-30) | A01, A03, A05 |
+| Revisão por ameaça e contêineres | `2064` testes backend (`94,43%`), `256` testes site (`89,13%` Stmts), percurso HTTP nos contêineres | Download sem permissão, texto com script, moderação, enumeração de despublicado, paridade `acoes` ↔ rotas, imutabilidade, concorrência | A01, A03, A04 |
+| DAST | Não executado | — | — |
+
+### 3. Como reproduzir
+
+```text
+# em backend/
+uv run poe audit
+uv run ruff check --select S .
+uv run poe verify
+
+# em frontend/
+npm audit --audit-level=high
+npm run verify
+
+# com o sistema no ar (na raiz)
+docker compose up -d --build --wait
+docker compose exec -T api python manage.py showmigrations comunicacao
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/health/     # 200
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/schema/     # 401
+```
+
+### 4. Resultado: inicial → correções → final
+
+| Frente | Severidade | Inicial | Final | Variação |
+| --- | --- | --- | --- | --- |
+| SCA backend (`pip-audit`) | Qualquer | 0 | 0 | — |
+| SCA site (`npm audit --audit-level=high`) | Crítica, alta | 0 | 0 | — |
+| SAST (`ruff --select S`, `mypy`, `oxlint`) | Qualquer | 0 | 0 | — |
+| Revisão por ameaça e percurso HTTP | Média, baixa | 0 | 0 abertos | — |
+
+### 5. Controles verificados e lacunas
+
+| Controle ou lacuna | Resultado / Situação | Evidência |
+| --- | --- | --- |
+| Download sem permissão | Sem sessão `401`; sem cargo `403`; chave de outro contexto `404`; cabeçalhos `nosniff` e `no-store`; sem URL pública | `test_parte4_categorias_e_download.py`, `test_parte6_http.py`; percurso nos contêineres |
+| Texto com HTML e script | Guardado como veio, devolvido em JSON e mostrado como texto; o e-mail leva só o título, em texto | `test_parte6_http.py`, `feed.test.tsx`, `documentos.test.tsx`; título com `<b>` e `<script>` no percurso, conferido na tela e no Mailpit |
+| Enumeração | Leitura de gestão antes da existência; despublicado de outro responde `404` | `test_parte6_http.py` |
+| Paridade `acoes` ↔ rotas | Comunicado (4 papéis × 3 situações × 8 comandos), documento (5 × 2 × 3) e comentário (4 × 3 × 3) | `test_parte6_http.py` |
+| Imutabilidade | `DELETE` em qualquer tabela do módulo e `UPDATE` de versão recusados por gatilho, também no banco dos contêineres | `test_migracoes.py`; `psql` nos contêineres |
+| Concorrência | Duas edições, duas versões de documento, duas reações do mesmo diretor, dois ocultamentos e duas despublicações; os testes de edição, reação e despublicação falham sem o bloqueio da linha do comunicado (conferido) | `test_parte5_concorrencia.py` |
+| Fronteiras | `comunicacao` importa só `.public` de `permissoes`, `notificacoes`, `auditoria` e `acesso`; ninguém abaixo o conhece; `comunicacao/domain` sem framework | `test_fronteiras.py`; `lint-imports` `1 kept / 0 broken` |
+| Contêineres | `api` em `uid=10001`; migrações `comunicacao/0001` a `0003` aplicadas e sem migração pendente; 45 passos HTTP conferidos | Percurso nos contêineres |
+| Dado pessoal em documento e ata | Aviso acima do campo de arquivo; risco aceito (R1, R2) | `documentos.test.tsx` |
+| Dependência do volume de disco | Versões nunca se apagam; limite de 5 MB; gatilho de 70% | R6 em [02-plan](02-plan.md) |
+| DAST, HTTPS/HSTS, SPF/DKIM e cifragem de disco | Previsto para o M12 | [02-plan](02-plan.md) § 6 |
+
+### 6. Evidências
+
+| Evidência | Onde |
+| --- | --- |
+| Verificação do backend (`2064` testes, cobertura `94,43%`, `lint-imports` `1 kept / 0 broken`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run poe audit` |
+| Verificação do site (`256` testes, cobertura `89,13%` Stmts / `82,37%` Branch / `90,81%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
+| Percurso nos contêineres | `docker compose up -d --build --wait`; health `200`, schema `401`; 45 passos HTTP, quatro e-mails no Mailpit (três de novo comunicado e um de comentário) e a tela do feed conferida no navegador |

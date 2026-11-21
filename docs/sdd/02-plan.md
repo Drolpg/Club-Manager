@@ -53,8 +53,9 @@ flowchart TB
   notif --> perm --> ace["acesso"] --> aud["auditoria"]
 ```
 
-`aprovacoes`, `comunicacao` e `marca` estão no mesmo nível e não se importam. `kernel` (erros, saúde, logs,
-despachante de eventos) não conhece nenhum módulo.
+`aprovacoes`, `comunicacao` e `marca` estão no mesmo nível e não se importam. `comunicacao` importa a API pública
+de `notificacoes`, `permissoes`, `acesso` e `auditoria`, e só delas; o contrato `layers` já permite isso. `kernel`
+(erros, saúde, logs, despachante de eventos) não conhece nenhum módulo.
 
 | Regra | Como é verificada |
 | --- | --- |
@@ -238,7 +239,7 @@ retomar. Uma decisão em aberto que bloqueia trabalho fica na tabela da seção 
 | D-13 | Confirmação do admin antes de uma indicação de aprovador valer | Melhoria | Basta histórico e aviso ao admin | Abuso da indicação | Futuro |
 | D-14 | Pagamento parcial de uma cobrança; juros e multa em cobrança atrasada | Melhoria | Não pedidos; a renegociação em parcelas cobre o caso | Pedido do dono no M6 | Futuro |
 | D-15 | Envio do recurso em mais de uma transferência; bloquear novos pedidos de quem tem prestação atrasada; reembolso sem pedido prévio | Melhoria | Não pedidos | Pedido do dono no M7 | Futuro |
-| D-16 | Comentários e reações no feed; pastas e acesso restrito por cargo nos documentos | Melhoria | "A definir" no enunciado | Refinamento do M9 | Futuro |
+| D-16 | Pastas em árvore e acesso restrito por cargo nos documentos; resposta encadeada a comentário, menção e aviso a quem já comentou; reação a comentário; comunicado para parte dos diretores | Melhoria | Comentários e reações entraram no M9; o resto não foi pedido | Pedido do dono | Futuro |
 | D-17 | Evento recorrente; lista de presença; lembrete a quem confirmou; aprovação diferente por categoria | Melhoria | Fora do mínimo escolhido | Pedido do dono no M8 | Futuro |
 | D-18 | Notificações em tempo real; preferência por tipo; resumo diário por e-mail | Melhoria | Escolhidas a consulta a cada minuto e uma chave só | Pedido do dono | Futuro |
 | D-19 | Prazos de lembrete configuráveis; trocar o aprovador indicado depois do envio; avisar o admin quando o indicado é desativado | Melhoria | Prazos fixos e o aviso dos 7 dias ao admin bastam | Pedido do dono | Futuro |
