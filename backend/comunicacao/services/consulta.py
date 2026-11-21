@@ -16,6 +16,7 @@ from comunicacao.domain.autorizacao import (
     acoes_do_comentario,
     acoes_do_comunicado,
     acoes_do_documento,
+    pode_ver_comentario,
     pode_ver_comunicado,
 )
 from comunicacao.domain.regras import TIPOS_DE_REACAO
@@ -27,6 +28,7 @@ from comunicacao.domain.valores import (
 )
 from comunicacao.erros import erro, invalido
 from comunicacao.models import (
+    CategoriaDeDocumento,
     Comentario,
     Comunicado,
     Documento,
@@ -407,3 +409,39 @@ def download(ator_id: uuid.UUID, documento_id: uuid.UUID, *, numero: int | None 
     if versao is None or not versao.chave.startswith("documentos/"):
         raise erro("NOT_FOUND")
     return anexos.resposta_anexo(chave=versao.chave, nome=versao.nome, mime=versao.mime, rotulo="documento")
+
+
+# --- referências e um comentário avulso ---------------------------------------------------------------------
+
+_ROTULOS_DE_TIPO = {"COMUNICADO": "Comunicado", "PAUTA": "Pauta"}
+_ROTULOS_DE_REACAO = {
+    "CIENTE": "Ciente",
+    "DE_ACORDO": "De acordo",
+    "DUVIDA": "Dúvida",
+    "COMEMORACAO": "Comemoração",
+}
+
+
+def referencias(ator_id: uuid.UUID) -> dict[str, Any]:
+    """O que os formulários do site precisam: categorias ativas, tipos de comunicado e tipos de reação."""
+    exigir_leitura_de_gestao(ator_id)
+    ativas = CategoriaDeDocumento.objects.filter(ativa=True)
+    return {
+        "categorias": [{"id": c.id, "nome": c.nome} for c in ativas],
+        "tipos": [{"codigo": k, "rotulo": v} for k, v in _ROTULOS_DE_TIPO.items()],
+        "reacoes": [{"codigo": k, "rotulo": v} for k, v in _ROTULOS_DE_REACAO.items()],
+    }
+
+
+def um_comentario(ator_id: uuid.UUID, comentario_id: uuid.UUID) -> dict[str, Any]:
+    """O comentário no formato da lista, para quem pode vê-lo; os demais recebem `NOT_FOUND`."""
+    exigir_leitura_de_gestao(ator_id)
+    ator = quem(ator_id)
+    comentario = Comentario.objects.filter(pk=comentario_id).first()
+    if comentario is None:
+        raise erro("NOT_FOUND")
+    comunicado = _comunicado_visivel(ator, comentario.comunicado_id)
+    fatos = ator.fatos(comunicado=comunicado, comentario=comentario)
+    if not pode_ver_comentario(SituacaoDoComentario(comentario.situacao), fatos):
+        raise erro("NOT_FOUND")
+    return _comentario(comentario, comunicado, ator, _Nomes())
