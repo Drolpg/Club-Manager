@@ -20,7 +20,7 @@ do board quando ele existir; até lá fica `—`.
 | M6 Financeiro: entradas | Cobranças, recorrência, Pix, validação, inadimplência, entradas | RF-046 a RF-072, RF-123 a RF-125 | Concluído (na `dev`) | 2026-11-14 | — |
 | M7 Financeiro: saídas | Solicitação de gasto, envio, prestação, liquidação, estorno | RF-073 a RF-083, RF-126 a RF-128 | Concluído | 2026-11-15 | — |
 | M8 Eventos | Proposta, orçamento, calendário, realização, cancelamento | RF-084 a RF-093, RF-129 a RF-131 | Concluído | 2026-11-20 | — |
-| M9 Feed, documentos e perfil | Comunicados, comentários, reações, documentos, atas, perfil | RF-094 a RF-101, RF-132 a RF-141 | Em andamento (feed pronto; perfil pendente) | | — |
+| M9 Feed, documentos e perfil | Comunicados, comentários, reações, documentos, atas, perfil | RF-094 a RF-101, RF-132 a RF-141 | Em andamento (feed e perfil prontos; falta a auditoria do marco) | | — |
 | M10 Dashboard e relatórios | Dashboards, lista de transações, relatórios em PDF e CSV | RF-102 a RF-111 | Pendente | | — |
 | M11 Personalização | Escudo, cores, temas, ícones | RF-112 a RF-115 | Pendente | | — |
 | M12 Produção | Deploy, backup, rollback, segurança, ponta a ponta, limpeza do legado | RNF-02, RNF-05, RNF-07, RNF-14 | Pendente | | — |
@@ -156,8 +156,9 @@ notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 - [x] Reações e comentários (RF-134 a RF-138)
 - [x] Documentos, atas, versões e categorias (RF-095, RF-098, RF-099, RF-139 a RF-141)
 - [x] Revisão de segurança da parte do feed
-- [ ] Perfil próprio e do admin (RF-100, RF-101)
-- [ ] Revisão de segurança e auditoria de coerência do marco
+- [x] Perfil próprio e do admin, com o telefone próprio (RF-100, RF-101, RF-142, RF-143)
+- [x] Revisão de segurança da parte do perfil
+- [ ] Auditoria de coerência do marco e aprovação do dono
 
 ### M10 — Dashboard e relatórios
 

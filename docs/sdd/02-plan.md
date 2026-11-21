@@ -55,7 +55,9 @@ flowchart TB
 
 `aprovacoes`, `comunicacao` e `marca` estão no mesmo nível e não se importam. `comunicacao` importa a API
 pública de `notificacoes`, `permissoes`, `acesso` e `auditoria`, e só delas; o contrato `layers` já permite
-isso. `kernel` (erros, saúde, logs, despachante de eventos) não conhece nenhum módulo.
+isso. `kernel` (erros, saúde, logs, despachante de eventos) não conhece nenhum módulo. `relatorios` é o módulo
+de cima e só lê, pela API pública, `acesso`, `permissoes`, `financeiro`, `eventos`, `notificacoes` e
+`auditoria`; o perfil do usuário é a sua primeira feature, sem modelo, tabela nem migração.
 
 | Regra | Como é verificada |
 | --- | --- |
