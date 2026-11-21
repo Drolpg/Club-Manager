@@ -31,6 +31,7 @@ from acesso.http.serializers import (
     RedefinirSenhaSerializer,
     SessaoSerializer,
     SituacaoSerializer,
+    TelefoneSerializer,
     TokenSerializer,
     UsuarioSerializer,
 )
@@ -234,6 +235,19 @@ class AcaoDeUsuarioView(APIView):
     def post(self, request: Request, usuario_id: uuid.UUID) -> Response:
         usuario = _ACOES_DE_USUARIO[self.acao](ator=_ator(request), usuario_id=usuario_id)
         return Response(UsuarioSerializer(usuario).data)
+
+
+class TelefoneView(APIView):
+    """O usuário troca o próprio telefone. A rota não tem `usuario_id`: o alvo é sempre quem está logado."""
+
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(request=TelefoneSerializer, responses=TelefoneSerializer)
+    def post(self, request: Request) -> Response:
+        entrada = TelefoneSerializer(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        usuario = usuarios.alterar_telefone(ator=_ator(request), telefone=entrada.validated_data["telefone"])
+        return Response({"telefone": usuario.telefone})
 
 
 class SessaoGoogleView(RotaAbertaDeEscrita):

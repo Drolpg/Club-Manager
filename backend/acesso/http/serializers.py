@@ -32,6 +32,18 @@ class UsuarioSerializer(serializers.Serializer[Any]):
         return usuario.id in com_cargo
 
 
+class TelefoneSerializer(serializers.Serializer[Any]):
+    """Só `telefone`: qualquer outra chave é recusada, para ninguém mudar nome ou e-mail por esta rota."""
+
+    telefone = serializers.CharField(allow_blank=True, trim_whitespace=False, max_length=100)
+
+    def to_internal_value(self, data: Any) -> dict[str, Any]:
+        estranhas = sorted(set(data) - set(self.fields)) if hasattr(data, "keys") else []
+        if estranhas:
+            raise serializers.ValidationError({chave: ["Campo não aceito."] for chave in estranhas})
+        return super().to_internal_value(data)  # type: ignore[no-any-return]
+
+
 class _AtorSerializer(serializers.Serializer[Any]):
     id = serializers.UUIDField()
     nome = serializers.CharField()
