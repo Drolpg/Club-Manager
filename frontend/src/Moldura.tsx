@@ -77,9 +77,11 @@ export function Moldura() {
         {(usuario.admin || usuario.tem_cargo) && (
           <nav aria-label="Comunicação">
             <Link to="/feed">Feed</Link>
+            <Link to="/documentos">Documentos</Link>
             {(usuario.admin || temPermissao(minhas.detalhe, COMUNICACAO_PUBLICAR)) && (
               <Link to="/feed/novo">Publicar comunicado</Link>
             )}
+            {usuario.admin && <Link to="/admin/categorias-de-documento">Categorias de documento</Link>}
           </nav>
         )}
         <Link to="/preferencias">Preferências</Link>

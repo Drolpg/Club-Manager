@@ -13,10 +13,13 @@ import { Cobrancas } from './paginas/Cobrancas'
 import { ConfiguracaoFinanceira } from './paginas/ConfiguracaoFinanceira'
 import { DetalheDaCobranca } from './paginas/DetalheDaCobranca'
 import { DetalheDaSaida } from './paginas/DetalheDaSaida'
+import { CategoriasDeDocumento } from './paginas/CategoriasDeDocumento'
 import { DetalheDoComunicado } from './paginas/DetalheDoComunicado'
+import { DetalheDoDocumento } from './paginas/DetalheDoDocumento'
 import { DetalheDoEvento } from './paginas/DetalheDoEvento'
 import { Despublicados } from './paginas/Despublicados'
 import { Entradas } from './paginas/Entradas'
+import { Documentos } from './paginas/Documentos'
 import { Feed } from './paginas/Feed'
 import { FormularioDeComunicado } from './paginas/FormularioDeComunicado'
 import { FormularioDeEvento } from './paginas/FormularioDeEvento'
@@ -313,6 +316,30 @@ function App() {
               <ProtegidaDeGestao>
                 <FormularioDeComunicado />
               </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/documentos"
+            element={
+              <ProtegidaDeGestao>
+                <Documentos />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/documentos/:id"
+            element={
+              <ProtegidaDeGestao>
+                <DetalheDoDocumento />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/admin/categorias-de-documento"
+            element={
+              <Protegida soAdmin>
+                <CategoriasDeDocumento />
+              </Protegida>
             }
           />
           <Route
