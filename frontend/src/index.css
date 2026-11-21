@@ -330,3 +330,46 @@ button.marcado {
   font-weight: 700;
   outline: 2px solid currentColor;
 }
+
+/* Feed e documentos (M9): o texto livre mantém as quebras de linha e nunca é interpretado como HTML. */
+.texto-livre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.item-do-feed {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--borda, #ccc);
+  border-radius: 6px;
+  text-align: left;
+}
+
+.item-do-feed h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.reacoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.contagem {
+  font-variant-numeric: tabular-nums;
+}
+
+.comentario {
+  display: grid;
+  gap: 0.25rem;
+  text-align: left;
+}
+
+.comentario-oculto {
+  opacity: 0.6;
+}

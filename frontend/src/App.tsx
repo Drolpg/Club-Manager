@@ -13,8 +13,12 @@ import { Cobrancas } from './paginas/Cobrancas'
 import { ConfiguracaoFinanceira } from './paginas/ConfiguracaoFinanceira'
 import { DetalheDaCobranca } from './paginas/DetalheDaCobranca'
 import { DetalheDaSaida } from './paginas/DetalheDaSaida'
+import { DetalheDoComunicado } from './paginas/DetalheDoComunicado'
 import { DetalheDoEvento } from './paginas/DetalheDoEvento'
+import { Despublicados } from './paginas/Despublicados'
 import { Entradas } from './paginas/Entradas'
+import { Feed } from './paginas/Feed'
+import { FormularioDeComunicado } from './paginas/FormularioDeComunicado'
 import { FormularioDeEvento } from './paginas/FormularioDeEvento'
 import { HistoricoDeEventos } from './paginas/HistoricoDeEventos'
 import { MinhasCobrancas } from './paginas/MinhasCobrancas'
@@ -268,6 +272,46 @@ function App() {
             element={
               <ProtegidaDeGestao>
                 <FormularioDeEvento />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/feed"
+            element={
+              <ProtegidaDeGestao>
+                <Feed />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/feed/novo"
+            element={
+              <ProtegidaDeGestao>
+                <FormularioDeComunicado />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/feed/despublicados"
+            element={
+              <ProtegidaDeGestao>
+                <Despublicados />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/feed/:id"
+            element={
+              <ProtegidaDeGestao>
+                <DetalheDoComunicado />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/feed/:id/editar"
+            element={
+              <ProtegidaDeGestao>
+                <FormularioDeComunicado />
               </ProtegidaDeGestao>
             }
           />
