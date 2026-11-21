@@ -12,8 +12,9 @@ from typing import Any
 from django.db import transaction
 
 from aprovacoes import tipos
-from aprovacoes.domain.decisores import FatosDoEnvio, avaliar, avaliar_envio
+from aprovacoes.domain.decisores import COMANDO_DO_MODULO_DONO, FatosDoEnvio, avaliar, avaliar_envio
 from aprovacoes.domain.transicoes import Comando, Situacao
+from aprovacoes.erros import erro
 from aprovacoes.models import Solicitacao
 from aprovacoes.services import avisos
 from aprovacoes.services.autorizacao import exigir, exigir_leitura_de_gestao, fatos_de
@@ -92,8 +93,12 @@ def enviar(
     tipo: str,
     conteudo: Any,
     aprovador_indicado_id: uuid.UUID | None = None,
+    pelo_dono: bool = False,
 ) -> Solicitacao:
-    """Cria a solicitação em análise, com a versão 1 (RF-034; INV-SOL-10, INV-SOL-15; adendo 1, A1 e A3)."""
+    """Cria a solicitação em análise, com a versão 1 (RF-034; INV-SOL-10, INV-SOL-15; adendo 1, A1 e A3).
+
+    Pela rota (`pelo_dono` falso), um tipo só pelo módulo dono é recusado (adendo 2).
+    """
     definicao = _tipo(tipo)
     conteudo = _conferir_formato(conteudo)
     do_ator = permissoes.permissoes_de(ator_id)
@@ -112,6 +117,8 @@ def enviar(
             )
         )
     )
+    if definicao.so_pelo_modulo_dono and not pelo_dono:
+        raise erro(COMANDO_DO_MODULO_DONO)
     preparado = _preparar(definicao, conteudo, ator_id)
     solicitacao = Solicitacao.abrir(
         tipo=definicao.codigo, solicitante_id=ator_id, aprovador_indicado_id=indicado, preparado=preparado
@@ -178,15 +185,81 @@ def avisar_o_dono(
     )
 
 
+# --- as mudanças, sem a conferência de quem age (os comandos abaixo e o módulo dono conferem antes) ---
+
+
+def _retirar(solicitacao: Solicitacao, ator_id: uuid.UUID) -> None:
+    solicitacao.retirar()
+    _auditar(ator_id, solicitacao, "SOLICITACAO_RETIRADA", versao=solicitacao.numero_da_versao_atual)
+    avisar_o_dono(solicitacao, Acontecimento.RETIRADA, ator_id)
+    avisos.saiu_da_fila(solicitacao, ator_id=ator_id, como="retirada")
+
+
+def _reenviar(solicitacao: Solicitacao, ator_id: uuid.UUID, conteudo: dict[str, Any]) -> None:
+    preparado = _preparar(tipo_de(solicitacao), conteudo, solicitacao.solicitante_id)
+    solicitacao.reenviar(preparado, autor_id=ator_id)
+    _auditar(ator_id, solicitacao, "SOLICITACAO_REENVIADA", versao=solicitacao.numero_da_versao_atual)
+    avisos.para_decidir(solicitacao, ator_id=ator_id, fato="reenviada")
+
+
+def _reabrir(
+    solicitacao: Solicitacao, ator_id: uuid.UUID, justificativa: str, conteudo: dict[str, Any] | None
+) -> None:
+    if conteudo is None:
+        conteudo = solicitacao.versao_atual.conteudo
+    preparado = _preparar(tipo_de(solicitacao), conteudo, solicitacao.solicitante_id)
+    solicitacao.reabrir(preparado, autor_id=ator_id, justificativa=justificativa)
+    _auditar(
+        ator_id,
+        solicitacao,
+        "SOLICITACAO_REABERTA",
+        justificativa=justificativa,
+        versao=solicitacao.numero_da_versao_atual,
+    )
+    avisar_o_dono(solicitacao, Acontecimento.REABERTA, ator_id)
+    avisos.para_decidir(solicitacao, ator_id=ator_id, fato="reaberta")
+
+
+def _editar(
+    solicitacao: Solicitacao, ator_id: uuid.UUID, conteudo: dict[str, Any], justificativa: str
+) -> None:
+    preparado = _preparar(tipo_de(solicitacao), conteudo, solicitacao.solicitante_id)
+    solicitacao.editar(preparado, autor_id=ator_id, justificativa=justificativa)
+    _auditar(
+        ator_id,
+        solicitacao,
+        "SOLICITACAO_EDITADA",
+        justificativa=justificativa,
+        versao=solicitacao.numero_da_versao_atual,
+    )
+    avisar_o_dono(solicitacao, Acontecimento.EDITADA, ator_id)
+    avisos.para_decidir(solicitacao, ator_id=ator_id, fato="editada")
+
+
+def _cancelar(solicitacao: Solicitacao, ator_id: uuid.UUID | None, motivo: str) -> None:
+    estava_na_fila = solicitacao.situacao == Situacao.EM_ANALISE
+    solicitacao.cancelar()
+    _auditar(
+        ator_id,
+        solicitacao,
+        "SOLICITACAO_CANCELADA",
+        justificativa=motivo,
+        versao=solicitacao.numero_da_versao_atual,
+    )
+    avisar_o_dono(solicitacao, Acontecimento.CANCELADA, ator_id)
+    if estava_na_fila:
+        avisos.saiu_da_fila(solicitacao, ator_id=ator_id, como="cancelada")
+
+
+# --- os comandos do solicitante, pelas rotas ---
+
+
 @transaction.atomic
 def retirar(*, ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Solicitacao:
     """RF-120: o solicitante tira da análise para corrigir; ela sai da fila e só volta por reenvio."""
     solicitacao = bloquear(ator_id, solicitacao_id)
     exigir(avaliar(Comando.RETIRAR, fatos_de(solicitacao, ator_id)))
-    solicitacao.retirar()
-    _auditar(ator_id, solicitacao, "SOLICITACAO_RETIRADA", versao=solicitacao.numero_da_versao_atual)
-    avisar_o_dono(solicitacao, Acontecimento.RETIRADA, ator_id)
-    avisos.saiu_da_fila(solicitacao, ator_id=ator_id, como="retirada")
+    _retirar(solicitacao, ator_id)
     return solicitacao
 
 
@@ -196,10 +269,7 @@ def reenviar(*, ator_id: uuid.UUID, solicitacao_id: uuid.UUID, conteudo: Any) ->
     conteudo = _conferir_formato(conteudo)
     solicitacao = bloquear(ator_id, solicitacao_id)
     exigir(avaliar(Comando.REENVIAR, fatos_de(solicitacao, ator_id)))
-    preparado = _preparar(tipo_de(solicitacao), conteudo, solicitacao.solicitante_id)
-    solicitacao.reenviar(preparado, autor_id=ator_id)
-    _auditar(ator_id, solicitacao, "SOLICITACAO_REENVIADA", versao=solicitacao.numero_da_versao_atual)
-    avisos.para_decidir(solicitacao, ator_id=ator_id, fato="reenviada")
+    _reenviar(solicitacao, ator_id, conteudo)
     return solicitacao
 
 
@@ -215,19 +285,7 @@ def reabrir(
         conteudo = _conferir_formato(conteudo)
     solicitacao = bloquear(ator_id, solicitacao_id)
     exigir(avaliar(Comando.REABRIR, fatos_de(solicitacao, ator_id)))
-    if conteudo is None:
-        conteudo = solicitacao.versao_atual.conteudo
-    preparado = _preparar(tipo_de(solicitacao), conteudo, solicitacao.solicitante_id)
-    solicitacao.reabrir(preparado, autor_id=ator_id, justificativa=justificativa)
-    _auditar(
-        ator_id,
-        solicitacao,
-        "SOLICITACAO_REABERTA",
-        justificativa=justificativa,
-        versao=solicitacao.numero_da_versao_atual,
-    )
-    avisar_o_dono(solicitacao, Acontecimento.REABERTA, ator_id)
-    avisos.para_decidir(solicitacao, ator_id=ator_id, fato="reaberta")
+    _reabrir(solicitacao, ator_id, justificativa, conteudo)
     return solicitacao
 
 
@@ -240,17 +298,7 @@ def editar(
     conteudo = _conferir_formato(conteudo)
     solicitacao = bloquear(ator_id, solicitacao_id)
     exigir(avaliar(Comando.EDITAR, fatos_de(solicitacao, ator_id)))
-    preparado = _preparar(tipo_de(solicitacao), conteudo, solicitacao.solicitante_id)
-    solicitacao.editar(preparado, autor_id=ator_id, justificativa=justificativa)
-    _auditar(
-        ator_id,
-        solicitacao,
-        "SOLICITACAO_EDITADA",
-        justificativa=justificativa,
-        versao=solicitacao.numero_da_versao_atual,
-    )
-    avisar_o_dono(solicitacao, Acontecimento.EDITADA, ator_id)
-    avisos.para_decidir(solicitacao, ator_id=ator_id, fato="editada")
+    _editar(solicitacao, ator_id, conteudo, justificativa)
     return solicitacao
 
 
@@ -260,16 +308,51 @@ def cancelar(*, ator_id: uuid.UUID, solicitacao_id: uuid.UUID, motivo: str) -> S
     motivo = texto_obrigatorio("motivo", motivo)
     solicitacao = bloquear(ator_id, solicitacao_id)
     exigir(avaliar(Comando.CANCELAR, fatos_de(solicitacao, ator_id)))
-    estava_na_fila = solicitacao.situacao == Situacao.EM_ANALISE
-    solicitacao.cancelar()
-    _auditar(
-        ator_id,
-        solicitacao,
-        "SOLICITACAO_CANCELADA",
-        justificativa=motivo,
-        versao=solicitacao.numero_da_versao_atual,
-    )
-    avisar_o_dono(solicitacao, Acontecimento.CANCELADA, ator_id)
-    if estava_na_fila:
-        avisos.saiu_da_fila(solicitacao, ator_id=ator_id, como="cancelada")
+    _cancelar(solicitacao, ator_id, motivo)
+    return solicitacao
+
+
+# --- os comandos do módulo dono do tipo (adendo 2), sem rota ---
+
+
+def _do_dono(solicitacao_id: uuid.UUID, tipo: str) -> Solicitacao:
+    """A existência (404) e o tipo; quem age já foi conferido pelo módulo dono. A linha fica bloqueada."""
+    solicitacao = Solicitacao.objects.select_for_update().filter(pk=solicitacao_id).first()
+    if solicitacao is None:
+        raise BusinessError("NOT_FOUND", "Solicitação não encontrada.", status=404)
+    if solicitacao.tipo != tipo:
+        raise ValueError(f"A solicitação é do tipo {solicitacao.tipo!r}, e não {tipo!r}.")
+    return solicitacao
+
+
+@transaction.atomic
+def nova_versao_pelo_dono(
+    *, solicitacao_id: uuid.UUID, tipo: str, ator_id: uuid.UUID, conteudo: Any, justificativa: str = ""
+) -> Solicitacao:
+    """A versão seguinte, pela transição que existe para a situação atual (adendo 2)."""
+    conteudo = _conferir_formato(conteudo)
+    solicitacao = _do_dono(solicitacao_id, tipo)
+    situacao = Situacao(solicitacao.situacao)
+    if situacao == Situacao.APROVADA:
+        _editar(solicitacao, ator_id, conteudo, texto_opcional("justificativa", justificativa))
+    elif situacao in (Situacao.CONTESTADA, Situacao.RETIRADA):
+        _reenviar(solicitacao, ator_id, conteudo)
+    elif situacao == Situacao.RECUSADA:
+        _reabrir(solicitacao, ator_id, texto_obrigatorio("justificativa", justificativa), conteudo)
+    elif situacao == Situacao.EM_ANALISE:
+        _retirar(solicitacao, ator_id)
+        _reenviar(solicitacao, ator_id, conteudo)
+    else:
+        raise erro("NAO_PODE_EDITAR")
+    return solicitacao
+
+
+@transaction.atomic
+def cancelar_pelo_dono(
+    *, solicitacao_id: uuid.UUID, tipo: str, ator_id: uuid.UUID | None, motivo: str
+) -> Solicitacao:
+    """Cancela com motivo; ator nulo é o sistema (adendo 2). A situação é conferida pelo aggregate."""
+    motivo = texto_obrigatorio("motivo", motivo)
+    solicitacao = _do_dono(solicitacao_id, tipo)
+    _cancelar(solicitacao, ator_id, motivo)
     return solicitacao

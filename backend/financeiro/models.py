@@ -1581,6 +1581,34 @@ class Complemento(models.Model):
         self.save()
 
 
+class OrcamentoDeEvento(models.Model):
+    """Vínculo da solicitação orçamentária com o evento (adendo 1 da spec técnica do M7).
+
+    Fica fora do conteúdo da solicitação para que ninguém ligue um gasto a um evento pela rota de gasto ou
+    pela rota do motor, e para que o reenvio pela tela não perca o vínculo. Só
+    `abrir_solicitacao_orcamentaria` o cria. Imutável e nunca apagado.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid7, editable=False)
+    solicitacao_id = models.UUIDField(unique=True)
+    evento_id = models.UUIDField(db_index=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-criado_em", "-id")
+
+    def __str__(self) -> str:
+        return f"Orçamento {self.solicitacao_id} do evento {self.evento_id}"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise NaoPodeApagar("O vínculo do orçamento com o evento não muda.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args: Any, **kwargs: Any) -> NoReturn:
+        raise NaoPodeApagar("O vínculo do orçamento com o evento não é apagado.")
+
+
 class Envio(models.Model):
     """Remessa financeira efetiva de recurso para o solicitante da saída (imutável)."""
 

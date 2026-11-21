@@ -161,19 +161,19 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Status |
 | --- | --- | --- |
-| RF-084 | O admin cria e desativa categorias de evento | Aprovado |
-| RF-085 | O diretor com a permissão propõe um evento com título, descrição, data, categoria e a marca "envolve custo" | Aprovado |
-| RF-086 | Quem responde por eventos abre a solicitação orçamentária do evento, vinculada a ele | Aprovado |
-| RF-087 | O sistema publica o evento no calendário quando as aprovações exigidas estão concluídas, e notifica todos os diretores | Aprovado |
-| RF-088 | O diretor consulta o calendário, em que cada evento publicado é um card que abre o detalhe | Aprovado |
-| RF-089 | O proponente, ou quem tem a permissão, edita um evento; se estava publicado, ele sai do calendário até nova aprovação | Aprovado |
-| RF-090 | O diretor consulta o histórico de eventos (publicados, recusados, cancelados e realizados), com as decisões e os motivos | Aprovado |
-| RF-091 | O sistema notifica, na data do evento, quem pode confirmar a realização | Aprovado |
-| RF-092 | O proponente, quem responde por eventos ou o admin confirma que o evento aconteceu; se foi antes da data, informa a data e o motivo | Aprovado |
-| RF-093 | O proponente, o admin ou quem tem a permissão cancela um evento, com motivo; ele sai do calendário e todos os diretores são notificados | Aprovado |
-| RF-129 | O diretor ativo com cargo confirma se vai ou não a um evento publicado, e o evento mostra as respostas | Aprovado |
-| RF-130 | O sistema cancela o evento que não foi publicado até a data dele, e avisa o proponente | Aprovado |
-| RF-131 | O sistema lembra quem pode confirmar a realização 1 e 3 dias depois da data, se ninguém confirmou nem cancelou | Aprovado |
+| RF-084 | O admin cria e desativa categorias de evento | Implementado |
+| RF-085 | O diretor com a permissão propõe um evento com título, descrição, data, categoria e a marca "envolve custo" | Implementado |
+| RF-086 | Quem responde por eventos abre a solicitação orçamentária do evento, vinculada a ele | Implementado |
+| RF-087 | O sistema publica o evento no calendário quando as aprovações exigidas estão concluídas, e notifica todos os diretores | Implementado |
+| RF-088 | O diretor consulta o calendário, em que cada evento publicado é um card que abre o detalhe | Implementado |
+| RF-089 | O proponente, ou quem tem a permissão, edita um evento; se estava publicado, ele sai do calendário até nova aprovação | Implementado |
+| RF-090 | O diretor consulta o histórico de eventos (publicados, recusados, cancelados e realizados), com as decisões e os motivos | Implementado |
+| RF-091 | O sistema notifica, na data do evento, quem pode confirmar a realização | Implementado |
+| RF-092 | O proponente, quem responde por eventos ou o admin confirma que o evento aconteceu; se foi antes da data, informa a data e o motivo | Implementado |
+| RF-093 | O proponente, o admin ou quem tem a permissão cancela um evento, com motivo; ele sai do calendário e todos os diretores são notificados | Implementado |
+| RF-129 | O diretor ativo com cargo confirma se vai ou não a um evento publicado, e o evento mostra as respostas | Implementado |
+| RF-130 | O sistema cancela o evento que não foi publicado até a data dele, e avisa o proponente | Implementado |
+| RF-131 | O sistema lembra quem pode confirmar a realização 1 e 3 dias depois da data, se ninguém confirmou nem cancelou | Implementado |
 
 ##### Comunicação e perfil (M9)
 
@@ -355,10 +355,15 @@ Em `VALIDATION_ERROR`, `details` traz os motivos por campo.
 | `TETO_SEM_VALOR` | 422 | Teto sugerido numa solicitação cujo tipo não tem valor |
 | `MOTIVO_JA_EXISTE` | 409 | Motivo com o texto de outro do mesmo tipo de decisão, ativo ou inativo (sem diferenciar maiúsculas) |
 | `SO_O_DEVEDOR`, `DEVEDOR_NAO_VALIDA`, `DEVEDOR_NAO_DECIDE`, `REGISTRADOR_NAO_VALIDA` | 403 | Ação exclusiva do devedor ou tentativa de autovalidação/autodecisão no financeiro |
-| `CATEGORIA_JA_EXISTE` | 409 | Categoria com o mesmo nome e natureza |
+| `CATEGORIA_JA_EXISTE` | 409 | Categoria financeira com o mesmo nome e natureza, ou categoria de evento com o mesmo nome |
 | `CHAVE_PIX_PADRAO_NAO_CONFIGURADA`, `CHAVE_PIX_INATIVA`, `CATEGORIA_INATIVA`, `DEVEDOR_INATIVO`, `RECEBEDOR_INVALIDO` | 422 | Dependência ausente ou inativa em cobrança, pagamento, recorrência ou entrada |
 | `VALOR_INVALIDO`, `VENCIMENTO_NO_PASSADO`, `PARCELAS_INVALIDAS`, `COBRANCA_JA_GERADA` | 422 | Valores inválidos ou duplicidade de competência |
 | `NAO_ACEITA_PAGAMENTO`, `NAO_ESTA_EM_VALIDACAO`, `NAO_ACEITA_QUESTIONAMENTO`, `QUESTIONAMENTO_JA_ABERTO`, `SEM_QUESTIONAMENTO_ABERTO`, `NAO_PODE_ISENTAR`, `SEM_CONVOCACAO_ABERTA`, `NAO_ESTA_ATRASADA`, `NAO_ESTA_PAGA`, `SUSPENSAO_JA_ENCERRADA` | 422 | Comando incompatível com a situação atual de cobrança, pagamento, entrada ou suspensão |
+| `COMANDO_DO_MODULO_DONO` | 422 | Enviar, retirar, reenviar, editar, reabrir ou cancelar pela rota do motor uma solicitação de tipo conduzido pelo módulo dono (a do evento) |
+| `EVENTO_ENCERRADO` | 422 | Qualquer comando sobre evento realizado ou cancelado |
+| `NAO_ESTA_RECUSADO`, `NAO_ESTA_PUBLICADO` | 422 | Reabrir evento que não está recusado; realizar ou responder presença fora de publicado |
+| `EVENTO_SEM_CUSTO`, `ORCAMENTO_JA_VINCULADO` | 422 | Orçamento para evento sem custo; segundo orçamento; tirar o custo de evento com orçamento |
+| `DATA_FUTURA` | 422 | Data de realização do evento no futuro |
 | `INTERNAL_ERROR` | 500 | Erro inesperado; o detalhe fica só no log, com o `X-Request-ID` da resposta |
 
 Login, recuperação de senha, reenvio de verificação e convite inválido respondem do mesmo jeito exista a conta (ou o
@@ -398,6 +403,9 @@ convite) ou não.
 | Cobranças e pagamentos | `GET`, `POST financeiro/cobrancas/`, `POST …/lote/`; `GET …/{id}/` (`pix_copia_e_cola`, `qrcode_svg`, `acoes`), `historico/`, `recibo/`; `POST …/pagamentos/`, `validar-pagamento/`, `rejeitar-pagamento/`, `questionar/`, `questionamento/decidir/`, `isentar/`, `cancelar/`, `justificar-divida/`, `perdoar/`, `renegociar/`, `manter-divida/`; `GET …/pagamentos/{pag_id}/comprovante/` | Leitura de gestão (`cobrancas/`), devedor nas próprias (`minhas-cobrancas/`, detalhe, pagar, questionar, justificar, comprovante, recibo) e permissões específicas na escrita e no comprovante |
 | Recorrências e suspensões | `GET`, `POST financeiro/recorrencias/`, `POST …/{id}/editar/`, `desativar/`, `GET …/historico/`; `GET`, `POST financeiro/suspensoes/`, `POST …/{id}/encerrar/`, `GET …/historico/` | Leitura: diretor com cargo; escrita: `cobrancas.criar` e `cobrancas.suspender` |
 | Entradas sem devedor | `GET`, `POST financeiro/entradas/`, `GET …/resumo/`, `GET …/{id}/`, `historico/`, `comprovante/`, `POST …/validar/`, `rejeitar/` | Leitura: diretor com cargo; escrita: `entradas.registrar`, `entradas.validar` (≠ registrador) |
+| Eventos: consultas | `GET eventos/referencias/`; `GET eventos/calendario/?mes=AAAA-MM` (publicados e realizados do mês, pela data local); `GET eventos/` (`?situacao=`, `?categoria_id=`, `?de=`, `?ate=`, `?antes=`, `?limite=`); `GET eventos/{id}/` (dados, solicitações, orçamento, presenças, realização, cancelamento e `acoes`); `GET …/{id}/historico/` | Admin ou diretor ativo com cargo |
+| Eventos: comandos | `POST eventos/` (`eventos.propor`); `POST …/{id}/editar/`, `…/reabrir/` (proponente ou `eventos.aprovar`); `…/orcamento/` (`eventos.aprovar`); `…/presenca/` (diretor ativo com cargo); `…/realizar/` (proponente, `eventos.aprovar` ou admin); `…/cancelar/` (proponente, `eventos.cancelar` ou admin) | Conferido na rota e no serviço |
+| Categorias de evento | `GET eventos/categorias/` (`?todas=1` só para o admin); `POST eventos/categorias/`, `POST …/{id}/editar/`, `…/desativar/`, `…/reativar/` | Leitura: diretor com cargo; escrita: admin |
 | Contrato | `GET schema/`, `GET docs/` | Admin |
 
 Notificação nunca é alterada nem apagada: não há rota `DELETE` nem preferência que desligue o registro; a rota `ler`
@@ -412,6 +420,12 @@ para o sistema), `justificativa` e `criado_em`.
 O token de convite, de verificação e de recuperação vai sempre no corpo, nunca na URL da API.
 
 Solicitação, versão, decisão e motivo nunca são apagados, e versão e decisão nunca mudam (também no banco). A ordem das conferências em toda rota de solicitação é: leitura de gestão (403), entrada (400), existência (404), quem pode (403) e situação (422); quem não lê gestão recebe 403 sem saber se o ID existe. Dinheiro vai e volta como texto com duas casas (`"150.00"`). O `conteudo` de cada versão é do módulo dono do tipo (um objeto JSON de até 64 KB) e o site o mostra como texto. O campo `acoes` do detalhe diz o que quem pergunta pode fazer agora; ele é conveniência do site, e a API confere de novo em cada comando. Não há rota para pôr em execução nem encerrar: isso é do módulo dono do tipo, pela API pública em processo.
+
+Evento, presença e categoria de evento nunca são apagados (também no banco), e o evento realizado ou cancelado
+não muda mais. A solicitação do evento é conduzida por `eventos`: as rotas do motor só a decidem. O orçamento
+de um evento é uma solicitação de gasto comum, ligada ao evento por um registro do financeiro, e não pelo
+conteúdo: a rota de gasto não aceita `evento_id`. Datas e horas do evento vão e voltam com fuso; entrada sem
+fuso é lida no fuso do clube (`America/Sao_Paulo`).
 
 ## 5. Dados
 

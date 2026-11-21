@@ -3,6 +3,7 @@ import { permissoes, type DetalheDoUsuario } from './api/permissoes'
 
 /** Permissão de gerenciar convites, a mesma do catálogo da API. */
 export const CONVITES_GERENCIAR = 'convites.gerenciar'
+export const EVENTOS_PROPOR = 'eventos.propor'
 
 export function temPermissao(detalhe: DetalheDoUsuario | null, codigo: string): boolean {
   return detalhe?.permissoes.some((p) => p.codigo === codigo) ?? false

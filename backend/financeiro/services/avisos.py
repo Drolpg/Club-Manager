@@ -464,3 +464,18 @@ def registro_estornado(
         caminho=caminho,
         chave=f"registro-estornado:{estorno_id}",
     )
+
+
+def orcamento_de_evento_cancelado(saida: Saida, *, titulo_do_evento: str) -> None:
+    """Adendo 1: o evento foi cancelado com o recurso já enviado; a saída segue, e quem liquida é avisado."""
+    _enviar_saida(
+        saida,
+        tipo=tipos.NOTIF_ORCAMENTO_DE_EVENTO_CANCELADO,
+        destinatarios=_destinatarios_permissao(PERM_SAIDAS_LIQUIDAR),
+        titulo="Evento cancelado com recurso enviado",
+        texto=(
+            f"O evento “{titulo_do_evento}” foi cancelado depois do envio do recurso de “{saida.descricao}”. "
+            "A saída continua: confira a prestação de contas e a devolução."
+        ),
+        chave=f"orcamento-evento-cancelado:{saida.solicitacao_id}",
+    )

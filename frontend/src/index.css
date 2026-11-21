@@ -270,3 +270,63 @@ td button {
   margin: 0;
   color: var(--texto-suave);
 }
+
+.navegacao-do-mes {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.calendario {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.calendario-cabecalho {
+  font-weight: 600;
+  text-align: center;
+}
+
+.calendario-dia {
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+  min-height: 5rem;
+  padding: 0.25rem;
+  border: 1px solid var(--borda, #ccc);
+}
+
+.calendario-dia.vazio {
+  border-style: dashed;
+}
+
+.calendario-numero {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.cartao-de-evento {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.25rem;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  background: var(--fundo-suave, #f2f2f2);
+}
+
+.navegacao-do-mes {
+  justify-content: space-between;
+}
+
+/* A coluna de `.pagina` acompanha o conteúdo; a largura do calendário vem da janela, para a grade e a
+   barra do mês não encolherem num mês sem eventos. */
+.largura-do-calendario {
+  inline-size: min(calc(100vw - 2rem), 72rem);
+  justify-self: center;
+}
+
+button.marcado {
+  font-weight: 700;
+  outline: 2px solid currentColor;
+}

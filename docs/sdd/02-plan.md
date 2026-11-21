@@ -213,6 +213,8 @@ são acessados por `127.0.0.1`, porque `localhost` tenta IPv6 primeiro.
 | 8 | "Nada é apagado" entra em conflito com direitos do titular na LGPD | Pendente; ver [04-seguranca](04-seguranca.md) |
 | 9 | O escopo do M6 cresceu com inadimplência, renegociação, suspensão e Pix | Mitigado: o M6 é dividido em seis features |
 | 10 | Em desenvolvimento, os links dos e-mails saem quebrados no log | Mitigado: Mailpit no compose de desenvolvimento |
+| 11 | Cancelar um evento ao mesmo tempo em que alguém decide a solicitação dele dá impasse de bloqueio no PostgreSQL | Aceito (M8): o banco desfaz uma das duas, o estado final continua coerente (teste com duas transações) e quem perdeu recebe `INTERNAL_ERROR` e tenta de novo; vazão de poucos eventos por mês |
+| 12 | O recurso do orçamento pode ser enviado antes de o evento ser publicado (ordem livre entre as aprovações) | Aceito (M8): se o evento for recusado ou cancelado, a saída segue a prestação de contas, e quem liquida é avisado |
 
 ## 7. Débitos e melhorias futuras
 
@@ -240,3 +242,4 @@ retomar. Uma decisão em aberto que bloqueia trabalho fica na tabela da seção 
 | D-17 | Evento recorrente; lista de presença; lembrete a quem confirmou; aprovação diferente por categoria | Melhoria | Fora do mínimo escolhido | Pedido do dono no M8 | Futuro |
 | D-18 | Notificações em tempo real; preferência por tipo; resumo diário por e-mail | Melhoria | Escolhidas a consulta a cada minuto e uma chave só | Pedido do dono | Futuro |
 | D-19 | Prazos de lembrete configuráveis; trocar o aprovador indicado depois do envio; avisar o admin quando o indicado é desativado | Melhoria | Prazos fixos e o aviso dos 7 dias ao admin bastam | Pedido do dono | Futuro |
+| D-20 | Teste do M6 que falha às vezes: o apoio `novo_diretor` gera um sufixo aleatório, e o validador de senha pode achar a senha de teste parecida com o nome | Débito | Achado no M8; fora do escopo do marco | Próxima mudança em `financeiro/tests` | Aberto |

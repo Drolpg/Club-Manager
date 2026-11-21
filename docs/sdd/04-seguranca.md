@@ -193,6 +193,31 @@ devolução de sobra ligada a `Entrada` (`saida`), rotina diária de lembretes (
 | Acesso a anexos de gasto por diretor sem cargo | `LeGestao` nas rotas de cotação, envio e prestação + `nosniff` e `private, no-store` | Implementada (M7) | `P6`; `test_parte10_saidas_http.py` e E2E |
 | Notificações repetidas de atraso em reexecução | `lembrete_5_dias_em` / `aviso_7_dias_em` gravados sob `select_for_update()` + chave idempotente | Implementada (M7) | `RF-126`, `CA-14`; `test_parte9_estornos_e_caixa.py` |
 
+### M8: eventos
+
+Elementos novos: o módulo `eventos` (aggregate `Evento`, `Presenca`, `CategoriaDeEvento`), o tipo
+`eventos.evento` no motor, conduzido só pelo módulo dono, os comandos do módulo dono no motor
+(`nova_versao_pelo_dono`, `cancelar_pelo_dono`), o vínculo `OrcamentoDeEvento` no financeiro, a rotina diária
+de eventos e as telas do calendário, do histórico e do detalhe.
+
+| Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
+| --- | --- | --- | --- | --- | --- | --- |
+| Solicitação do evento no motor | — | **Contorno pelo motor:** o tipo é "só pelo módulo dono"; as rotas genéricas recusam enviar, retirar, reenviar, editar, reabrir e cancelar com `COMANDO_DO_MODULO_DONO`; o `preparar` monta o retrato a partir do evento gravado, e nenhuma versão diverge dele | Toda transição auditada pelo motor; a edição de terceiro grava o autor da versão | — | — | **Comando do dono sem conferência:** `nova_versao_pelo_dono` e `cancelar_pelo_dono` não têm rota; `eventos` confere quem age antes, com a mesma função das rotas e do `acoes` |
+| Orçamento do evento | — | **Vínculo forjado:** o `evento_id` saiu do conteúdo e da rota de gasto; o vínculo só nasce em `abrir_solicitacao_orcamentaria`, e o tratador de `eventos` confere que a solicitação avisada é a vinculada | Cancelamento com recurso enviado auditado na saída (`ORCAMENTO_DE_EVENTO_CANCELADO`) | — | — | Só quem tem `eventos.aprovar` abre o orçamento (rota e serviço) |
+| Evento (editar, realizar, cancelar) | Agir em nome de outro → o ator vem da sessão | Alterar ou apagar evento encerrado → métodos, `CheckConstraint` e gatilho no banco; presença e categoria também não são apagadas | Cada ação audita, inclusive as do sistema (ator nulo) | Diretor sem cargo recebe 403 antes da existência; notificações sem valores | Cancelar e decidir ao mesmo tempo podem dar impasse: o banco desfaz uma das duas e o estado continua coerente (risco 11, aceito) | **Edição por terceiro:** só o proponente ou `eventos.aprovar`; quem edita pode decidir a versão que escreveu, como na reabertura por terceiros (decisão Q2 do dono, auditada) |
+| Presença | Responder por outro → o ator vem da sessão | Duas respostas ao mesmo tempo → bloqueio da linha do evento e único por evento, ciclo e diretor | Respostas auditadas | Quadro só para quem lê gestão | — | Admin sem cargo não responde; só em evento publicado |
+| Rotina diária | — | Cancelar evento publicado por engano → só `EM_APROVACAO` e `RECUSADO` com a data local passada | Cancelamento pelo sistema auditado com ator nulo e `pelo_sistema` | Aviso de cancelamento pela data só ao proponente | Rodar duas vezes → marcas no evento e chaves de notificação; cada evento na própria transação | — |
+| Site (calendário, detalhe, formulários) | — | XSS em título, descrição, local e motivos → React renderiza como texto (teste) | — | — | Calendário limitado a 200 eventos por mês; histórico paginado até 50 | Botões só do que vem em `acoes`; cada rota confere de novo (teste de paridade) |
+
+| Ameaça | Mitigação | Status | Registro |
+| --- | --- | --- | --- |
+| Abrir, mudar ou cancelar a solicitação do evento pela rota do motor | Tipo só pelo módulo dono; `COMANDO_DO_MODULO_DONO` | Implementada (M8) | `aprovacoes/tests/test_pelo_dono.py`, `eventos/tests/test_parte1_proposta_e_publicacao.py` |
+| Ligar um gasto a qualquer evento | Vínculo fora do conteúdo (`OrcamentoDeEvento`) | Implementada (M8) | `financeiro/tests/test_parte11_orcamento_de_evento.py` |
+| Agir sobre evento de outra pessoa | `avaliar` única para rota, serviço e `acoes`; teste de paridade por papel e situação | Implementada (M8) | `eventos/tests/test_parte6_http.py` |
+| Alterar evento encerrado ou apagar registro de eventos | Métodos, `CheckConstraint` e gatilhos | Implementada (M8) | `eventos/tests/test_modelos.py` |
+| Impasse entre cancelar e decidir | Estado final coerente; quem perdeu tenta de novo | Aceita (Q3) | Risco 11 em [02-plan](02-plan.md); `eventos/tests/test_parte5_concorrencia.py` |
+| Recurso enviado antes da publicação | A saída segue a prestação de contas; quem liquida é avisado | Aceita (Q4) | Risco 12 em [02-plan](02-plan.md) |
+
 ## 2. Avaliação de LGPD
 
 | Campo | Valor |
@@ -665,3 +690,81 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/schema/     
 | Verificação do backend (`1202` testes, cobertura `93,02%`, `lint-imports` `1 kept / 0 broken`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run poe audit` |
 | Verificação do site (`186` testes, cobertura global `89,51%` Stmts / `83,44%` Branch / `91,46%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
 | Fluxo ponta a ponta real no Compose | `docker compose up -d --build --wait` (web `200`, health `200`, schema `401`, cotação → gasto → aprovação → caixa comprometido → envio → prestação → devolução `INV-ENT-04` `403`/`200` → validação → liquidação → estorno → caixa zerado → worker e-mails `succeeded`) |
+
+
+## 7. Relatório de vulnerabilidades — M8
+
+| Campo | Valor |
+| --- | --- |
+| Projeto | Club Manager |
+| Escopo | Feature `eventos/eventos-e-calendario`, com os acréscimos ao motor (`aprovacoes.public`) e ao financeiro (`OrcamentoDeEvento`, `cancelar_orcamento_de_evento`, rota de gasto sem `evento_id`) e as telas do site |
+| Data da execução | 2026-11-20 |
+| Responsável | o dono do projeto |
+| Ferramentas | SCA: `pip-audit` 2.10.1 e `npm audit --audit-level=high` (npm 10.9.8). SAST: `ruff check --select S .` (ruff 0.17.4), `mypy .` (2.4.1), `oxlint --deny-warnings`, `tsc -b`, `lint-imports`. DAST: não executado (M12). Revisão por ameaça e fluxo ponta a ponta HTTP nos contêineres |
+| Especificação | RNF-07; [01-spec](01-spec.md) § 1 (M8); modelo de ameaças § 1 (M8) |
+| Achados aceitos sem correção | Nenhum achado novo de vulnerabilidade. Riscos aceitos pelo dono: impasse de bloqueio (risco 11) e recurso enviado antes da publicação (risco 12) |
+
+### 1. Contexto e escopo
+
+O M8 entrega os eventos do clube: proposta, aprovação pelo motor, orçamento como solicitação de gasto ligada
+ao evento, publicação no calendário, presença, edição, realização, cancelamento (também pelo sistema, quando a
+data passa sem aprovação) e os lembretes de realização. Para isso, o motor ganhou comandos do módulo dono e o
+tipo conduzido só pelo dono, e o financeiro passou a guardar o vínculo do orçamento fora do conteúdo da
+solicitação.
+
+### 2. Frentes
+
+| Frente | Ferramenta | O que cobre | Mapeamento OWASP |
+| --- | --- | --- | --- |
+| SCA | `pip-audit`; `npm audit --audit-level=high` | Dependências Python e Node (sem dependência nova no M8) | A06 |
+| SAST e arquitetura | `ruff check --select S .`, `mypy .`, `lint-imports`, `oxlint --deny-warnings`, `tsc -b`, teste de fronteira de `eventos` | Padrões inseguros, tipagem estrita e fronteiras entre contextos (CA-28) | A01, A03, A05 |
+| Revisão por ameaça e contêineres | `1634` testes backend (`93,76%`), `199` testes site (`89,55%` Stmts), fluxo HTTP nos contêineres | Contorno pelo motor, vínculo forjado, paridade `acoes` ↔ rotas, imutabilidade, concorrência, cancelamento com recurso enviado | A01, A04 |
+| DAST | Não executado | — | — |
+
+### 3. Como reproduzir
+
+```text
+# em backend/
+uv run poe audit
+uv run ruff check --select S .
+uv run poe verify
+
+# em frontend/
+npm audit --audit-level=high
+npm run verify
+
+# com o sistema no ar (na raiz)
+docker compose up -d --build --wait
+docker compose exec -T api python manage.py showmigrations eventos financeiro
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/health/     # 200
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/schema/     # 401
+```
+
+### 4. Resultado: inicial → correções → final
+
+| Frente | Severidade | Inicial | Final | Variação |
+| --- | --- | --- | --- | --- |
+| SCA backend (`pip-audit`) | Qualquer | 0 | 0 | — |
+| SCA site (`npm audit --audit-level=high`) | Crítica, alta | 0 | 0 | — |
+| SAST (`ruff --select S`, `mypy`, `oxlint`) | Qualquer | 0 | 0 | — |
+| Revisão por ameaça e fluxo E2E | Média, baixa | 2 achados do M7 corrigidos no marco | 0 abertos | −2 |
+
+### 5. Controles verificados e lacunas
+
+| Controle ou lacuna | Resultado / Situação | Evidência |
+| --- | --- | --- |
+| Vínculo forjado de gasto a evento (achado do M7) | `evento_id` recusado no conteúdo e fora da rota de gasto; o vínculo só nasce pelo evento | `test_parte11_orcamento_de_evento.py` |
+| Complemento reenviado virando gasto comum (achado do M7) | O tratador decide pelo registro `Complemento`; o site preserva a saída de origem no reenvio | PR #9 (`fix/financeiro-complemento-reenviado`); `frontend/src/complemento.test.tsx` |
+| Contorno pela rota do motor | `COMANDO_DO_MODULO_DONO` em envio e comandos do solicitante; decisões continuam | `test_pelo_dono.py` |
+| Paridade `acoes` ↔ rotas | Cinco papéis × quatro situações × seis comandos | `test_parte6_http.py` |
+| Contêineres e fluxo completo | `api` em `uid=10001`; migrações `eventos/0001` a `0003` e `financeiro/0004` aplicadas; proposta com custo → aprovação → orçamento → aprovação → calendário → presença → realização; cancelamento com recurso enviado avisando quem liquida; tarefa diária registrada e executada pelo worker; e-mails entregues ao Mailpit | `docker compose up -d --build --wait`, percurso HTTP (23 de 23 passos) |
+| Teste do M6 que falha às vezes | Sufixo aleatório no apoio `novo_diretor`; não é vulnerabilidade | D-20 em [02-plan](02-plan.md) |
+| DAST, HTTPS/HSTS, SPF/DKIM e cifragem de disco | Previsto para o M12 | [02-plan](02-plan.md) § 6 |
+
+### 6. Evidências
+
+| Evidência | Onde |
+| --- | --- |
+| Verificação do backend (`1634` testes, cobertura `93,76%`, `lint-imports` `1 kept / 0 broken`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run poe audit` |
+| Verificação do site (`199` testes, cobertura `89,55%` Stmts / `82,27%` Branch / `91,25%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
+| Fluxo ponta a ponta nos contêineres | `docker compose up -d --build --wait`; health `200`, schema `401`; percurso HTTP com 23 passos conferidos |

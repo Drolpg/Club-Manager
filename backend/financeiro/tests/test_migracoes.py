@@ -25,6 +25,7 @@ from financeiro.models import (
     Saida,
     SituacaoComplemento,
 )
+from financeiro.tipos import PERMISSOES
 from permissoes import public as permissoes
 from tests import apoio
 
@@ -64,7 +65,10 @@ def test_decisao8_e_P7_setor_financeiro_nasce_com_sete_permissoes_e_sem_estorno(
     assert resp.status_code == 200
 
     concedidas = permissoes.permissoes_de(diretor.id)
-    assert set(concedidas) == {
+    # Só o catálogo do financeiro: outros módulos também concedem permissões aos setores iniciais (M8 em
+    # diante), e o teste não deve quebrar a cada um.
+    do_financeiro = {codigo for codigo, _, _ in PERMISSOES}
+    assert set(concedidas) & do_financeiro == {
         "cobrancas.criar",
         "pagamentos.validar",
         "entradas.registrar",

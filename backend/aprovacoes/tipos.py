@@ -135,6 +135,8 @@ class TipoDeSolicitacao:
     preparar: Preparar
     ao_mudar: AoMudar
     permissao_de_enviar: str | None = None
+    # Adendo 2: as rotas genéricas recusam o envio e os comandos do solicitante; só as decisões passam.
+    so_pelo_modulo_dono: bool = False
 
 
 _tipos_de_solicitacao: dict[str, TipoDeSolicitacao] = {}
@@ -154,6 +156,7 @@ def registrar_tipo(
     preparar: Preparar,
     ao_mudar: AoMudar,
     permissao_de_enviar: str | None = None,
+    so_pelo_modulo_dono: bool = False,
 ) -> None:
     """Declara um tipo de solicitação, no formato `<modulo>.<tipo>`. Falha ao iniciar se algo está errado."""
     if not _FORMATO.fullmatch(codigo):
@@ -161,7 +164,14 @@ def registrar_tipo(
     _exigir_no_catalogo(permissao_de_aprovar)
     _exigir_no_catalogo(permissao_de_enviar)
     novo = TipoDeSolicitacao(
-        codigo, nome, permissao_de_aprovar, tem_valor, preparar, ao_mudar, permissao_de_enviar
+        codigo,
+        nome,
+        permissao_de_aprovar,
+        tem_valor,
+        preparar,
+        ao_mudar,
+        permissao_de_enviar,
+        so_pelo_modulo_dono,
     )
     existente = _tipos_de_solicitacao.get(codigo)
     if existente is not None and existente != novo:

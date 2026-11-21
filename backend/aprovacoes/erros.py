@@ -27,6 +27,10 @@ _MENSAGENS = {
     "NAO_ESTA_APROVADA": (422, "A solicitação não está aprovada."),
     "NAO_PODE_ENCERRAR": (422, "Esta solicitação não pode ser encerrada."),
     "TETO_SEM_VALOR": (422, "Só se sugere teto numa solicitação que tem valor."),
+    decisores.COMANDO_DO_MODULO_DONO: (
+        422,
+        "Esta solicitação é conduzida pelo módulo que a abriu: faça a mudança pela tela dele.",
+    ),
 }
 
 

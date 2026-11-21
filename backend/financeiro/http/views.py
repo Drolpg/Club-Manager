@@ -1030,7 +1030,6 @@ class GastosView(APIView):
             itens=itens,
             cotacao_id=dados.get("cotacao_id"),
             aprovador_indicado_id=dados.get("aprovador_indicado_id"),
-            evento_id=dados.get("evento_id"),
         )
         payload = {
             "id": info.id,

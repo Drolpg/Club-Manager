@@ -129,7 +129,6 @@ def _abrir_e_aprovar(
     itens: list[dict[str, Any]] | None = None,
     descricao: str = "Compra de bolas oficiais",
     cotacao_id: uuid.UUID | None = None,
-    evento_id: uuid.UUID | None = None,
 ) -> tuple[uuid.UUID, Saida]:
     sol = gastos.abrir_solicitacao(
         ctx["solicitante"].id,
@@ -138,7 +137,6 @@ def _abrir_e_aprovar(
         setor_id=ctx["setor"].id,
         itens=itens or [{"descricao": "Bolas", "valor": "200.00"}, {"descricao": "Redes", "valor": "100.00"}],
         cotacao_id=cotacao_id,
-        evento_id=evento_id,
     )
     _aprovar_solicitacao(ctx, sol.id)
     saida = Saida.objects.get(solicitacao_id=sol.id, situacao="AGUARDANDO_ENVIO")

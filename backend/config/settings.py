@@ -248,6 +248,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "financeiro.processar_rotina_diaria",
         "schedule": crontab(minute=15, hour=6),
     },
+    # Depois da rotina do financeiro: cancelar pela data e os avisos de realização (spec técnica do M8).
+    "eventos.processar_rotina_diaria": {
+        "task": "eventos.processar_rotina_diaria",
+        "schedule": crontab(minute=30, hour=6),
+    },
 }
 
 LOGGING = {
