@@ -185,8 +185,8 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-097 | O sistema notifica os diretores de um novo comunicado | Implementado |
 | RF-098 | O usuário com a permissão envia um documento; os diretores o consultam e baixam | Implementado |
 | RF-099 | O usuário com a permissão registra uma ata de reunião como documento | Implementado |
-| RF-100 | O usuário consulta o próprio perfil: seus dados, histórico de pagamentos, eventos relacionados, notificações e preferências | Aprovado |
-| RF-101 | O admin consulta o perfil de qualquer usuário | Aprovado |
+| RF-100 | O usuário consulta o próprio perfil: seus dados, histórico de pagamentos, eventos relacionados, notificações e preferências | Implementado |
+| RF-101 | O admin consulta o perfil de qualquer usuário | Implementado |
 | RF-132 | O autor com a permissão de publicar, ou quem gerencia a comunicação, edita um comunicado; ele ganha a marca "editado" e ninguém é notificado de novo | Implementado |
 | RF-133 | O autor, ou quem gerencia a comunicação, despublica um comunicado com motivo e o republica; ele sai do feed e da fixação sem ser apagado | Implementado |
 | RF-134 | O diretor ativo com cargo (e o admin) reage a um comunicado publicado com uma de quatro reações, no máximo uma por comunicado; troca e retira a reação, e o comunicado mostra a contagem por tipo e quem reagiu | Implementado |
@@ -197,6 +197,8 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-139 | Quem enviou o documento, ou quem gerencia a comunicação, envia uma nova versão com motivo; a anterior continua consultável e baixável | Implementado |
 | RF-140 | Quem enviou o documento, ou quem gerencia a comunicação, arquiva e desarquiva o documento; arquivar não quebra o vínculo com comunicados nem o download | Implementado |
 | RF-141 | O admin mantém as categorias de documento; a categoria usada é desativada, nunca apagada | Implementado |
+| RF-142 | O sistema registra na auditoria cada consulta do admin ao perfil de outro usuário, sem dado pessoal; a consulta do usuário ao próprio perfil não gera registro | Implementado |
+| RF-143 | O usuário altera o próprio telefone pelo perfil; a auditoria registra a troca sem o número | Implementado |
 
 ##### Relatórios (M10)
 
@@ -422,6 +424,8 @@ convite) ou não.
 | Comunicação: consultas | `GET comunicacao/referencias/`; `GET comunicacao/comunicados/` (`?antes=`, `?limite=`; os fixados vêm em `fixados`, só na primeira página); `GET …/despublicados/` (os que o ator pode ver); `GET …/{id}/` (dados, autor, documentos, reações com quem reagiu, `acoes`); `GET …/{id}/comentarios/` (`?depois=`, `?limite=`, do mais antigo ao mais novo; o oculto só para quem pode vê-lo) | Admin ou diretor ativo com cargo |
 | Comunicação: comandos | `POST comunicacao/comunicados/` (`comunicacao.publicar`); `POST …/{id}/editar/`, `…/despublicar/`, `…/republicar/` (o autor com `comunicacao.publicar`, ou `comunicacao.gerenciar`); `…/fixar/`, `…/desafixar/` (`comunicacao.gerenciar`); `…/reacao/` (repetir o tipo retira), `…/reacao/retirar/`, `…/comentarios/` (diretor com cargo); `POST comunicacao/comentarios/{id}/editar/`, `…/ocultar/`, `…/reexibir/` (o serviço confere autoria ou `comunicacao.gerenciar`) | Conferido na rota e no serviço |
 | Documentos e atas | `GET comunicacao/documentos/` (`?categoria_id=`, `?tipo=`, `?titulo=`, `?arquivados=1`, `?antes=`, `?limite=`); `GET …/{id}/` (versões e comunicados que o indexam); `GET …/{id}/arquivo/` e `…/{id}/versoes/{numero}/arquivo/` (download pela rota autenticada, `nosniff` e `no-store`, sem URL pública); `POST …/` (`comunicacao.enviar_documentos`), `POST …/atas/` (`comunicacao.registrar_atas`), ambos em multipart; `POST …/{id}/versoes/` (multipart), `…/arquivar/`, `…/desarquivar/` (quem enviou, ou `comunicacao.gerenciar`) | Leitura e download: diretor com cargo |
+| Perfil | `GET relatorios/perfil/` (o próprio) e `GET relatorios/perfil/{usuario_id}/` (dados, primeira página de cobranças e de eventos, e a contagem de notificações só no próprio); `GET …/cobrancas/` e `…/eventos/` (`?antes=`, `?limite=` até 50), também por usuário. Só leitura: sem rota de escrita em `relatorios` | Dono ou admin, conferido no serviço antes de qualquer consulta; outro diretor recebe `403`, até para ID inexistente; só o admin recebe `404`; a consulta do admin ao perfil de outro é auditada (`PERFIL_CONSULTADO`) |
+| Telefone próprio | `POST acesso/telefone/` só com o campo `telefone` (outra chave é `400`); troca e audita `TELEFONE_ALTERADO` sem o número | Usuário ativo, só o próprio |
 | Categorias de documento | `GET comunicacao/categorias/` (`?todas=1` só para o admin); `POST comunicacao/categorias/`, `POST …/{id}/editar/`, `…/desativar/`, `…/reativar/` | Leitura: diretor com cargo; escrita: admin |
 | Contrato | `GET schema/`, `GET docs/` | Admin |
 

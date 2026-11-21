@@ -5,9 +5,11 @@ função que as rotas usam (`domain/autorizacao`). As datas são as do fuso do s
 """
 
 import uuid
+from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
+from django.db.models import OuterRef, Q, Subquery
 from django.utils import timezone
 
 from acesso import public as acesso
@@ -15,7 +17,7 @@ from aprovacoes import public as aprovacoes
 from eventos.domain.autorizacao import PERM_APROVAR, acoes_disponiveis
 from eventos.domain.situacao import SituacaoDoEvento
 from eventos.erros import erro
-from eventos.models import CategoriaDeEvento, Evento
+from eventos.models import CategoriaDeEvento, Evento, Presenca
 from eventos.services.autorizacao import exigir_leitura_de_gestao, fatos
 from eventos.services.presencas import quadro_do_evento
 from permissoes import public as permissoes
@@ -155,3 +157,69 @@ def detalhe(ator_id: uuid.UUID, evento_id: uuid.UUID) -> dict[str, Any]:
 def historico_de_auditoria(ator_id: uuid.UUID, evento_id: uuid.UUID) -> list[acesso.RegistroDoHistorico]:
     evento = _buscar(ator_id, evento_id)
     return acesso.historico_com_nomes("evento", evento.id)
+
+
+@dataclass(frozen=True)
+class EventoDoUsuario:
+    """Um evento ligado ao usuário. `papel`: `PROPONENTE`, `PRESENCA` ou `PROPONENTE_E_PRESENCA`."""
+
+    id: uuid.UUID
+    titulo: str
+    inicio: datetime
+    local: str
+    categoria_nome: str
+    situacao: str
+    papel: str
+    resposta: str | None
+
+
+@dataclass(frozen=True)
+class PaginaDeEventosDoUsuario:
+    itens: list[EventoDoUsuario]
+    tem_mais: bool
+
+
+def _papel(propos: bool, resposta: str | None) -> str:
+    if propos and resposta is not None:
+        return "PROPONENTE_E_PRESENCA"
+    return "PROPONENTE" if propos else "PRESENCA"
+
+
+def eventos_do_usuario(
+    usuario_id: uuid.UUID, *, antes: uuid.UUID | None = None, limite: int = 10
+) -> PaginaDeEventosDoUsuario:
+    """Os eventos que o usuário propôs ou em que respondeu à presença do ciclo atual (CA-03).
+
+    Só leitura e sem conferir quem pergunta: isso é do serviço do perfil. Em qualquer situação do evento, do
+    mais novo para o mais antigo, com o cursor `antes` por ID de evento.
+    """
+    resposta_dele = Presenca.objects.filter(
+        evento=OuterRef("pk"), ciclo=OuterRef("ciclo_de_presenca"), diretor_id=usuario_id
+    ).values("resposta")[:1]
+    consulta = (
+        Evento.objects.annotate(resposta_dele=Subquery(resposta_dele))
+        .filter(Q(proponente_id=usuario_id) | Q(resposta_dele__isnull=False))
+        .order_by("-inicio", "-id")
+    )
+    if antes is not None:
+        ancora = Evento.objects.filter(pk=antes).values("inicio", "id").first()
+        if ancora is None:
+            raise erro("NOT_FOUND", "Evento não encontrado.")
+        consulta = consulta.filter(inicio__lte=ancora["inicio"]).exclude(
+            inicio=ancora["inicio"], id__gte=ancora["id"]
+        )
+    achados = list(consulta[: limite + 1])
+    itens = [
+        EventoDoUsuario(
+            id=e.id,
+            titulo=e.titulo,
+            inicio=e.inicio,
+            local=e.local,
+            categoria_nome=e.categoria_nome,
+            situacao=e.situacao,
+            papel=_papel(e.proponente_id == usuario_id, e.resposta_dele),
+            resposta=e.resposta_dele,
+        )
+        for e in achados[:limite]
+    ]
+    return PaginaDeEventosDoUsuario(itens=itens, tem_mais=len(achados) > limite)

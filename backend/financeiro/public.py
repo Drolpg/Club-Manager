@@ -5,6 +5,7 @@
 - `registrar_devolucao_de_saida`: registra devolução de saída de eventos (`TipoEntrada.DEVOLUCAO`).
 - `resumo_entradas_validadas`: soma consolidada apenas das entradas com situação `VALIDADA`.
 - `abrir_solicitacao_orcamentaria` e `cancelar_orcamento_de_evento`: o orçamento de evento (adendo 1 do M7).
+- `cobrancas_do_devedor`: as cobranças de um devedor, com os pagamentos e sem comprovante, para o perfil.
 """
 
 import uuid
@@ -19,8 +20,12 @@ from financeiro.erros import erro
 from financeiro.models import CategoriaFinanceira, Entrada, Saida, TipoEntrada
 from financeiro.services import avisos, orcamentos
 from financeiro.services.consulta import (
+    CobrancaDoDevedor,
+    PagamentoDoDevedor,
+    PaginaDeCobrancasDoDevedor,
     ResumoEntradasValidadas,
     VisaoDoCaixa,
+    cobrancas_do_devedor,
     resumo_entradas_validadas,
     visao_do_caixa,
 )
@@ -165,11 +170,15 @@ def cancelar_orcamento_de_evento(
 
 __all__ = (
     "CategoriaFinanceiraInfo",
+    "CobrancaDoDevedor",
     "OrcamentoDeEventoMudou",
+    "PagamentoDoDevedor",
+    "PaginaDeCobrancasDoDevedor",
     "ResumoEntradasValidadas",
     "VisaoDoCaixa",
     "abrir_solicitacao_orcamentaria",
     "cancelar_orcamento_de_evento",
+    "cobrancas_do_devedor",
     "listar_categorias_ativas",
     "obter_categoria_ativa",
     "registrar_devolucao_de_saida",

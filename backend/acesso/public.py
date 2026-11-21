@@ -27,6 +27,20 @@ class UsuarioInfo:
 
 
 @dataclass(frozen=True)
+class PerfilInfo:
+    """O que o perfil mostra de um usuário. O telefone só sai aqui, e não em `UsuarioInfo`."""
+
+    id: uuid.UUID
+    nome: str
+    nome_de_usuario: str
+    email: str
+    telefone: str
+    admin: bool
+    ativo: bool
+    cadastrado_em: datetime
+
+
+@dataclass(frozen=True)
 class CadastroConcluido:
     """Evento de integração: um diretor concluiu o cadastro (conta ativa, sem cargo)."""
 
@@ -63,6 +77,23 @@ def _info(usuario: Usuario) -> UsuarioInfo:
 def usuario_por_id(usuario_id: uuid.UUID) -> UsuarioInfo | None:
     usuario = Usuario.objects.filter(pk=usuario_id).first()
     return _info(usuario) if usuario else None
+
+
+def dados_do_perfil(usuario_id: uuid.UUID) -> PerfilInfo | None:
+    """Os dados do perfil de qualquer usuário, ativo ou não. Só leitura; quem pode ver é do chamador."""
+    usuario = Usuario.objects.filter(pk=usuario_id).first()
+    if usuario is None:
+        return None
+    return PerfilInfo(
+        id=usuario.id,
+        nome=usuario.nome,
+        nome_de_usuario=usuario.nome_de_usuario,
+        email=usuario.email,
+        telefone=usuario.telefone,
+        admin=usuario.admin,
+        ativo=usuario.is_active,
+        cadastrado_em=usuario.criado_em,
+    )
 
 
 def admins_ativos() -> list[UsuarioInfo]:

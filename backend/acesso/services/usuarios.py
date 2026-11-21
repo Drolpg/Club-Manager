@@ -117,6 +117,29 @@ def criar_admin(*, nome: str, nome_de_usuario: str, email: str, telefone: str, s
     return usuario
 
 
+@transaction.atomic
+def alterar_telefone(*, ator: Usuario, telefone: str) -> Usuario:
+    """O próprio usuário troca o próprio telefone (RF-143). A auditoria não leva o número, antigo ou novo."""
+    if not ator.is_active:
+        raise BusinessError("PERMISSION_DENIED", "Você não tem permissão para fazer isso.", status=403)
+    novo = normalizar_telefone(telefone)
+    if not telefone_valido(novo):
+        raise BusinessError(
+            "VALIDATION_ERROR",
+            "Os dados enviados são inválidos.",
+            status=400,
+            details={"telefone": ["Informe um telefone com 8 a 15 dígitos."]},
+        )
+    usuario = Usuario.objects.select_for_update().get(pk=ator.pk)
+    if usuario.telefone != novo:
+        usuario.telefone = novo
+        usuario.save(update_fields=["telefone"])
+        auditoria.registrar(
+            ator_id=usuario.id, acao="TELEFONE_ALTERADO", item_tipo="usuario", item_id=usuario.id
+        )
+    return usuario
+
+
 def listar(*, ator: Usuario) -> list[Usuario]:
     exigir_admin(ator)
     return list(Usuario.objects.all())

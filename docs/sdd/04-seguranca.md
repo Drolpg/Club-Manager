@@ -249,6 +249,30 @@ do feed, dos documentos e das categorias.
 | Dado pessoal em documento ou ata visível a todos os diretores | Aviso na tela de envio; nada é apagado | Aceita (Q3, R1 e R2) | Spec funcional do feed |
 | Disco cheio por versões de documento | Limite de 5 MB e gatilho de 70% da ADR-014 | Aceita (R6) | [02-plan](02-plan.md) § 6 |
 
+### M9: perfil do usuário
+
+Elementos novos: as rotas do perfil em `relatorios` (só leitura, sem modelo), as consultas por usuário nas
+APIs públicas de `acesso`, `financeiro`, `eventos` e `notificacoes`, a rota do telefone próprio e as telas do
+perfil.
+
+| Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
+| --- | --- | --- | --- | --- | --- | --- |
+| Rotas do perfil | O ator vem da sessão ativa | Não há rota de escrita em `relatorios` | Consulta do admin ao perfil de outro auditada por seção, inclusive cada página (D2), sem dado pessoal | **Perfil alheio:** só dono ou admin, conferido antes de qualquer consulta; leitura de gestão e acesso total não bastam; o 403 vale até para ID inexistente (sem enumerar) | Limite de 1 a 50 por página | A regra é uma função pura chamada pelo serviço; a rota só exige sessão ativa |
+| Funções públicas novas dos módulos donos | — | Só leitura | — | **Vazamento por função pública:** devolvem dataclasses sem hash de senha, identificador do Google nem comprovante; o telefone só sai por `dados_do_perfil`, e não por `UsuarioInfo` | Pagamentos buscados em lote, sem N+1 | Nenhuma tem rota própria nem confere quem pergunta |
+| Notificações no perfil | — | — | — | A caixa de outra pessoa nunca é consultada: para o admin vendo outro, a seção não existe e o serviço nem chama `notificacoes` | — | O admin também não vê a caixa alheia |
+| Telefone próprio | O alvo é sempre o ator, e a rota não tem `usuario_id` | **Campo indevido:** o serializer recusa qualquer chave além de `telefone`, então nome, e-mail e admin não mudam por aqui | `TELEFONE_ALTERADO` auditado sem o número, antigo ou novo | O número não vai para log nem para auditoria | — | Só o próprio usuário ativo |
+| Site (perfil) | — | XSS em nome e descrições → React renderiza como texto (teste) | — | O formulário e a caixa só aparecem no próprio; o admin vê o aviso de consulta registrada | — | A rota do admin é `soAdmin`; a API confere de novo |
+
+| Ameaça | Mitigação | Status | Registro |
+| --- | --- | --- | --- |
+| Ler o perfil de outra pessoa | `pode_ver_perfil` antes de tudo; 403 até para ID inexistente | Implementada (M9) | `relatorios/tests/test_dominio.py`, `test_parte1_perfil.py`, `test_parte2_http.py` |
+| Admin consultar sem rastro | `PERFIL_CONSULTADO` por seção, sem dado pessoal | Implementada (M9) | `test_parte1_perfil.py`, `test_parte2_http.py` |
+| Ver a caixa de notificações de outro | Seção inexistente fora do próprio; `notificacoes` não é chamado | Implementada (M9) | `test_parte1_perfil.py` |
+| Vazar campo do modelo por função pública | Dataclasses com campos fixos | Implementada (M9) | `acesso/tests/test_perfil_info.py`, `financeiro/tests/test_parte12_cobrancas_do_devedor.py` |
+| Mudar nome, e-mail ou admin pelo telefone | Serializer de uma chave só | Implementada (M9) | `acesso/tests/test_telefone.py` |
+| Número do telefone em auditoria ou log | Auditoria com `dados` vazios | Implementada (M9) | `acesso/tests/test_telefone.py`; percurso nos contêineres |
+| Dependência entre módulos fora da ordem | Contrato `layers` e teste por nome | Implementada (M9) | `relatorios/tests/test_fronteiras.py`; `lint-imports` |
+
 ## 2. Avaliação de LGPD
 
 | Campo | Valor |
@@ -302,8 +326,8 @@ outro fim (divulgação, por exemplo), isso muda.
 | Necessidade | Só os dados da tabela acima; sem CPF, endereço ou data de nascimento | M2 |
 | Transparência | Aviso de privacidade no cadastro (texto abaixo) | M2 |
 | Segurança | Senha em Argon2, sessão protegida, acesso negado por padrão, auditoria, logs sem dado pessoal | M2 |
-| Acesso aos próprios dados | Perfil do usuário | M9 |
-| Correção | Edição dos próprios dados (pendência do enunciado) ou pedido ao admin | M9 |
+| Acesso aos próprios dados | Perfil do usuário (atendido no M9) | M9 |
+| Correção | O usuário corrige o próprio telefone pelo perfil; nome, nome de usuário e e-mail seguem pelo pedido ao admin (atendido no M9) | M9 |
 | Eliminação | Ver a tensão abaixo | M12 |
 | Portabilidade | Exportação dos próprios dados em CSV, pelos relatórios | M10 |
 | Resposta a incidente | Procedimento de comunicação | M12 |
@@ -880,3 +904,78 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/schema/     
 | Verificação do backend (`2064` testes, cobertura `94,43%`, `lint-imports` `1 kept / 0 broken`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run poe audit` |
 | Verificação do site (`256` testes, cobertura `89,13%` Stmts / `82,37%` Branch / `90,81%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
 | Percurso nos contêineres | `docker compose up -d --build --wait`; health `200`, schema `401`; 45 passos HTTP, quatro e-mails no Mailpit (três de novo comunicado e um de comentário) e a tela do feed conferida no navegador |
+
+## 9. Relatório de vulnerabilidades — M9 (perfil do usuário)
+
+| Campo | Valor |
+| --- | --- |
+| Projeto | Club Manager |
+| Escopo | Feature `relatorios/perfil-do-usuario`: rotas do perfil, consultas por usuário em `acesso`, `financeiro`, `eventos` e `notificacoes`, rota do telefone próprio e telas do site |
+| Data da execução | 2026-11-21 |
+| Responsável | o dono do projeto |
+| Ferramentas | SCA: `pip-audit` e `npm audit --audit-level=high`. SAST: `ruff check --select S .`, `mypy .`, `oxlint --deny-warnings`, `tsc -b`, `lint-imports`. DAST: não executado (M12). Revisão por ameaça e percurso HTTP nos contêineres |
+| Especificação | RNF-07; [01-spec](01-spec.md) § 1 (M9); modelo de ameaças § 1 (M9, perfil) |
+| Achados aceitos sem correção | Nenhum achado novo de vulnerabilidade |
+
+### 1. Contexto e escopo
+
+O perfil junta, para uma pessoa, telefone, e-mail e histórico financeiro. A feature entrega só leitura: o dono
+vê o próprio perfil, o admin vê o de qualquer usuário com registro de auditoria, e ninguém vê a caixa de
+notificações de outro. O usuário troca o próprio telefone; o número nunca vai para a auditoria.
+
+### 2. Frentes
+
+| Frente | Ferramenta | O que cobre | Mapeamento OWASP |
+| --- | --- | --- | --- |
+| SCA | `pip-audit`; `npm audit --audit-level=high` | Dependências (sem dependência nova) | A06 |
+| SAST e arquitetura | `ruff --select S`, `mypy`, `lint-imports`, `oxlint`, `tsc -b`, teste de fronteira de `relatorios` | Padrões inseguros, tipagem e fronteiras (CA-08) | A01, A03, A05 |
+| Revisão por ameaça e contêineres | `2198` testes backend (`94,62%`), `268` testes site (`89,26%` Stmts), percurso HTTP de 22 passos | Perfil alheio, enumeração, vazamento por função pública, campo indevido no telefone, auditoria sem dado pessoal | A01, A04 |
+| DAST | Não executado | — | — |
+
+### 3. Como reproduzir
+
+```text
+# em backend/
+uv run poe audit
+uv run ruff check --select S .
+uv run poe verify
+
+# em frontend/
+npm audit --audit-level=high
+npm run verify
+
+# com o sistema no ar (na raiz)
+docker compose up -d --build --wait
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/health/                 # 200
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/relatorios/perfil/      # 401
+```
+
+### 4. Resultado: inicial → correções → final
+
+| Frente | Severidade | Inicial | Final | Variação |
+| --- | --- | --- | --- | --- |
+| SCA backend (`pip-audit`) | Qualquer | 0 | 0 | — |
+| SCA site (`npm audit --audit-level=high`) | Crítica, alta | 0 | 0 | — |
+| SAST (`ruff --select S`, `mypy`, `oxlint`) | Qualquer | 0 | 0 | — |
+| Revisão por ameaça e percurso HTTP | Média, baixa | 0 | 0 abertos | — |
+
+### 5. Controles verificados e lacunas
+
+| Controle ou lacuna | Resultado / Situação | Evidência |
+| --- | --- | --- |
+| Perfil de outro | Diretor, inclusive com leitura total e com acesso total, recebe `403`; com ID inexistente também `403`; o admin recebe `200` e, para ID inexistente, `404` | `test_parte2_http.py`; percurso nos contêineres |
+| Auditoria da consulta do admin | Três registros para o perfil completo, sem telefone, e-mail ou nome; o próprio perfil não gera registro | `test_parte1_perfil.py`; histórico do usuário nos contêineres |
+| Caixa de outra pessoa | A seção não existe para o admin vendo outro, e `notificacoes` não é chamado | `test_parte1_perfil.py`; percurso |
+| Telefone | Só o próprio, só o campo `telefone`; chave estranha `400`; auditoria sem o número | `test_telefone.py`; percurso |
+| Campos de saída | Sem hash de senha, identificador do Google nem comprovante | `test_parte2_http.py`; percurso |
+| Fronteiras | `relatorios` importa só `.public`; ninguém abaixo o conhece; `domain` sem framework | `test_fronteiras.py`; `lint-imports` `1 kept / 0 broken` |
+| Cabeçalho e caixa de notificações | A caixa fica dentro da tela a 1366 e a 375 px, para diretor comum e admin, com o link novo `Meu perfil` | Medição com `getBoundingClientRect` nos contêineres |
+| DAST, HTTPS/HSTS, SPF/DKIM e cifragem de disco | Previsto para o M12 | [02-plan](02-plan.md) § 6 |
+
+### 6. Evidências
+
+| Evidência | Onde |
+| --- | --- |
+| Verificação do backend (`2198` testes, cobertura `94,62%`, `lint-imports` `1 kept / 0 broken`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run poe audit` |
+| Verificação do site (`268` testes, cobertura `89,26%` Stmts / `82,3%` Branch / `90,98%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
+| Percurso nos contêineres | `docker compose up -d --build --wait`; 22 passos HTTP conferidos |
