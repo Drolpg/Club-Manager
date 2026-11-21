@@ -1,4 +1,12 @@
-import { useEffect, useId, useRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
+import {
+  useEffect,
+  useId,
+  useRef,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react'
 
 export function Pagina({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
@@ -30,6 +38,33 @@ export function Campo({ rotulo, erros, aoMudar, ...resto }: CampoProps) {
     <div className="campo">
       <label htmlFor={id}>{rotulo}</label>
       <input id={id} onChange={(evento) => aoMudar(evento.target.value)} aria-invalid={!!erros?.length} {...resto} />
+      {erros?.map((erro) => (
+        <p key={erro} className="erro-de-campo">
+          {erro}
+        </p>
+      ))}
+    </div>
+  )
+}
+
+interface AreaDeTextoProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  rotulo: string
+  erros?: string[]
+  aoMudar: (valor: string) => void
+}
+
+export function AreaDeTexto({ rotulo, erros, aoMudar, ...resto }: AreaDeTextoProps) {
+  const id = useId()
+  return (
+    <div className="campo">
+      <label htmlFor={id}>{rotulo}</label>
+      <textarea
+        id={id}
+        rows={4}
+        onChange={(evento) => aoMudar(evento.target.value)}
+        aria-invalid={!!erros?.length}
+        {...resto}
+      />
       {erros?.map((erro) => (
         <p key={erro} className="erro-de-campo">
           {erro}

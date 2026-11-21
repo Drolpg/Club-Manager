@@ -70,6 +70,18 @@ const TEXTO: Record<string, string> = {
   DIFERENCA_NAO_ACERTADA: 'Informe justificativa ou resolva a diferença antes de liquidar.',
   JUSTIFICATIVA_OBRIGATORIA: 'Informe a justificativa para concluir esta ação.',
   NAO_PODE_ESTORNAR: 'Este registro não pode ser estornado nesta situação.',
+  COMUNICADO_NAO_PUBLICADO: 'O comunicado não está publicado.',
+  COMUNICADO_JA_PUBLICADO: 'O comunicado já está publicado.',
+  COMUNICADO_JA_DESPUBLICADO: 'O comunicado já está despublicado.',
+  JA_ESTA_FIXADO: 'O comunicado já está fixado.',
+  NAO_ESTA_FIXADO: 'O comunicado não está fixado.',
+  SEM_REACAO: 'Você não tem uma reação neste comunicado.',
+  COMENTARIO_JA_OCULTO: 'O comentário já está oculto.',
+  COMENTARIO_NAO_ESTA_OCULTO: 'O comentário não está oculto.',
+  DOCUMENTO_ARQUIVADO: 'O documento está arquivado.',
+  DOCUMENTO_JA_ARQUIVADO: 'O documento já está arquivado.',
+  DOCUMENTO_NAO_ESTA_ARQUIVADO: 'O documento não está arquivado.',
+  DATA_FUTURA: 'A data da reunião não pode estar no futuro.',
 }
 
 // Desativar um cargo ou setor que usuários ativos têm: a API informa a quantidade em `details.usuarios`.
@@ -338,3 +350,18 @@ const ACAO_NO_HISTORICO_DO_EVENTO: Record<string, string> = {
 export function rotuloDaAcaoNoEvento(acao: string): string {
   return ACAO_NO_HISTORICO_DO_EVENTO[acao] ?? acao
 }
+
+export const TIPO_DE_COMUNICADO: Record<string, string> = { COMUNICADO: 'Comunicado', PAUTA: 'Pauta' }
+
+export const ROTULO_DA_REACAO: Record<string, string> = {
+  CIENTE: 'Ciente',
+  DE_ACORDO: 'De acordo',
+  DUVIDA: 'Dúvida',
+  COMEMORACAO: 'Comemoração',
+}
+
+export const TIPO_DE_DOCUMENTO: Record<string, string> = { DOCUMENTO: 'Documento', ATA: 'Ata' }
+
+export const SITUACAO_DO_DOCUMENTO: Record<string, string> = { VIGENTE: 'Vigente', ARQUIVADO: 'Arquivado' }
+
+export const SITUACAO_DA_VERSAO: Record<string, string> = { VIGENTE: 'Vigente', SUBSTITUIDA: 'Substituída' }

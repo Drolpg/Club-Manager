@@ -149,6 +149,7 @@ td button {
 
 /* Moldura das telas logadas, sino, caixa e aviso flutuante (M4). */
 .cabecalho {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -174,7 +175,8 @@ td button {
 }
 
 .sino {
-  position: relative;
+  /* Sem `position`: a caixa e o aviso se ancoram na moldura, não no sino, que muda de linha. */
+  position: static;
 }
 
 .sino-botao {
@@ -200,7 +202,7 @@ td button {
 .caixa,
 .aviso-flutuante {
   position: absolute;
-  right: 0;
+  right: 1rem;
   z-index: 10;
   box-sizing: border-box;
   width: min(90vw, 24rem);
@@ -329,4 +331,47 @@ td button {
 button.marcado {
   font-weight: 700;
   outline: 2px solid currentColor;
+}
+
+/* Feed e documentos (M9): o texto livre mantém as quebras de linha e nunca é interpretado como HTML. */
+.texto-livre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.item-do-feed {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--borda, #ccc);
+  border-radius: 6px;
+  text-align: left;
+}
+
+.item-do-feed h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.reacoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.contagem {
+  font-variant-numeric: tabular-nums;
+}
+
+.comentario {
+  display: grid;
+  gap: 0.25rem;
+  text-align: left;
+}
+
+.comentario-oculto {
+  opacity: 0.6;
 }

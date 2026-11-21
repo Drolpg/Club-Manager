@@ -179,14 +179,24 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Status |
 | --- | --- | --- |
-| RF-094 | O usuário com a permissão publica um comunicado ou uma pauta no feed | Aprovado |
-| RF-095 | O autor vincula documentos da aba de documentos a um comunicado | Aprovado |
-| RF-096 | O usuário com a permissão fixa e desafixa um comunicado no topo do feed | Aprovado |
-| RF-097 | O sistema notifica os diretores de um novo comunicado | Aprovado |
-| RF-098 | O usuário com a permissão envia um documento; os diretores o consultam e baixam | Aprovado |
-| RF-099 | O usuário com a permissão registra uma ata de reunião como documento | Aprovado |
+| RF-094 | O usuário com a permissão publica um comunicado ou uma pauta no feed | Implementado |
+| RF-095 | O autor vincula documentos da aba de documentos a um comunicado | Implementado |
+| RF-096 | O usuário com a permissão fixa e desafixa um comunicado no topo do feed | Implementado |
+| RF-097 | O sistema notifica os diretores de um novo comunicado | Implementado |
+| RF-098 | O usuário com a permissão envia um documento; os diretores o consultam e baixam | Implementado |
+| RF-099 | O usuário com a permissão registra uma ata de reunião como documento | Implementado |
 | RF-100 | O usuário consulta o próprio perfil: seus dados, histórico de pagamentos, eventos relacionados, notificações e preferências | Aprovado |
 | RF-101 | O admin consulta o perfil de qualquer usuário | Aprovado |
+| RF-132 | O autor com a permissão de publicar, ou quem gerencia a comunicação, edita um comunicado; ele ganha a marca "editado" e ninguém é notificado de novo | Implementado |
+| RF-133 | O autor, ou quem gerencia a comunicação, despublica um comunicado com motivo e o republica; ele sai do feed e da fixação sem ser apagado | Implementado |
+| RF-134 | O diretor ativo com cargo (e o admin) reage a um comunicado publicado com uma de quatro reações, no máximo uma por comunicado; troca e retira a reação, e o comunicado mostra a contagem por tipo e quem reagiu | Implementado |
+| RF-135 | O diretor ativo com cargo (e o admin) comenta um comunicado publicado, em texto simples e sem resposta encadeada | Implementado |
+| RF-136 | O autor edita o próprio comentário, que ganha a marca "editado"; o antes e o depois ficam guardados | Implementado |
+| RF-137 | O autor oculta o próprio comentário e quem gerencia oculta o de qualquer pessoa, com motivo; o oculto some para os demais e não conta, e só o autor, quem gerencia e o admin o veem; o autor reexibe o que ele ocultou, e quem gerencia reexibe qualquer um | Implementado |
+| RF-138 | O sistema notifica o autor do comunicado de cada comentário novo | Implementado |
+| RF-139 | Quem enviou o documento, ou quem gerencia a comunicação, envia uma nova versão com motivo; a anterior continua consultável e baixável | Implementado |
+| RF-140 | Quem enviou o documento, ou quem gerencia a comunicação, arquiva e desarquiva o documento; arquivar não quebra o vínculo com comunicados nem o download | Implementado |
+| RF-141 | O admin mantém as categorias de documento; a categoria usada é desativada, nunca apagada | Implementado |
 
 ##### Relatórios (M10)
 
@@ -355,15 +365,18 @@ Em `VALIDATION_ERROR`, `details` traz os motivos por campo.
 | `TETO_SEM_VALOR` | 422 | Teto sugerido numa solicitação cujo tipo não tem valor |
 | `MOTIVO_JA_EXISTE` | 409 | Motivo com o texto de outro do mesmo tipo de decisão, ativo ou inativo (sem diferenciar maiúsculas) |
 | `SO_O_DEVEDOR`, `DEVEDOR_NAO_VALIDA`, `DEVEDOR_NAO_DECIDE`, `REGISTRADOR_NAO_VALIDA` | 403 | Ação exclusiva do devedor ou tentativa de autovalidação/autodecisão no financeiro |
-| `CATEGORIA_JA_EXISTE` | 409 | Categoria financeira com o mesmo nome e natureza, ou categoria de evento com o mesmo nome |
-| `CHAVE_PIX_PADRAO_NAO_CONFIGURADA`, `CHAVE_PIX_INATIVA`, `CATEGORIA_INATIVA`, `DEVEDOR_INATIVO`, `RECEBEDOR_INVALIDO` | 422 | Dependência ausente ou inativa em cobrança, pagamento, recorrência ou entrada |
+| `CATEGORIA_JA_EXISTE` | 409 | Categoria financeira com o mesmo nome e natureza, ou categoria de evento ou de documento com o mesmo nome |
+| `CHAVE_PIX_PADRAO_NAO_CONFIGURADA`, `CHAVE_PIX_INATIVA`, `CATEGORIA_INATIVA`, `DEVEDOR_INATIVO`, `RECEBEDOR_INVALIDO` | 422 | Dependência ausente ou inativa em cobrança, pagamento, recorrência, entrada ou documento novo |
 | `VALOR_INVALIDO`, `VENCIMENTO_NO_PASSADO`, `PARCELAS_INVALIDAS`, `COBRANCA_JA_GERADA` | 422 | Valores inválidos ou duplicidade de competência |
 | `NAO_ACEITA_PAGAMENTO`, `NAO_ESTA_EM_VALIDACAO`, `NAO_ACEITA_QUESTIONAMENTO`, `QUESTIONAMENTO_JA_ABERTO`, `SEM_QUESTIONAMENTO_ABERTO`, `NAO_PODE_ISENTAR`, `SEM_CONVOCACAO_ABERTA`, `NAO_ESTA_ATRASADA`, `NAO_ESTA_PAGA`, `SUSPENSAO_JA_ENCERRADA` | 422 | Comando incompatível com a situação atual de cobrança, pagamento, entrada ou suspensão |
 | `COMANDO_DO_MODULO_DONO` | 422 | Enviar, retirar, reenviar, editar, reabrir ou cancelar pela rota do motor uma solicitação de tipo conduzido pelo módulo dono (a do evento) |
 | `EVENTO_ENCERRADO` | 422 | Qualquer comando sobre evento realizado ou cancelado |
 | `NAO_ESTA_RECUSADO`, `NAO_ESTA_PUBLICADO` | 422 | Reabrir evento que não está recusado; realizar ou responder presença fora de publicado |
 | `EVENTO_SEM_CUSTO`, `ORCAMENTO_JA_VINCULADO` | 422 | Orçamento para evento sem custo; segundo orçamento; tirar o custo de evento com orçamento |
-| `DATA_FUTURA` | 422 | Data de realização do evento no futuro |
+| `DATA_FUTURA` | 422 | Data de realização do evento, ou data da reunião de uma ata, no futuro |
+| `COMUNICADO_NAO_PUBLICADO`, `COMUNICADO_JA_PUBLICADO`, `COMUNICADO_JA_DESPUBLICADO`, `JA_ESTA_FIXADO`, `NAO_ESTA_FIXADO` | 422 | Editar, fixar, reagir ou comentar em comunicado despublicado; despublicar, republicar, fixar ou desafixar fora da situação |
+| `SEM_REACAO`, `COMENTARIO_JA_OCULTO`, `COMENTARIO_NAO_ESTA_OCULTO` | 422 | Retirar a reação que não existe; ocultar o oculto ou reexibir o que não está oculto |
+| `DOCUMENTO_ARQUIVADO`, `DOCUMENTO_JA_ARQUIVADO`, `DOCUMENTO_NAO_ESTA_ARQUIVADO` | 422 | Nova versão ou vínculo com documento arquivado; arquivar o arquivado ou desarquivar o vigente |
 | `INTERNAL_ERROR` | 500 | Erro inesperado; o detalhe fica só no log, com o `X-Request-ID` da resposta |
 
 Login, recuperação de senha, reenvio de verificação e convite inválido respondem do mesmo jeito exista a conta (ou o
@@ -406,6 +419,10 @@ convite) ou não.
 | Eventos: consultas | `GET eventos/referencias/`; `GET eventos/calendario/?mes=AAAA-MM` (publicados e realizados do mês, pela data local); `GET eventos/` (`?situacao=`, `?categoria_id=`, `?de=`, `?ate=`, `?antes=`, `?limite=`); `GET eventos/{id}/` (dados, solicitações, orçamento, presenças, realização, cancelamento e `acoes`); `GET …/{id}/historico/` | Admin ou diretor ativo com cargo |
 | Eventos: comandos | `POST eventos/` (`eventos.propor`); `POST …/{id}/editar/`, `…/reabrir/` (proponente ou `eventos.aprovar`); `…/orcamento/` (`eventos.aprovar`); `…/presenca/` (diretor ativo com cargo); `…/realizar/` (proponente, `eventos.aprovar` ou admin); `…/cancelar/` (proponente, `eventos.cancelar` ou admin) | Conferido na rota e no serviço |
 | Categorias de evento | `GET eventos/categorias/` (`?todas=1` só para o admin); `POST eventos/categorias/`, `POST …/{id}/editar/`, `…/desativar/`, `…/reativar/` | Leitura: diretor com cargo; escrita: admin |
+| Comunicação: consultas | `GET comunicacao/referencias/`; `GET comunicacao/comunicados/` (`?antes=`, `?limite=`; os fixados vêm em `fixados`, só na primeira página); `GET …/despublicados/` (os que o ator pode ver); `GET …/{id}/` (dados, autor, documentos, reações com quem reagiu, `acoes`); `GET …/{id}/comentarios/` (`?depois=`, `?limite=`, do mais antigo ao mais novo; o oculto só para quem pode vê-lo) | Admin ou diretor ativo com cargo |
+| Comunicação: comandos | `POST comunicacao/comunicados/` (`comunicacao.publicar`); `POST …/{id}/editar/`, `…/despublicar/`, `…/republicar/` (o autor com `comunicacao.publicar`, ou `comunicacao.gerenciar`); `…/fixar/`, `…/desafixar/` (`comunicacao.gerenciar`); `…/reacao/` (repetir o tipo retira), `…/reacao/retirar/`, `…/comentarios/` (diretor com cargo); `POST comunicacao/comentarios/{id}/editar/`, `…/ocultar/`, `…/reexibir/` (o serviço confere autoria ou `comunicacao.gerenciar`) | Conferido na rota e no serviço |
+| Documentos e atas | `GET comunicacao/documentos/` (`?categoria_id=`, `?tipo=`, `?titulo=`, `?arquivados=1`, `?antes=`, `?limite=`); `GET …/{id}/` (versões e comunicados que o indexam); `GET …/{id}/arquivo/` e `…/{id}/versoes/{numero}/arquivo/` (download pela rota autenticada, `nosniff` e `no-store`, sem URL pública); `POST …/` (`comunicacao.enviar_documentos`), `POST …/atas/` (`comunicacao.registrar_atas`), ambos em multipart; `POST …/{id}/versoes/` (multipart), `…/arquivar/`, `…/desarquivar/` (quem enviou, ou `comunicacao.gerenciar`) | Leitura e download: diretor com cargo |
+| Categorias de documento | `GET comunicacao/categorias/` (`?todas=1` só para o admin); `POST comunicacao/categorias/`, `POST …/{id}/editar/`, `…/desativar/`, `…/reativar/` | Leitura: diretor com cargo; escrita: admin |
 | Contrato | `GET schema/`, `GET docs/` | Admin |
 
 Notificação nunca é alterada nem apagada: não há rota `DELETE` nem preferência que desligue o registro; a rota `ler`
@@ -436,7 +453,10 @@ fuso é lida no fuso do clube (`America/Sao_Paulo`).
   A auditoria guarda só IDs.
 - Dinheiro: `Decimal` com duas casas no value object `Dinheiro`; `DecimalField` no banco; texto na API (`"150.00"`).
 - Nada é apagado: usuário, cargo, setor, concessão, solicitação, versão, decisão, motivo e notificação só se
-  desativam, revogam ou cancelam. A trilha de auditoria é só de inserção, recusada também por gatilho no banco.
+  desativam, revogam ou cancelam; comunicado, reação, comentário, documento e categoria de documento só se
+  despublicam, retiram, ocultam, arquivam ou desativam, e as versões de comunicado, comentário e documento
+  são imutáveis, também por gatilho no banco. A trilha de auditoria é só de inserção, recusada também por
+  gatilho no banco.
 - Migrações do Django, versionadas e reversíveis, em `<modulo>/migrations/`.
 
 ### Aggregates e estados
