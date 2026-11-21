@@ -454,8 +454,9 @@ fuso é lida no fuso do clube (`America/Sao_Paulo`).
 - Dinheiro: `Decimal` com duas casas no value object `Dinheiro`; `DecimalField` no banco; texto na API (`"150.00"`).
 - Nada é apagado: usuário, cargo, setor, concessão, solicitação, versão, decisão, motivo e notificação só se
   desativam, revogam ou cancelam; comunicado, reação, comentário, documento e categoria de documento só se
-  despublicam, retiram, ocultam, arquivam ou desativam, e as versões de comunicado, comentário e documento são
-  imutáveis, também por gatilho no banco. A trilha de auditoria é só de inserção, recusada também por gatilho no banco.
+  despublicam, retiram, ocultam, arquivam ou desativam, e as versões de comunicado, comentário e documento
+  são imutáveis, também por gatilho no banco. A trilha de auditoria é só de inserção, recusada também por
+  gatilho no banco.
 - Migrações do Django, versionadas e reversíveis, em `<modulo>/migrations/`.
 
 ### Aggregates e estados

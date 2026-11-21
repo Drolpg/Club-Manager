@@ -53,9 +53,9 @@ flowchart TB
   notif --> perm --> ace["acesso"] --> aud["auditoria"]
 ```
 
-`aprovacoes`, `comunicacao` e `marca` estão no mesmo nível e não se importam. `comunicacao` importa a API pública
-de `notificacoes`, `permissoes`, `acesso` e `auditoria`, e só delas; o contrato `layers` já permite isso. `kernel`
-(erros, saúde, logs, despachante de eventos) não conhece nenhum módulo.
+`aprovacoes`, `comunicacao` e `marca` estão no mesmo nível e não se importam. `comunicacao` importa a API
+pública de `notificacoes`, `permissoes`, `acesso` e `auditoria`, e só delas; o contrato `layers` já permite
+isso. `kernel` (erros, saúde, logs, despachante de eventos) não conhece nenhum módulo.
 
 | Regra | Como é verificada |
 | --- | --- |

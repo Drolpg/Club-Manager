@@ -220,10 +220,10 @@ de eventos e as telas do calendário, do histórico e do detalhe.
 
 ### M9: feed e documentos
 
-Elementos novos: o módulo `comunicacao` (comunicado e suas versões, vínculo com documento, reação, comentário e
-suas versões, documento e suas versões, categoria de documento), o download de arquivo por rota autenticada, a
-generalização de `kernel/anexos.py` (rótulo e campo da mensagem), as duas notificações do módulo e as telas do
-feed, dos documentos e das categorias.
+Elementos novos: o módulo `comunicacao` (comunicado e suas versões, vínculo com documento, reação, comentário
+e suas versões, documento e suas versões, categoria de documento), o download de arquivo por rota autenticada,
+a generalização de `kernel/anexos.py` (rótulo e campo da mensagem), as duas notificações do módulo e as telas
+do feed, dos documentos e das categorias.
 
 | Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -817,8 +817,8 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/schema/     
 
 O M9 (feed) entrega os comunicados e as pautas, a fixação, a despublicação, as reações, os comentários com
 moderação, a aba de documentos com atas, versões e arquivamento, as categorias de documento e as duas
-notificações do módulo. O arquivo de documento é entregue só por rota autenticada. O texto livre é guardado como
-veio e mostrado como texto.
+notificações do módulo. O arquivo de documento é entregue só por rota autenticada. O texto livre é guardado
+como veio e mostrado como texto.
 
 ### 2. Frentes
 
