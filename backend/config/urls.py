@@ -15,6 +15,7 @@ v1: list[URLPattern | URLResolver] = [
     path("financeiro/", include("financeiro.http.urls")),
     path("eventos/", include("eventos.http.urls")),
     path("comunicacao/", include("comunicacao.http.urls")),
+    path("relatorios/", include("relatorios.http.urls")),
     # O contrato e a documentação só para o admin logado.
     path("schema/", SpectacularAPIView.as_view(permission_classes=[EhAdmin]), name="schema"),
     path(
