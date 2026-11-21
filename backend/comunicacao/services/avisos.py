@@ -11,7 +11,7 @@ from collections.abc import Iterable
 from acesso import public as acesso
 from comunicacao import tipos
 from comunicacao.domain.valores import TipoDeComunicado
-from comunicacao.models import Comunicado
+from comunicacao.models import Comentario, Comunicado
 from notificacoes import public as notificacoes
 from permissoes import public as permissoes
 
@@ -63,4 +63,17 @@ def comunicado_publicado(comunicado: Comunicado) -> None:
         titulo=f"{rotulo}: {comunicado.titulo}",
         texto=f"{_nome(comunicado.autor_id)} publicou no feed: {comunicado.titulo}",
         chave=f"comunicado-publicado:{comunicado.id}",
+    )
+
+
+def comentario_novo(comunicado: Comunicado, comentario: Comentario) -> None:
+    """O autor do comunicado é avisado de cada comentário novo, menos dos que ele mesmo faz (CA-15)."""
+    destinatarios = {comunicado.autor_id} - {comentario.autor_id}
+    _notificar(
+        tipos.NOTIF_COMENTARIO_NOVO,
+        destinatarios,
+        comunicado,
+        titulo=f"Novo comentário: {comunicado.titulo}",
+        texto=f"{_nome(comentario.autor_id)} comentou em «{comunicado.titulo}».",
+        chave=f"comentario-novo:{comentario.id}",
     )

@@ -8,10 +8,14 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
-from django.db.models import Count, QuerySet
+from django.db.models import Count, Q, QuerySet
 
 from acesso import public as acesso
-from comunicacao.domain.autorizacao import acoes_do_comunicado, pode_ver_comunicado
+from comunicacao.domain.autorizacao import (
+    acoes_do_comentario,
+    acoes_do_comunicado,
+    pode_ver_comunicado,
+)
 from comunicacao.domain.regras import TIPOS_DE_REACAO
 from comunicacao.domain.valores import SituacaoDoComentario, SituacaoDoComunicado
 from comunicacao.erros import erro
@@ -191,3 +195,77 @@ def detalhe(ator_id: uuid.UUID, comunicado_id: uuid.UUID) -> dict[str, Any]:
         raise erro("NOT_FOUND")
     lote = _ler_lote([comunicado], ator_id)
     return _item(comunicado, ator, lote, _Nomes(), com_quem_reagiu=True)
+
+
+def _comunicado_visivel(ator: Quem, comunicado_id: uuid.UUID) -> Comunicado:
+    comunicado = Comunicado.objects.filter(pk=comunicado_id).first()
+    if comunicado is None or not pode_ver_comunicado(
+        SituacaoDoComunicado(comunicado.situacao), ator.fatos(comunicado=comunicado)
+    ):
+        raise erro("NOT_FOUND")
+    return comunicado
+
+
+def reacoes_do_comunicado(ator_id: uuid.UUID, comunicado_id: uuid.UUID) -> dict[str, Any]:
+    """A contagem por tipo, quem reagiu e a reação de quem pergunta."""
+    exigir_leitura_de_gestao(ator_id)
+    ator = quem(ator_id)
+    comunicado = _comunicado_visivel(ator, comunicado_id)
+    lote = _ler_lote([comunicado], ator_id)
+    nomes = _Nomes()
+    return {
+        "contagem": lote.contagem[comunicado.id],
+        "minha": lote.minhas.get(comunicado.id),
+        "quem": {
+            tipo: [nomes.pessoa(i) for i in ids] for tipo, ids in lote.quem_reagiu[comunicado.id].items()
+        },
+    }
+
+
+def _comentario(comentario: Comentario, comunicado: Comunicado, ator: Quem, nomes: _Nomes) -> dict[str, Any]:
+    fatos = ator.fatos(comunicado=comunicado, comentario=comentario)
+    oculto = None
+    if comentario.situacao == SituacaoDoComentario.OCULTO:
+        por = comentario.oculto_por_id
+        oculto = {
+            "em": comentario.oculto_em,
+            "por": nomes.pessoa(por) if por else None,
+            "pela_gerencia": comentario.oculto_pela_gerencia,
+            "motivo": comentario.motivo_da_ocultacao,
+        }
+    return {
+        "id": comentario.id,
+        "autor": nomes.pessoa(comentario.autor_id),
+        "texto": comentario.texto,
+        "situacao": comentario.situacao,
+        "criado_em": comentario.criado_em,
+        "editado": comentario.editado_em is not None,
+        "editado_em": comentario.editado_em,
+        "oculto": oculto,
+        "acoes": [comando.value for comando in acoes_do_comentario(fatos)],
+    }
+
+
+def comentarios(
+    ator_id: uuid.UUID,
+    comunicado_id: uuid.UUID,
+    *,
+    depois: uuid.UUID | None = None,
+    limite: int | None = None,
+) -> dict[str, Any]:
+    """Do mais antigo ao mais novo. O oculto só aparece ao autor dele e a quem gerencia (regra 20)."""
+    exigir_leitura_de_gestao(ator_id)
+    ator = quem(ator_id)
+    comunicado = _comunicado_visivel(ator, comunicado_id)
+    qs = Comentario.objects.filter(comunicado=comunicado)
+    if not ator.pode_gerenciar:
+        qs = qs.filter(Q(situacao=SituacaoDoComentario.VISIVEL.value) | Q(autor_id=ator_id))
+    if depois is not None:
+        if not Comentario.objects.filter(pk=depois, comunicado=comunicado).exists():
+            raise erro("NOT_FOUND")
+        qs = qs.filter(id__gt=depois)
+    tamanho = limite_valido(limite)
+    achados = list(qs.order_by("id")[: tamanho + 1])
+    nomes = _Nomes()
+    itens = [_comentario(c, comunicado, ator, nomes) for c in achados[:tamanho]]
+    return {"itens": itens, "tem_mais": len(achados) > tamanho}
