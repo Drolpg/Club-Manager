@@ -319,8 +319,8 @@ td button {
   justify-content: space-between;
 }
 
-/* A coluna de `.pagina` acompanha o conteúdo; a largura do calendário vem da janela, para a grade e a barra do mês
-   não encolherem num mês sem eventos. */
+/* A coluna de `.pagina` acompanha o conteúdo; a largura do calendário vem da janela, para a grade e a
+   barra do mês não encolherem num mês sem eventos. */
 .largura-do-calendario {
   inline-size: min(calc(100vw - 2rem), 72rem);
   justify-self: center;
