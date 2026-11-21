@@ -149,6 +149,7 @@ td button {
 
 /* Moldura das telas logadas, sino, caixa e aviso flutuante (M4). */
 .cabecalho {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -174,7 +175,8 @@ td button {
 }
 
 .sino {
-  position: relative;
+  /* Sem `position`: a caixa e o aviso se ancoram na moldura, não no sino, que muda de linha. */
+  position: static;
 }
 
 .sino-botao {
@@ -200,7 +202,7 @@ td button {
 .caixa,
 .aviso-flutuante {
   position: absolute;
-  right: 0;
+  right: 1rem;
   z-index: 10;
   box-sizing: border-box;
   width: min(90vw, 24rem);
