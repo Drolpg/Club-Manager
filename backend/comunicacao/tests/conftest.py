@@ -57,8 +57,9 @@ def documento(
     enviado_por: Usuario | None = None,
     arquivado: bool = False,
     ata: bool = False,
+    chave: str | None = None,
 ) -> Documento:
-    """Cria o documento direto no modelo (o serviço de documentos vem no checkpoint 6)."""
+    """Cria o documento direto no modelo, sem passar pelo serviço (e sem gravar o arquivo)."""
     campos: dict[str, Any] = {
         "titulo": titulo,
         "enviado_por_id": (enviado_por.id if enviado_por else uuid.uuid4()),
@@ -72,7 +73,7 @@ def documento(
     VersaoDeDocumento.objects.create(
         documento=criado,
         numero=1,
-        chave=f"documentos/{uuid.uuid4()}.pdf",
+        chave=chave or f"documentos/{uuid.uuid4()}.pdf",
         nome="arquivo.pdf",
         mime="application/pdf",
         tamanho=10,

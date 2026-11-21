@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from django.db.models import Count, Q, QuerySet
+from django.http import HttpResponse
 
 from acesso import public as acesso
 from comunicacao.domain.autorizacao import (
@@ -34,6 +35,7 @@ from comunicacao.models import (
     VinculoDeDocumento,
 )
 from comunicacao.services.autorizacao import Quem, exigir_leitura_de_gestao, quem
+from kernel import anexos
 
 LIMITE_PADRAO = 20
 LIMITE_MAXIMO = 50
@@ -387,3 +389,21 @@ def detalhe_do_documento(ator_id: uuid.UUID, documento_id: uuid.UUID) -> dict[st
         {"id": v.comunicado_id, "titulo": v.comunicado.titulo} for v in vinculos.order_by("-comunicado_id")
     ]
     return item
+
+
+def download(ator_id: uuid.UUID, documento_id: uuid.UUID, *, numero: int | None = None) -> HttpResponse:
+    """O arquivo da versão vigente (ou da `numero`), só para quem lê gestão. Leitura não é auditada (P13).
+
+    Só entrega chave do contexto `documentos/`: a chave vem do banco, e esta conferência impede que um
+    registro adulterado sirva arquivo de outro contexto.
+    """
+    exigir_leitura_de_gestao(ator_id)
+    documento = Documento.objects.filter(pk=documento_id).first()
+    if documento is None:
+        raise erro("NOT_FOUND")
+    versao = VersaoDeDocumento.objects.filter(
+        documento=documento, numero=numero if numero is not None else documento.versao_atual
+    ).first()
+    if versao is None or not versao.chave.startswith("documentos/"):
+        raise erro("NOT_FOUND")
+    return anexos.resposta_anexo(chave=versao.chave, nome=versao.nome, mime=versao.mime, rotulo="documento")
