@@ -239,13 +239,19 @@ def serializar_detalhe(cobranca: Cobranca, *, ator_id: uuid.UUID) -> dict[str, A
     }
 
 
+def _depois_do_cursor(qs: Any, antes: uuid.UUID | None) -> Any:
+    """As cobranças depois da âncora `antes`, na ordem de `criada_em` e `id`; cursor ruim: `NOT_FOUND`."""
+    if antes is None:
+        return qs
+    ancora = Cobranca.objects.filter(pk=antes).values("criada_em", "id").first()
+    if ancora is None:
+        raise erro("NOT_FOUND")
+    qs = qs.exclude(pk=antes).filter(criada_em__lte=ancora["criada_em"])
+    return qs.exclude(criada_em=ancora["criada_em"], id__gte=ancora["id"])
+
+
 def _paginar(qs: Any, *, antes: uuid.UUID | None, limite: int) -> PaginaDeCobrancas:
-    if antes is not None:
-        ancora = Cobranca.objects.filter(pk=antes).values("criada_em", "id").first()
-        if ancora is None:
-            raise erro("NOT_FOUND")
-        qs = qs.exclude(pk=antes).filter(criada_em__lte=ancora["criada_em"])
-        qs = qs.exclude(criada_em=ancora["criada_em"], id__gte=ancora["id"])
+    qs = _depois_do_cursor(qs, antes)
     itens_bd = list(qs[: limite + 1])
     tem_mais = len(itens_bd) > limite
     cache: dict[uuid.UUID, PessoaInfo] = {}
@@ -296,6 +302,66 @@ def minhas_cobrancas(
     if situacao:
         qs = qs.filter(situacao=situacao)
     return _paginar(qs, antes=antes, limite=limite)
+
+
+@dataclass(frozen=True)
+class PagamentoDoDevedor:
+    """Um pagamento no perfil: forma, data e situação. Nunca o comprovante."""
+
+    forma: str
+    data_pagamento: date
+    situacao: str
+
+
+@dataclass(frozen=True)
+class CobrancaDoDevedor:
+    id: uuid.UUID
+    descricao: str
+    categoria_nome: str
+    valor: str
+    vencimento: date
+    situacao: str
+    pagamentos: list[PagamentoDoDevedor]
+
+
+@dataclass(frozen=True)
+class PaginaDeCobrancasDoDevedor:
+    itens: list[CobrancaDoDevedor]
+    tem_mais: bool
+
+
+def cobrancas_do_devedor(
+    usuario_id: uuid.UUID, *, antes: uuid.UUID | None = None, limite: int = 10
+) -> PaginaDeCobrancasDoDevedor:
+    """As cobranças em que o usuário é o devedor, com os pagamentos, para o perfil (CA-02).
+
+    Só leitura e sem conferir quem pergunta (isso é do serviço do perfil): o devedor pode estar desativado ou
+    sem cargo. Os pagamentos vêm numa consulta só, e nenhum campo de comprovante sai daqui.
+    """
+    qs = _depois_do_cursor(Cobranca.objects.filter(devedor_id=usuario_id), antes)
+    cobrancas = list(qs[: limite + 1])
+    pagina = cobrancas[:limite]
+    pagamentos: dict[uuid.UUID, list[PagamentoDoDevedor]] = {c.id: [] for c in pagina}
+    registrados = Pagamento.objects.filter(cobranca_id__in=pagamentos).order_by("registrado_em", "id")
+    for pagamento in registrados:
+        pagamentos[pagamento.cobranca_id].append(
+            PagamentoDoDevedor(
+                forma=pagamento.forma, data_pagamento=pagamento.data_pagamento, situacao=pagamento.situacao
+            )
+        )
+    itens = [
+        CobrancaDoDevedor(
+            id=c.id,
+            descricao=c.descricao,
+            categoria_nome=c.categoria_nome,
+            valor=str(c.valor),
+            vencimento=c.vencimento,
+            situacao=c.situacao,
+            pagamentos=pagamentos[c.id],
+        )
+        for c in pagina
+    ]
+    return PaginaDeCobrancasDoDevedor(itens=itens, tem_mais=len(cobrancas) > limite)
 
 
 def obter_no_escopo(ator_id: uuid.UUID, cobranca_id: uuid.UUID) -> Cobranca:
