@@ -245,7 +245,9 @@ export function Dashboard() {
       {!usuario.tem_cargo && !usuario.admin && (
         <p>Seu cadastro está concluído e aguarda a classificação pelo administrador do clube.</p>
       )}
-      {erro ? <p className="aviso">Não foi possível carregar o painel: {mensagemDoErro(erro)}</p> : null}
+      {erro ? (
+        <p className="erro-do-painel">Não foi possível carregar o painel: {mensagemDoErro(erro)}</p>
+      ) : null}
       {painel?.tipo === 'COMPLETO' && <PainelCompleto painel={painel} aoMudarMes={definirMes} />}
       {painel?.tipo === 'BASICO' && (
         <>

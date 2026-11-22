@@ -13,6 +13,8 @@ import { ConfiguracaoFinanceira } from './paginas/ConfiguracaoFinanceira'
 import { DetalheDaCobranca } from './paginas/DetalheDaCobranca'
 import { DetalheDaSaida } from './paginas/DetalheDaSaida'
 import { Dashboard } from './paginas/Dashboard'
+import { DetalheDaEntrada } from './paginas/DetalheDaEntrada'
+import { Lancamentos } from './paginas/Lancamentos'
 import { CategoriasDeDocumento } from './paginas/CategoriasDeDocumento'
 import { DetalheDoComunicado } from './paginas/DetalheDoComunicado'
 import { DetalheDoDocumento } from './paginas/DetalheDoDocumento'
@@ -220,6 +222,22 @@ function App() {
             element={
               <ProtegidaDeGestao>
                 <Entradas />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/entradas/:id"
+            element={
+              <ProtegidaDeGestao>
+                <DetalheDaEntrada />
+              </ProtegidaDeGestao>
+            }
+          />
+          <Route
+            path="/lancamentos"
+            element={
+              <ProtegidaDeGestao>
+                <Lancamentos />
               </ProtegidaDeGestao>
             }
           />

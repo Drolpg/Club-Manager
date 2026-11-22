@@ -365,3 +365,18 @@ export const TIPO_DE_DOCUMENTO: Record<string, string> = { DOCUMENTO: 'Documento
 export const SITUACAO_DO_DOCUMENTO: Record<string, string> = { VIGENTE: 'Vigente', ARQUIVADO: 'Arquivado' }
 
 export const SITUACAO_DA_VERSAO: Record<string, string> = { VIGENTE: 'Vigente', SUBSTITUIDA: 'Substituída' }
+
+export const TIPO_DE_LANCAMENTO: Record<string, string> = {
+  COBRANCA: 'Cobrança',
+  ENTRADA: 'Entrada',
+  SAIDA: 'Saída',
+  ESTORNO: 'Estorno',
+}
+
+export const ESTADO_DO_LANCAMENTO: Record<string, string> = {
+  EM_ABERTO: 'Em aberto',
+  EM_VALIDACAO: 'Em validação',
+  REALIZADO: 'Realizado',
+  ENCERRADO_SEM_VALOR: 'Encerrado sem valor',
+  ESTORNADO: 'Estornado',
+}
