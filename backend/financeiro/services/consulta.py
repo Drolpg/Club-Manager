@@ -276,7 +276,7 @@ def listar(
     exigir_leitura_gestao(ator_id)
     qs = Cobranca.objects.all()
     if inadimplentes:
-        qs = qs.filter(situacao="ATRASADA").exclude(questionamentos__situacao="ABERTO")
+        qs = totais.inadimplentes()
     elif situacao:
         qs = qs.filter(situacao=situacao)
     if categoria_id:

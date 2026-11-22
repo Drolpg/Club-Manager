@@ -9,17 +9,18 @@ O período é de datas locais, filtrado por intervalo de instantes no fuso do cl
 não depende da quantidade de lançamentos (CA-20).
 """
 
+import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from typing import Any
 
-from django.db.models import DecimalField, Min, OuterRef, Q, QuerySet, Subquery, Sum, Value
+from django.db.models import Count, DecimalField, Min, OuterRef, Q, QuerySet, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from financeiro.domain.saidas import calcular_valor_realizado_saida
-from financeiro.domain.transicoes import SituacaoEntrada
+from financeiro.domain.saidas import PRAZO_VENCIMENTO_PRESTACAO_DIAS, calcular_valor_realizado_saida
+from financeiro.domain.transicoes import SituacaoCobranca, SituacaoEntrada, SituacaoSaida
 from financeiro.models import AlvoEstorno, Cobranca, Entrada, Envio, Estorno, Saida, TipoEntrada
 
 _ZERO = Decimal("0.00")
@@ -150,3 +151,119 @@ def primeira_data_de_realizacao() -> date | None:
     ]
     presentes = [i for i in instantes if i is not None]
     return timezone.localdate(min(presentes)) if presentes else None
+
+
+# Pendências e resumos de hoje (N11 a N13, N15 e "minhas cobranças") ------------------------------------
+
+
+@dataclass(frozen=True)
+class Resumo:
+    quantidade: int
+    total: Decimal
+
+
+@dataclass(frozen=True)
+class ResumoDaInadimplencia:
+    cobrancas: int
+    devedores: int
+    total: Decimal
+
+
+@dataclass(frozen=True)
+class PendenciasDeValidacao:
+    pagamentos: Resumo
+    entradas: Resumo
+
+
+@dataclass(frozen=True)
+class PrestacoesPendentes:
+    aguardando: int
+    em_atraso: int
+    em_conferencia: int
+
+
+@dataclass(frozen=True)
+class ProximaCobranca:
+    id: uuid.UUID
+    descricao: str
+    valor: Decimal
+    vencimento: date
+
+
+@dataclass(frozen=True)
+class ResumoDoDevedor:
+    em_aberto: Resumo
+    atrasadas: Resumo
+    em_validacao: Resumo
+    proxima: ProximaCobranca | None
+
+
+def _resumo(qs: QuerySet[Any]) -> Resumo:
+    agregado = qs.aggregate(quantidade=Count("id"), total=Sum("valor"))
+    return Resumo(quantidade=agregado["quantidade"], total=agregado["total"] or _ZERO)
+
+
+_A_RECEBER = (
+    SituacaoCobranca.ABERTA.value,
+    SituacaoCobranca.ATRASADA.value,
+    SituacaoCobranca.EM_VALIDACAO.value,
+)
+
+
+def a_receber(de: date, ate: date) -> Resumo:
+    """N11: cobranças com vencimento em `[de, ate]` ainda não pagas nem encerradas."""
+    return _resumo(Cobranca.objects.filter(vencimento__gte=de, vencimento__lte=ate, situacao__in=_A_RECEBER))
+
+
+def inadimplentes() -> QuerySet[Cobranca]:
+    """N12: atrasadas sem questionamento aberto. A mesma regra de `consulta.listar(inadimplentes=True)`."""
+    return Cobranca.objects.filter(situacao=SituacaoCobranca.ATRASADA.value).exclude(
+        questionamentos__situacao="ABERTO"
+    )
+
+
+def resumo_da_inadimplencia() -> ResumoDaInadimplencia:
+    agregado = inadimplentes().aggregate(
+        cobrancas=Count("id", distinct=True), devedores=Count("devedor_id", distinct=True), total=Sum("valor")
+    )
+    return ResumoDaInadimplencia(
+        cobrancas=agregado["cobrancas"], devedores=agregado["devedores"], total=agregado["total"] or _ZERO
+    )
+
+
+def pendencias_de_validacao() -> PendenciasDeValidacao:
+    """N13: pagamentos de cobrança em validação, e entradas (sem devedor e devoluções) em validação."""
+    return PendenciasDeValidacao(
+        pagamentos=_resumo(Cobranca.objects.filter(situacao=SituacaoCobranca.EM_VALIDACAO.value)),
+        entradas=_resumo(Entrada.objects.filter(situacao=SituacaoEntrada.EM_VALIDACAO.value)),
+    )
+
+
+def prestacoes_pendentes(hoje: date) -> PrestacoesPendentes:
+    """N15: aguardando prestação, das quais em atraso (a regra de `prestacao_em_atraso`), e em conferência."""
+    aguardando = Saida.objects.filter(situacao=SituacaoSaida.RECURSO_ENVIADO.value)
+    limite = hoje - timedelta(days=PRAZO_VENCIMENTO_PRESTACAO_DIAS)
+    return PrestacoesPendentes(
+        aguardando=aguardando.count(),
+        em_atraso=aguardando.filter(primeiro_envio_em__isnull=False)
+        .filter(_no_intervalo("primeiro_envio_em", None, limite))
+        .count(),
+        em_conferencia=Saida.objects.filter(situacao=SituacaoSaida.EM_CONFERENCIA.value).count(),
+    )
+
+
+def resumo_do_devedor(usuario_id: uuid.UUID, hoje: date) -> ResumoDoDevedor:
+    """As cobranças de um devedor: em aberto (a vencer), atrasadas, em validação e a próxima a vencer."""
+    do_devedor = Cobranca.objects.filter(devedor_id=usuario_id)
+    proxima = (
+        do_devedor.filter(situacao=SituacaoCobranca.ABERTA.value, vencimento__gte=hoje)
+        .order_by("vencimento", "id")
+        .values("id", "descricao", "valor", "vencimento")
+        .first()
+    )
+    return ResumoDoDevedor(
+        em_aberto=_resumo(do_devedor.filter(situacao=SituacaoCobranca.ABERTA.value)),
+        atrasadas=_resumo(do_devedor.filter(situacao=SituacaoCobranca.ATRASADA.value)),
+        em_validacao=_resumo(do_devedor.filter(situacao=SituacaoCobranca.EM_VALIDACAO.value)),
+        proxima=ProximaCobranca(**proxima) if proxima else None,
+    )
