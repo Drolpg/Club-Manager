@@ -13,7 +13,7 @@ from typing import Any
 from django.db.models import Count, F, OuterRef, Q, QuerySet, Subquery
 
 from acesso import public as acesso
-from aprovacoes import tipos
+from aprovacoes import demonstracao, tipos
 from aprovacoes.domain.decisores import acoes_disponiveis
 from aprovacoes.domain.transicoes import Situacao
 from aprovacoes.models import Decisao, Solicitacao, Versao
@@ -120,8 +120,16 @@ def _invalido(campo: str, mensagem: str) -> BusinessError:
 
 
 def _nome_do_tipo(codigo: str) -> str:
+    """O nome legível que o tipo registra no motor.
+
+    O tipo de demonstração só é registrado com a variável de demonstração ligada (`demonstracao.py`), mas as
+    solicitações dele podem continuar no banco de desenvolvimento: ele mantém o nome que registra. Um código
+    que nunca foi registrado aparece como está.
+    """
     definicao = tipos.obter_tipo(codigo)
-    return definicao.nome if definicao else codigo
+    if definicao:
+        return definicao.nome
+    return demonstracao.NOME if codigo == demonstracao.TIPO else codigo
 
 
 def _com_a_versao_atual(consulta: QuerySet[Solicitacao]) -> QuerySet[Solicitacao]:
@@ -220,14 +228,13 @@ class EmAnalisePorTipo:
 
 def em_analise_por_tipo() -> list[EmAnalisePorTipo]:
     """As solicitações em análise do clube, por tipo, com o nome do tipo (N14)."""
-    nomes = {t.codigo: t.nome for t in tipos.listar_tipos()}
     contagens = (
         Solicitacao.objects.filter(situacao=Situacao.EM_ANALISE)
         .values("tipo")
         .annotate(quantidade=Count("id"))
         .order_by("tipo")
     )
-    return [EmAnalisePorTipo(c["tipo"], nomes.get(c["tipo"], c["tipo"]), c["quantidade"]) for c in contagens]
+    return [EmAnalisePorTipo(c["tipo"], _nome_do_tipo(c["tipo"]), c["quantidade"]) for c in contagens]
 
 
 def _buscar(ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Solicitacao:
