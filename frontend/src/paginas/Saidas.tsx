@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import {
   financeiro,
   type EstornoItem,
@@ -15,12 +15,20 @@ import { CartoesDoCaixa } from './apoioSaidas'
 
 type FilaRapida = 'todas' | 'envio' | 'prestacao' | 'atrasadas'
 
+const FILAS: FilaRapida[] = ['todas', 'envio', 'prestacao', 'atrasadas']
+
+function filaDaUrl(valor: string | null): FilaRapida {
+  return FILAS.find((f) => f === valor) ?? 'todas'
+}
+
 /** Painel operacional de saídas financeiras, visão do caixa, filas e consulta de estornos (CA-30, CA-31). */
 export function Saidas() {
   const [caixa, definirCaixa] = useState<VisaoDoCaixa | null>(null)
   const [refs, definirRefs] = useState<ReferenciasGastos | null>(null)
   const [filtros, definirFiltros] = useState<FiltrosSaidas>({})
-  const [fila, definirFila] = useState<FilaRapida>('todas')
+  // O dashboard abre esta tela já na fila pedida (por exemplo, `?fila=prestacao`).
+  const [parametros] = useSearchParams()
+  const [fila, definirFila] = useState<FilaRapida>(() => filaDaUrl(parametros.get('fila')))
   const [itens, definirItens] = useState<SaidaItem[]>([])
   const [temMais, definirTemMais] = useState(false)
 

@@ -5,7 +5,6 @@ import { Moldura } from './Moldura'
 import { Convites, Usuarios } from './paginas/Admin'
 import { DetalheDeSolicitacao, FilaDePendencias, ListaDeSolicitacoes } from './paginas/Aprovacoes'
 import { MotivosDeDecisao } from './paginas/Motivos'
-import { Inicio } from './paginas/Inicio'
 import { CargosESetores, Permissoes, UsuarioDetalhe } from './paginas/Permissoes'
 import { Calendario } from './paginas/Calendario'
 import { CategoriasDeEvento } from './paginas/CategoriasDeEvento'
@@ -13,6 +12,7 @@ import { Cobrancas } from './paginas/Cobrancas'
 import { ConfiguracaoFinanceira } from './paginas/ConfiguracaoFinanceira'
 import { DetalheDaCobranca } from './paginas/DetalheDaCobranca'
 import { DetalheDaSaida } from './paginas/DetalheDaSaida'
+import { Dashboard } from './paginas/Dashboard'
 import { CategoriasDeDocumento } from './paginas/CategoriasDeDocumento'
 import { DetalheDoComunicado } from './paginas/DetalheDoComunicado'
 import { DetalheDoDocumento } from './paginas/DetalheDoDocumento'
@@ -75,7 +75,7 @@ function App() {
             path="/"
             element={
               <Protegida>
-                <Inicio />
+                <Dashboard />
               </Protegida>
             }
           />
