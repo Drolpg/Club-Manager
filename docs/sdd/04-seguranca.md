@@ -1019,8 +1019,8 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/relatorios/p
 
 O dashboard junta os números financeiros do clube, e a lista de lançamentos mostra cada registro com o nome de
 quem deve ou pediu. As duas são só leitura. O diretor sem cargo vê só as próprias cobranças e a quantidade de
-notificações não lidas, sem nenhum número do clube. A visão do caixa da aprovação de gasto passa a usar o mesmo
-cálculo do dashboard.
+notificações não lidas, sem nenhum número do clube. A visão do caixa da aprovação de gasto passa a usar o
+mesmo cálculo do dashboard.
 
 ### 2. Frentes
 

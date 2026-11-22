@@ -57,9 +57,9 @@ flowchart TB
 pública de `notificacoes`, `permissoes`, `acesso` e `auditoria`, e só delas; o contrato `layers` já permite
 isso. `kernel` (erros, saúde, logs, despachante de eventos) não conhece nenhum módulo. `relatorios` é o módulo
 de cima e só lê, pela API pública, `acesso`, `permissoes`, `aprovacoes`, `financeiro`, `eventos`,
-`comunicacao`, `notificacoes` e `auditoria`; o perfil do usuário (M9) e o dashboard (M10) são as suas features,
-sem modelo, tabela nem migração. Os números do dashboard são calculados pelo módulo dono e expostos por consultas
-públicas só de leitura; a lista de lançamentos é do `financeiro`.
+`comunicacao`, `notificacoes` e `auditoria`; o perfil do usuário (M9) e o dashboard (M10) são as suas
+features, sem modelo, tabela nem migração. Os números do dashboard são calculados pelo módulo dono e expostos
+por consultas públicas só de leitura; a lista de lançamentos é do `financeiro`.
 
 | Regra | Como é verificada |
 | --- | --- |
