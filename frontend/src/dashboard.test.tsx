@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
@@ -182,8 +182,11 @@ describe('links do dashboard já filtrados', () => {
     abrir('/cobrancas?inadimplentes=1')
 
     expect(await screen.findByRole('checkbox', { name: /só inadimplentes/i })).toBeChecked()
-    const cobrancas = chamadas.filter((c) => c.caminho.startsWith('/financeiro/cobrancas/'))
-    expect(cobrancas.some((c) => c.caminho.includes('inadimplentes=1'))).toBe(true)
+    // A busca filtrada sai num efeito, depois de a tela aparecer: espera-se a chamada, e não só a tela.
+    await waitFor(() => {
+      const cobrancas = chamadas.filter((c) => c.caminho.startsWith('/financeiro/cobrancas/'))
+      expect(cobrancas.some((c) => c.caminho.includes('inadimplentes=1'))).toBe(true)
+    })
   })
 
   it('a tela de saídas abre na fila de prestações pendentes', async () => {
@@ -191,7 +194,9 @@ describe('links do dashboard já filtrados', () => {
     abrir('/saidas?fila=prestacao')
 
     await screen.findByRole('heading', { name: /saídas/i })
-    const saidas = chamadas.filter((c) => c.caminho.startsWith('/financeiro/saidas/'))
-    expect(saidas.some((c) => c.caminho.includes('pendentes_prestacao=1'))).toBe(true)
+    await waitFor(() => {
+      const saidas = chamadas.filter((c) => c.caminho.startsWith('/financeiro/saidas/'))
+      expect(saidas.some((c) => c.caminho.includes('pendentes_prestacao=1'))).toBe(true)
+    })
   })
 })
