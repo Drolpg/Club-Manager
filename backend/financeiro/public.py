@@ -6,6 +6,8 @@
 - `resumo_entradas_validadas`: soma consolidada apenas das entradas com situação `VALIDADA`.
 - `abrir_solicitacao_orcamentaria` e `cancelar_orcamento_de_evento`: o orçamento de evento (adendo 1 do M7).
 - `cobrancas_do_devedor`: as cobranças de um devedor, com os pagamentos e sem comprovante, para o perfil.
+- `totais_do_periodo`, `saldo_acumulado` e `primeira_data_de_realizacao`: o realizado de um período, só
+  leitura (N1 a N8 da spec `relatorios/dashboard-e-lancamentos`), para o dashboard e os relatórios.
 """
 
 import uuid
@@ -28,6 +30,12 @@ from financeiro.services.consulta import (
     cobrancas_do_devedor,
     resumo_entradas_validadas,
     visao_do_caixa,
+)
+from financeiro.services.totais import (
+    TotaisDoPeriodo,
+    primeira_data_de_realizacao,
+    saldo_acumulado,
+    totais_do_periodo,
 )
 from financeiro.tipos import OrcamentoDeEventoMudou
 from kernel.dinheiro import Dinheiro
@@ -175,13 +183,17 @@ __all__ = (
     "PagamentoDoDevedor",
     "PaginaDeCobrancasDoDevedor",
     "ResumoEntradasValidadas",
+    "TotaisDoPeriodo",
     "VisaoDoCaixa",
     "abrir_solicitacao_orcamentaria",
     "cancelar_orcamento_de_evento",
     "cobrancas_do_devedor",
     "listar_categorias_ativas",
     "obter_categoria_ativa",
+    "primeira_data_de_realizacao",
     "registrar_devolucao_de_saida",
     "resumo_entradas_validadas",
+    "saldo_acumulado",
+    "totais_do_periodo",
     "visao_do_caixa",
 )

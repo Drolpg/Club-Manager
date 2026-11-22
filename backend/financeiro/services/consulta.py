@@ -24,7 +24,6 @@ from financeiro.domain.autorizacao import (
 from financeiro.domain.qrcode_svg import gerar_qrcode_svg
 from financeiro.domain.saidas import (
     PRAZO_VENCIMENTO_PRESTACAO_DIAS,
-    calcular_valor_realizado_saida,
     prestacao_em_atraso,
 )
 from financeiro.domain.transicoes import SITUACOES_ATIVAS_SAIDA, SituacaoEntrada, SituacaoSaida
@@ -39,6 +38,7 @@ from financeiro.models import (
     Saida,
     SituacaoComplemento,
 )
+from financeiro.services import totais
 from financeiro.services.autorizacao import (
     exigir_diretor_ativo,
     exigir_leitura_gestao,
@@ -454,22 +454,15 @@ class VisaoDoCaixa:
 
 
 def visao_do_caixa() -> VisaoDoCaixa:
-    """Entradas validadas (sem duplicar devoluções), saídas realizadas e comprometido ativo."""
-    entradas_total = Entrada.objects.filter(
-        situacao=SituacaoEntrada.VALIDADA.value, saida__isnull=True
-    ).aggregate(total=Sum("valor"))["total"] or Decimal("0.00")
+    """Entradas e saídas realizadas até hoje, e o comprometido ativo (RF-127; adendo 2 da técnica do M7).
 
-    liquidadas = Saida.objects.filter(situacao=SituacaoSaida.LIQUIDADA.value).prefetch_related(
-        "envios", "devolucoes"
-    )
-    saidas_total = Decimal("0.00")
-    for s in liquidadas:
-        env = sum((e.valor for e in s.envios.all()), Decimal("0.00"))
-        dev = sum(
-            (d.valor for d in s.devolucoes.all() if d.situacao == SituacaoEntrada.VALIDADA.value),
-            Decimal("0.00"),
-        )
-        saidas_total += calcular_valor_realizado_saida(env, dev)
+    Entradas e saídas são os totais acumulados de `totais.py` (N5 e N6 da spec
+    `relatorios/dashboard-e-lancamentos`): as entradas contam as cobranças pagas e as entradas sem devedor,
+    menos os estornos (D-23), e as devoluções continuam reduzindo a saída. O comprometido não mudou.
+    """
+    acumulado = totais.totais_do_periodo(None, timezone.localdate())
+    entradas_total = acumulado.entradas
+    saidas_total = acumulado.saidas
 
     ativas = Saida.objects.filter(
         situacao__in=[sit.value for sit in SITUACOES_ATIVAS_SAIDA]
