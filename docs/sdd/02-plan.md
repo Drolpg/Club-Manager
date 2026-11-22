@@ -56,8 +56,10 @@ flowchart TB
 `aprovacoes`, `comunicacao` e `marca` estão no mesmo nível e não se importam. `comunicacao` importa a API
 pública de `notificacoes`, `permissoes`, `acesso` e `auditoria`, e só delas; o contrato `layers` já permite
 isso. `kernel` (erros, saúde, logs, despachante de eventos) não conhece nenhum módulo. `relatorios` é o módulo
-de cima e só lê, pela API pública, `acesso`, `permissoes`, `financeiro`, `eventos`, `notificacoes` e
-`auditoria`; o perfil do usuário é a sua primeira feature, sem modelo, tabela nem migração.
+de cima e só lê, pela API pública, `acesso`, `permissoes`, `aprovacoes`, `financeiro`, `eventos`,
+`comunicacao`, `notificacoes` e `auditoria`; o perfil do usuário (M9) e o dashboard (M10) são as suas features,
+sem modelo, tabela nem migração. Os números do dashboard são calculados pelo módulo dono e expostos por consultas
+públicas só de leitura; a lista de lançamentos é do `financeiro`.
 
 | Regra | Como é verificada |
 | --- | --- |
@@ -175,6 +177,8 @@ Só o dono do projeto muda um status para aceito ou resolvido.
 | ADR-016 | CI/CD, deploy e dimensionamento | CI no plano gratuito do GitHub Actions; deploy, HTTPS, backup e rollback na instância única | — | Pendente (M12) |
 | ADR-017 | Aplicativo mobile | Fora da etapa 1; comparar tecnologias na fase própria | — | Adiada |
 | ADR-018 | Multi-cliente | Fora da etapa 1; nenhuma identidade de clube fixa no código | Coluna de cliente agora | Adiada |
+| ADR-019 | Biblioteca de PDF | ReportLab, geração direta, sem pacote do sistema na imagem; texto de pessoa nunca como marcação | fpdf2, WeasyPrint, gerador próprio, Chromium, wkhtmltopdf | Aceita |
+| ADR-020 | Arquivos derivados | O arquivo de relatório expira em 7 dias e o pedido fica registrado; anexos originais e registros do negócio nunca expiram | Guardar para sempre; entregar sem guardar | Aceita |
 
 ## 5. Estratégia de testes
 
@@ -248,3 +252,4 @@ retomar. Uma decisão em aberto que bloqueia trabalho fica na tabela da seção 
 | D-20 | Teste do M6 que falha às vezes: o apoio `novo_diretor` gera um sufixo aleatório, e o validador de senha pode achar a senha de teste parecida com o nome | Débito | Achado no M8; fora do escopo do marco | Próxima mudança em `financeiro/tests` | Aberto |
 | D-21 | O cabeçalho do admin fica mais largo que a tela a 375 px e a página rola na horizontal (o `innerWidth` medido foi 470); o menu de comunicação e o link "Meu perfil" do M9 o agravam | Débito | Achado na auditoria do M9; anterior ao marco | M11 (Design System e responsividade da `Moldura`) | Aberto |
 | D-22 | Testes do site que estouram os 5 s com a máquina ocupada: `saidas.test.tsx` ("executa envio, prestação, devolução, complemento, liquidação e estorno") e `App.test.tsx` ("entra com a credencial devolvida pelo Google"); passam sozinhos | Débito | Achado no PR do perfil (M9); fora do escopo do marco | Próxima mudança em `frontend/src/saidas.test.tsx` | Aberto |
+| D-23 | A visão do caixa (RF-127) somava só as entradas sem devedor e deixava de fora as cobranças pagas | Débito | Achado no M10: o código diverge do glossário ("uma cobrança paga é uma entrada") e do CA-32 do M7, cujo teste só usava entrada sem devedor | M10, feature `relatorios/dashboard-e-lancamentos` | Resolvido no M10: a visão do caixa usa o cálculo único do realizado e conta as cobranças pagas |

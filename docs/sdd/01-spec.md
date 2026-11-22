@@ -204,9 +204,9 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 
 | ID | Requisito | Status |
 | --- | --- | --- |
-| RF-102 | O diretor com cargo vê o dashboard financeiro: totais do período, saldo, pendências de aprovação e de validação, inadimplência, próximos eventos e últimos comunicados | Aprovado |
-| RF-103 | O diretor sem cargo vê o dashboard básico | Aprovado |
-| RF-104 | O diretor lista as transações com filtros por período, categoria, tipo e estado, e abre o detalhe de cada uma | Aprovado |
+| RF-102 | O diretor com cargo vê o dashboard financeiro: totais do período, saldo, pendências de aprovação e de validação, inadimplência, próximos eventos e últimos comunicados | Implementado |
+| RF-103 | O diretor sem cargo vê o dashboard básico | Implementado |
+| RF-104 | O diretor lista as transações com filtros por período, categoria, tipo e estado, e abre o detalhe de cada uma | Implementado |
 | RF-105 | O usuário gera o extrato do mês ou de um período, em PDF e em CSV | Aprovado |
 | RF-106 | O usuário gera o balancete, em PDF e em CSV | Aprovado |
 | RF-107 | O usuário gera o relatório de inadimplência, em PDF e em CSV | Aprovado |
@@ -253,6 +253,8 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RN-023 | Os valores são escriturais: o sistema registra, e o dinheiro se move por fora | Financeiro |
 | RN-024 | Ninguém desativa a si mesmo nem tira o próprio papel de admin; sempre existe ao menos um admin ativo | Identidade e Permissões |
 | RN-025 | As respostas de login, de recuperação de senha e de convite inválido não revelam se uma conta, um e-mail ou um convite existe | Identidade e Permissões |
+| RN-026 | Um valor entra no período na data em que se tornou realizado: a validação do pagamento ou da entrada, a liquidação da saída | Relatórios, Financeiro |
+| RN-027 | O estorno entra no período da data dele, com sinal contrário e na categoria do original; o original continua no período dele | Relatórios, Financeiro |
 
 ### Requisitos não funcionais
 
@@ -425,6 +427,8 @@ convite) ou não.
 | Comunicação: comandos | `POST comunicacao/comunicados/` (`comunicacao.publicar`); `POST …/{id}/editar/`, `…/despublicar/`, `…/republicar/` (o autor com `comunicacao.publicar`, ou `comunicacao.gerenciar`); `…/fixar/`, `…/desafixar/` (`comunicacao.gerenciar`); `…/reacao/` (repetir o tipo retira), `…/reacao/retirar/`, `…/comentarios/` (diretor com cargo); `POST comunicacao/comentarios/{id}/editar/`, `…/ocultar/`, `…/reexibir/` (o serviço confere autoria ou `comunicacao.gerenciar`) | Conferido na rota e no serviço |
 | Documentos e atas | `GET comunicacao/documentos/` (`?categoria_id=`, `?tipo=`, `?titulo=`, `?arquivados=1`, `?antes=`, `?limite=`); `GET …/{id}/` (versões e comunicados que o indexam); `GET …/{id}/arquivo/` e `…/{id}/versoes/{numero}/arquivo/` (download pela rota autenticada, `nosniff` e `no-store`, sem URL pública); `POST …/` (`comunicacao.enviar_documentos`), `POST …/atas/` (`comunicacao.registrar_atas`), ambos em multipart; `POST …/{id}/versoes/` (multipart), `…/arquivar/`, `…/desarquivar/` (quem enviou, ou `comunicacao.gerenciar`) | Leitura e download: diretor com cargo |
 | Perfil | `GET relatorios/perfil/` (o próprio) e `GET relatorios/perfil/{usuario_id}/` (dados, primeira página de cobranças e de eventos, e a contagem de notificações só no próprio); `GET …/cobrancas/` e `…/eventos/` (`?antes=`, `?limite=` até 50), também por usuário. Só leitura: sem rota de escrita em `relatorios` | Dono ou admin, conferido no serviço antes de qualquer consulta; outro diretor recebe `403`, até para ID inexistente; só o admin recebe `404`; a consulta do admin ao perfil de outro é auditada (`PERFIL_CONSULTADO`) |
+| Dashboard | `GET relatorios/dashboard/` (`?mes=AAAA-MM`, padrão o corrente; mês futuro ou inválido é `400`): o completo (`tipo: COMPLETO`) com os números do mês e de hoje, próximos eventos, últimos comunicados e as próprias cobranças, ou o básico (`tipo: BASICO`) com as próprias cobranças e as notificações não lidas. Só leitura | Usuário ativo; o completo para quem lê gestão, o básico para o ativo sem cargo, escolhido no serviço |
+| Lançamentos | `GET financeiro/lancamentos/` (`?de=`, `?ate=`, `?categoria_id=`, `?tipo=COBRANCA\|ENTRADA\|SAIDA\|ESTORNO`, `?estado=EM_ABERTO\|EM_VALIDACAO\|REALIZADO\|ENCERRADO_SEM_VALOR\|ESTORNADO`, `?antes=<tipo>:<id>`, `?limite=` de 1 a 50): cobranças, entradas, saídas e estornos, do mais novo para o mais antigo pela data de referência; o estorno sai negativo e aponta o `original` | Admin ou diretor ativo com cargo |
 | Telefone próprio | `POST acesso/telefone/` só com o campo `telefone` (outra chave é `400`); troca e audita `TELEFONE_ALTERADO` sem o número | Usuário ativo, só o próprio |
 | Categorias de documento | `GET comunicacao/categorias/` (`?todas=1` só para o admin); `POST comunicacao/categorias/`, `POST …/{id}/editar/`, `…/desativar/`, `…/reativar/` | Leitura: diretor com cargo; escrita: admin |
 | Contrato | `GET schema/`, `GET docs/` | Admin |

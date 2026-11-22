@@ -21,11 +21,12 @@ do board quando ele existir; até lá fica `—`.
 | M7 Financeiro: saídas | Solicitação de gasto, envio, prestação, liquidação, estorno | RF-073 a RF-083, RF-126 a RF-128 | Concluído | 2026-11-15 | — |
 | M8 Eventos | Proposta, orçamento, calendário, realização, cancelamento | RF-084 a RF-093, RF-129 a RF-131 | Concluído | 2026-11-20 | — |
 | M9 Feed, documentos e perfil | Comunicados, comentários, reações, documentos, atas, perfil | RF-094 a RF-101, RF-132 a RF-143 | Concluído | 2026-11-21 | — |
-| M10 Dashboard e relatórios | Dashboards, lista de transações, relatórios em PDF e CSV | RF-102 a RF-111 | Pendente | | — |
+| M10 Dashboard e relatórios | Dashboards, lista de transações, relatórios em PDF e CSV | RF-102 a RF-111 | Em andamento | | — |
 | M11 Personalização | Escudo, cores, temas, ícones | RF-112 a RF-115 | Pendente | | — |
 | M12 Produção | Deploy, backup, rollback, segurança, ponta a ponta, limpeza do legado | RNF-02, RNF-05, RNF-07, RNF-14 | Pendente | | — |
 
-Marcos concluídos foram aprovados pelo dono do projeto na data indicada. O próximo é o M10.
+Marcos concluídos foram aprovados pelo dono do projeto na data indicada. O M10 está em andamento: a feature
+`relatorios/dashboard-e-lancamentos` está feita, e os relatórios em PDF e CSV faltam.
 
 ## Dependências
 
@@ -163,8 +164,8 @@ notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 
 ### M10 — Dashboard e relatórios
 
-- [ ] Dashboard financeiro e básico (RF-102, RF-103)
-- [ ] Lista de transações com filtros (RF-104)
+- [x] Dashboard financeiro e básico (RF-102, RF-103), com a visão do caixa corrigida (RF-127, D-23)
+- [x] Lista de lançamentos com filtros (RF-104)
 - [ ] Relatórios em PDF e CSV (RF-105 a RF-110)
 - [ ] Geração em segundo plano (RF-111); escolher a biblioteca de PDF (risco 6)
 - [ ] Revisão de segurança e auditoria de coerência do marco
