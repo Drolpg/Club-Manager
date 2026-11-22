@@ -51,6 +51,7 @@ export function Moldura() {
           <Link to="/minhas-cobrancas">Minhas cobranças</Link>
           {(usuario.admin || usuario.tem_cargo) && (
             <>
+              <Link to="/lancamentos">Lançamentos</Link>
               <Link to="/cobrancas">Cobranças</Link>
               <Link to="/recorrencias">Recorrências</Link>
               <Link to="/entradas">Entradas</Link>
@@ -58,12 +59,6 @@ export function Moldura() {
           )}
           {usuario.admin && <Link to="/configuracao/financeiro">Configuração financeira</Link>}
         </nav>
-        {/* Menu próprio, depois do Financeiro: a lista de links do Financeiro é fixada em teste. */}
-        {(usuario.admin || usuario.tem_cargo) && (
-          <nav aria-label="Lançamentos financeiros">
-            <Link to="/lancamentos">Lançamentos</Link>
-          </nav>
-        )}
         {(usuario.admin || usuario.tem_cargo) && (
           <nav aria-label="Saídas e gastos">
             <Link to="/saidas">Saídas e gastos</Link>

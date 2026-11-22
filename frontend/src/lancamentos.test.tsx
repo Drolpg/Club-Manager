@@ -114,7 +114,7 @@ describe('lista de lançamentos', () => {
   it('o link "Lançamentos" aparece só para quem tem cargo', async () => {
     simularApi(COMO_DIRETOR)
     abrir('/')
-    const menu = await screen.findByRole('navigation', { name: 'Lançamentos financeiros' })
+    const menu = await screen.findByRole('navigation', { name: 'Financeiro' })
     expect(within(menu).getByRole('link', { name: 'Lançamentos' })).toHaveAttribute('href', '/lancamentos')
   })
 
