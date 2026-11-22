@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from financeiro.domain.competencia import Periodicidade
 from financeiro.domain.pix import TipoChavePix
+from financeiro.domain.realizado import EstadoDoLancamento, TipoDeLancamento
 from financeiro.domain.transicoes import SituacaoCobranca, SituacaoEntrada, SituacaoSaida
 from financeiro.models import AlvoEstorno, DecisaoQuestionamento, FormaPagamento, NaturezaCategoria
 
@@ -696,3 +697,48 @@ class EstornoEntradaRespostaSerializer(EstornoItemSerializer):
 
 class EstornoCobrancaRespostaSerializer(EstornoItemSerializer):
     registro = CobrancaDetalheSerializer()
+
+
+# Lista de lançamentos (RF-104, spec `relatorios/dashboard-e-lancamentos`).
+
+
+class ConsultaLancamentosSerializer(serializers.Serializer[Any]):
+    de = serializers.DateField(required=False)
+    ate = serializers.DateField(required=False)
+    categoria_id = serializers.UUIDField(required=False)
+    tipo = serializers.ChoiceField(choices=[t.value for t in TipoDeLancamento], required=False)
+    estado = serializers.ChoiceField(choices=[e.value for e in EstadoDoLancamento], required=False)
+    antes = serializers.CharField(required=False, max_length=80)
+    limite = serializers.IntegerField(min_value=1, max_value=50, default=20)
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        de, ate = attrs.get("de"), attrs.get("ate")
+        if de is not None and ate is not None and de > ate:
+            raise serializers.ValidationError({"ate": ["O fim do período vem antes do início."]})
+        return attrs
+
+
+class ReferenciaDeLancamentoSerializer(serializers.Serializer[Any]):
+    tipo = serializers.CharField()
+    id = serializers.UUIDField()
+
+
+class LancamentoSerializer(serializers.Serializer[Any]):
+    tipo = serializers.CharField()
+    subtipo = serializers.CharField(allow_null=True)
+    id = serializers.UUIDField()
+    data_referencia = serializers.DateField()
+    descricao = serializers.CharField()
+    categoria = ReferenciaItemSerializer()
+    contraparte = serializers.CharField(allow_blank=True)
+    valor = _dinheiro()
+    valor_realizado = _dinheiro(allow_null=True)
+    estado = serializers.CharField()
+    situacao = serializers.CharField(allow_blank=True)
+    realizado_em = serializers.DateField(allow_null=True)
+    original = ReferenciaDeLancamentoSerializer(allow_null=True)
+
+
+class PaginaDeLancamentosSerializer(serializers.Serializer[Any]):
+    itens = LancamentoSerializer(many=True)
+    tem_mais = serializers.BooleanField()

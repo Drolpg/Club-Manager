@@ -375,3 +375,15 @@ button.marcado {
 .comentario-oculto {
   opacity: 0.6;
 }
+
+/* Dashboard (M10): números do mês e de hoje em grade; o refinamento visual é do M11. */
+.painel-cartoes dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.25rem 1rem;
+}
+
+.marca {
+  font-size: 0.85em;
+  color: var(--texto-suave);
+}

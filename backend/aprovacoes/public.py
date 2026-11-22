@@ -14,6 +14,8 @@
 - `registrar_tipo_de_decisao(codigo, nome)`: um módulo declara os tipos de decisão dele ao iniciar (RN-011).
 - `motivo_aplicado(motivo_id, tipo_de_decisao)`: o texto do motivo a copiar na decisão; recusa motivo
   inexistente, inativo ou de outro tipo de decisão com `VALIDATION_ERROR` em `motivo_id`.
+- `quantidade_na_fila(usuario_id)` e `em_analise_por_tipo()`: contagens para o dashboard, só leitura; quem
+  pode ver é de quem chama.
 """
 
 import uuid
@@ -21,6 +23,7 @@ from typing import Any
 
 from aprovacoes.domain.transicoes import Situacao
 from aprovacoes.services import execucao, solicitacoes
+from aprovacoes.services.consulta import EmAnalisePorTipo, em_analise_por_tipo, quantidade_na_fila
 from aprovacoes.services.execucao import SolicitacaoInfo, obter_solicitacao, situacao_de
 from aprovacoes.services.motivos import motivo_aplicado
 from aprovacoes.tipos import (
@@ -97,17 +100,20 @@ def cancelar_pelo_dono(
 __all__ = (
     "Acontecimento",
     "ConteudoPreparado",
+    "EmAnalisePorTipo",
     "MudancaDeSolicitacao",
     "Situacao",
     "SolicitacaoInfo",
     "cancelar",
     "cancelar_pelo_dono",
+    "em_analise_por_tipo",
     "encerrar",
     "enviar",
     "iniciar_execucao",
     "motivo_aplicado",
     "nova_versao_pelo_dono",
     "obter_solicitacao",
+    "quantidade_na_fila",
     "registrar_tipo",
     "registrar_tipo_de_decisao",
     "situacao_de",

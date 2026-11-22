@@ -22,6 +22,7 @@ from permissoes import public as permissoes
 
 VARIAVEL = "APROVACOES_TIPO_DE_DEMONSTRACAO"
 TIPO = "demonstracao.pedido"
+NOME = "Pedido de demonstração"
 PERMISSAO = "demonstracao.aprovar"
 
 logger = logging.getLogger(__name__)
@@ -69,7 +70,7 @@ def registrar_se_ligado() -> bool:
     )
     tipos.registrar_tipo(
         codigo=TIPO,
-        nome="Pedido de demonstração",
+        nome=NOME,
         permissao_de_aprovar=PERMISSAO,
         tem_valor=True,
         preparar=preparar,

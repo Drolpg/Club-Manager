@@ -73,3 +73,59 @@ export const relatorios = {
   eventos: (alvoId: string | undefined, antes?: string) =>
     apiGet<Pagina<EventoDoPerfil>>(`${caminho(alvoId, 'eventos/')}${cursor(antes)}`),
 }
+
+// Dashboard (`/relatorios/dashboard/`): os números chegam prontos, em texto; o site só formata (RNF-01).
+
+export interface QuantidadeETotal {
+  quantidade: number
+  total: string
+}
+
+export interface MinhasCobrancasDoPainel {
+  em_aberto: QuantidadeETotal
+  atrasadas: QuantidadeETotal
+  em_validacao: QuantidadeETotal
+  proxima: { id: string; descricao: string; valor: string; vencimento: string } | null
+}
+
+export interface DashboardCompleto {
+  tipo: 'COMPLETO'
+  mes: string
+  meses: { de: string; ate: string }
+  do_mes: {
+    entradas: string
+    saidas: string
+    resultado: string
+    saldo_acumulado: string
+    a_receber: QuantidadeETotal
+  }
+  hoje: {
+    data: string
+    comprometido: string
+    saldo_livre: string
+    pendencias_de_validacao: { pagamentos: QuantidadeETotal; entradas: QuantidadeETotal }
+    pendencias_de_aprovacao: {
+      minha_fila: number
+      por_tipo: { tipo: string; nome: string; quantidade: number }[]
+    }
+    prestacoes_pendentes: { aguardando: number; em_atraso: number; em_conferencia: number }
+    inadimplencia: { cobrancas: number; devedores: number; total: string }
+  }
+  proximos_eventos: { id: string; titulo: string; inicio: string; categoria_nome: string }[]
+  ultimos_comunicados: { id: string; tipo: string; titulo: string; publicado_em: string; fixado: boolean }[]
+  minhas_cobrancas: MinhasCobrancasDoPainel
+}
+
+export interface DashboardBasico {
+  tipo: 'BASICO'
+  classificacao_pendente: boolean
+  minhas_cobrancas: MinhasCobrancasDoPainel
+  notificacoes_nao_lidas: number
+}
+
+export type Dashboard = DashboardCompleto | DashboardBasico
+
+/** Sem `mes` (AAAA-MM), o corrente. A API decide entre o completo e o básico. */
+export function dashboard(mes?: string) {
+  return apiGet<Dashboard>(`/relatorios/dashboard/${mes ? `?${new URLSearchParams({ mes })}` : ''}`)
+}

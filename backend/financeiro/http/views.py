@@ -29,6 +29,7 @@ from financeiro.domain.autorizacao import (
     PERM_SAIDAS_ENVIAR,
     PERM_SAIDAS_LIQUIDAR,
 )
+from financeiro.domain.realizado import EstadoDoLancamento, TipoDeLancamento
 from financeiro.erros import erro
 from financeiro.http.permissions import DiretorAtivo, EhAdmin, LeGestao, exige_permissao
 from financeiro.http.serializers import (
@@ -43,6 +44,7 @@ from financeiro.http.serializers import (
     ConsultaCobrancasSerializer,
     ConsultaEntradasSerializer,
     ConsultaEstornosSerializer,
+    ConsultaLancamentosSerializer,
     ConsultaMinhasCobrancasSerializer,
     ConsultaRecorrenciasSerializer,
     ConsultaResumoEntradasSerializer,
@@ -74,6 +76,7 @@ from financeiro.http.serializers import (
     NovaSuspensaoSerializer,
     NovoLoteCobrancasSerializer,
     PaginaCobrancasSerializer,
+    PaginaDeLancamentosSerializer,
     PaginaEntradasSerializer,
     PaginaEstornosSerializer,
     PaginaSaidasSerializer,
@@ -103,6 +106,7 @@ from financeiro.services import (
     estornos,
     gastos,
     inadimplencia,
+    lancamentos,
     pagamentos,
     questionamentos,
     recorrencias,
@@ -1286,3 +1290,53 @@ class EstornosView(APIView):
             limite=filtros["limite"],
         )
         return Response(PaginaEstornosSerializer(pagina).data)
+
+
+def _lancamento(item: lancamentos.Lancamento) -> dict[str, Any]:
+    original = {"tipo": item.original_tipo, "id": item.original_id} if item.original_id else None
+    return {
+        **{campo: getattr(item, campo) for campo in _CAMPOS_DO_LANCAMENTO},
+        "categoria": {"id": item.categoria_id, "nome": item.categoria_nome},
+        "original": original,
+    }
+
+
+_CAMPOS_DO_LANCAMENTO = (
+    "tipo",
+    "subtipo",
+    "id",
+    "data_referencia",
+    "descricao",
+    "contraparte",
+    "valor",
+    "valor_realizado",
+    "estado",
+    "situacao",
+    "realizado_em",
+)
+
+
+class LancamentosView(APIView):
+    """A lista de lançamentos da aba Financeiro, para quem lê os dados de gestão (RF-104)."""
+
+    permission_classes = (LeGestao,)
+
+    @extend_schema(
+        summary="Lançamentos (cobranças, entradas, saídas e estornos) com filtros",
+        parameters=[ConsultaLancamentosSerializer],
+        responses=PaginaDeLancamentosSerializer,
+    )
+    def get(self, request: Request) -> Response:
+        filtros = _validar(ConsultaLancamentosSerializer, request.query_params)
+        pagina = lancamentos.listar(
+            _ator_id(request),
+            de=filtros.get("de"),
+            ate=filtros.get("ate"),
+            categoria_id=filtros.get("categoria_id"),
+            tipo=TipoDeLancamento(filtros["tipo"]) if filtros.get("tipo") else None,
+            estado=EstadoDoLancamento(filtros["estado"]) if filtros.get("estado") else None,
+            antes=filtros.get("antes"),
+            limite=filtros["limite"],
+        )
+        corpo = {"itens": [_lancamento(i) for i in pagina.itens], "tem_mais": pagina.tem_mais}
+        return Response(PaginaDeLancamentosSerializer(corpo).data)

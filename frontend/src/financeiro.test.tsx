@@ -149,7 +149,7 @@ describe('menu financeiro e acesso sem cargo', () => {
     expect(await screen.findByText(/aguarda a classificação/)).toBeInTheDocument()
   })
 
-  it('diretor com cargo vê Minhas cobranças, Cobranças, Recorrências e Entradas, e admin vê Configuração financeira', async () => {
+  it('o admin vê os links de gestão, com Lançamentos, e Configuração financeira', async () => {
     simularApi({
       ...COMO_ADMIN,
       'GET /financeiro/categorias/?todas=1': [CATEGORIA_ENT],
@@ -161,6 +161,7 @@ describe('menu financeiro e acesso sem cargo', () => {
     const nav = await screen.findByRole('navigation', { name: 'Financeiro' })
     expect(within(nav).getAllByRole('link').map((l) => l.textContent)).toEqual([
       'Minhas cobranças',
+      'Lançamentos',
       'Cobranças',
       'Recorrências',
       'Entradas',
@@ -179,6 +180,7 @@ describe('menu financeiro e acesso sem cargo', () => {
     const nav = await screen.findByRole('navigation', { name: 'Financeiro' })
     expect(within(nav).getAllByRole('link').map((l) => l.textContent)).toEqual([
       'Minhas cobranças',
+      'Lançamentos',
       'Cobranças',
       'Recorrências',
       'Entradas',

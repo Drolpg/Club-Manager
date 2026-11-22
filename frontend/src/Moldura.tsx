@@ -51,6 +51,7 @@ export function Moldura() {
           <Link to="/minhas-cobrancas">Minhas cobranças</Link>
           {(usuario.admin || usuario.tem_cargo) && (
             <>
+              <Link to="/lancamentos">Lançamentos</Link>
               <Link to="/cobrancas">Cobranças</Link>
               <Link to="/recorrencias">Recorrências</Link>
               <Link to="/entradas">Entradas</Link>

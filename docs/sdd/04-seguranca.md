@@ -273,6 +273,29 @@ perfil.
 | Número do telefone em auditoria ou log | Auditoria com `dados` vazios | Implementada (M9) | `acesso/tests/test_telefone.py`; percurso nos contêineres |
 | Dependência entre módulos fora da ordem | Contrato `layers` e teste por nome | Implementada (M9) | `relatorios/tests/test_fronteiras.py`; `lint-imports` |
 
+### M10: dashboard e lançamentos
+
+Elementos novos: a rota do dashboard em `relatorios` (só leitura, sem modelo), a lista de lançamentos no
+`financeiro`, as consultas públicas só de leitura em `financeiro`, `aprovacoes`, `eventos` e `comunicacao`, a
+correção da visão do caixa (D-23) e as telas do dashboard, da lista e do detalhe da entrada.
+
+| Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
+| --- | --- | --- | --- | --- | --- | --- |
+| Rota do dashboard | O ator vem da sessão ativa | Só `GET`; outro método é `405` | Leitura não auditada (P13) | **Dado do clube no básico:** o serviço monta o básico sem chamar nenhuma consulta do clube (D8), e o teste confere as quatro chaves; nenhum e-mail, telefone ou comprovante na resposta | Número de consultas fixo, que não cresce com os lançamentos (CA-20) | A escolha entre completo e básico é do serviço, por `le_gestao` |
+| Lista de lançamentos | O ator vem da sessão | Só leitura | — | Só para quem lê gestão; nomes de devedor e solicitante, como nas listas que já existem; sem comprovante, e-mail ou telefone | Paginação por cursor, limite de 1 a 50, uma consulta por página | `LeGestao` na rota e `exigir_leitura_gestao` no serviço; o sem cargo recebe `403` antes de qualquer validação do cursor (sem enumerar) |
+| Números (totais, saldo, caixa) | — | **Número errado por fuso:** filtro por intervalo de instantes no fuso do clube, com teste da validação às 23h30 do último dia | — | — | — | — |
+| Consultas públicas novas | — | Só leitura | — | Devolvem dataclasses com campos fixos; nenhuma tem rota nem confere quem pergunta | Agregações no banco | O módulo que chama confere quem vê |
+| Site (dashboard, lista, detalhe da entrada) | — | XSS em descrição, origem e nomes → React renderiza como texto | — | O link do comprovante só aparece quando a API diz que ele está disponível | — | As rotas `/lancamentos` e `/entradas/:id` exigem cargo; a API confere de novo |
+
+| Ameaça | Mitigação | Status | Registro |
+| --- | --- | --- | --- |
+| Diretor sem cargo ver números do clube | Básico montado sem consultar o clube; quatro chaves só | Implementada (M10) | `relatorios/tests/test_parte3_dashboard.py`, `test_parte4_dashboard_http.py` |
+| Sem cargo listar lançamentos ou enumerar pelo cursor | `403` antes da entrada | Implementada (M10) | `financeiro/tests/test_parte14_lancamentos.py` |
+| Valor no mês errado pelo fuso | Intervalo de instantes local | Implementada (M10) | `financeiro/tests/test_parte13_totais.py` |
+| Número diferente entre o dashboard e a aprovação de gasto | Cálculo único do realizado (D-23) | Implementada (M10) | `test_parte13_visao_do_caixa_com_cobrancas.py` |
+| Vazar contato ou comprovante no dashboard ou na lista | Campos declarados; teste procura e-mail, telefone e comprovante | Implementada (M10) | `test_parte4_dashboard_http.py`, `test_parte14_lancamentos.py` |
+| Dependência entre módulos fora da ordem | Contrato `layers`; testes de fronteira exigem só `.public` | Implementada (M10) | `relatorios/tests/test_fronteiras.py`, `comunicacao/tests/test_fronteiras.py`; `lint-imports` |
+
 ## 2. Avaliação de LGPD
 
 | Campo | Valor |
@@ -978,4 +1001,80 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/relatorios/p
 | --- | --- |
 | Verificação do backend (`2198` testes, cobertura `94,62%`, `lint-imports` `1 kept / 0 broken`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run poe audit` |
 | Verificação do site (`268` testes, cobertura `89,26%` Stmts / `82,3%` Branch / `90,98%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
+| Percurso nos contêineres | `docker compose up -d --build --wait`; 22 passos HTTP conferidos |
+
+## 10. Relatório de vulnerabilidades — M10 (dashboard e lançamentos)
+
+| Campo | Valor |
+| --- | --- |
+| Projeto | Club Manager |
+| Escopo | Feature `relatorios/dashboard-e-lancamentos`: rota do dashboard, lista de lançamentos, consultas públicas só de leitura, correção da visão do caixa (D-23) e telas do site |
+| Data da execução | 2026-11-22 |
+| Responsável | o dono do projeto |
+| Ferramentas | SCA: `pip-audit` e `npm audit --audit-level=high`. SAST: `ruff check --select S .`, `mypy .`, `oxlint --deny-warnings`, `tsc -b`, `lint-imports`. DAST: não executado (M12). Revisão por ameaça e percurso HTTP nos contêineres |
+| Especificação | RNF-07; [01-spec](01-spec.md) § 1 (M10); modelo de ameaças § 1 (M10, dashboard e lançamentos) |
+| Achados aceitos sem correção | Nenhum achado novo de vulnerabilidade |
+
+### 1. Contexto e escopo
+
+O dashboard junta os números financeiros do clube, e a lista de lançamentos mostra cada registro com o nome de
+quem deve ou pediu. As duas são só leitura. O diretor sem cargo vê só as próprias cobranças e a quantidade de
+notificações não lidas, sem nenhum número do clube. A visão do caixa da aprovação de gasto passa a usar o
+mesmo cálculo do dashboard.
+
+### 2. Frentes
+
+| Frente | Ferramenta | O que cobre | Mapeamento OWASP |
+| --- | --- | --- | --- |
+| SCA | `pip-audit`; `npm audit --audit-level=high` | Dependências (sem dependência nova) | A06 |
+| SAST e arquitetura | `ruff --select S`, `mypy`, `lint-imports`, `oxlint`, `tsc -b`, testes de fronteira | Padrões inseguros, tipagem e fronteiras (CA-19) | A01, A03, A05 |
+| Revisão por ameaça e contêineres | `2305` testes backend (`94,82%`), `282` testes site (`89,6%` Stmts), percurso HTTP de 22 passos | Básico sem dado do clube, lista negada ao sem cargo, números iguais entre dashboard, caixa e lista, campos sem contato nem comprovante | A01, A04 |
+| DAST | Não executado | — | — |
+
+### 3. Como reproduzir
+
+```text
+# em backend/
+uv run poe audit
+uv run ruff check --select S .
+uv run poe verify
+
+# em frontend/
+npm audit --audit-level=high
+npm run verify
+
+# com o sistema no ar (na raiz)
+docker compose up -d --build --wait
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/relatorios/dashboard/     # 401
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/financeiro/lancamentos/   # 401
+```
+
+### 4. Resultado: inicial → correções → final
+
+| Frente | Severidade | Inicial | Final | Variação |
+| --- | --- | --- | --- | --- |
+| SCA backend (`pip-audit`) | Qualquer | 0 | 0 | — |
+| SCA site (`npm audit --audit-level=high`) | Crítica, alta | 0 | 0 | — |
+| SAST (`ruff --select S`, `mypy`, `oxlint`) | Qualquer | 0 | 0 | — |
+| Revisão por ameaça e percurso HTTP | Média, baixa | 0 | 0 abertos | — |
+
+### 5. Controles verificados e lacunas
+
+| Controle ou lacuna | Resultado / Situação | Evidência |
+| --- | --- | --- |
+| Básico do sem cargo | Só `tipo`, `classificacao_pendente`, `minhas_cobrancas` e `notificacoes_nao_lidas`; o serviço não chama as consultas do clube | `test_parte3_dashboard.py`, `test_parte4_dashboard_http.py`; percurso |
+| Lista de lançamentos | Sem cargo `403`, sem sessão `401`, cursor inexistente `404`, limite fora da faixa `400` | `test_parte14_lancamentos.py`; percurso |
+| Detalhe da entrada no site | O sem cargo recebe `403` na API; o comprovante só com a permissão da API | `lancamentos.test.tsx`; percurso |
+| Números | Dashboard, visão do caixa e lista com os mesmos valores para o mesmo conjunto | `test_parte13_*`; percurso (entradas `1475.50`, saídas `250.00`, comprometido `1050.00` nos dois) |
+| Campos de saída | Sem e-mail, telefone nem comprovante | Testes; percurso |
+| Fronteiras | `relatorios` importa só `.public`, agora também de `aprovacoes` e `comunicacao`; `comunicacao` não importa `relatorios` | `test_fronteiras.py`; `lint-imports` `1 kept / 0 broken` |
+| Cabeçalho e caixa de notificações a 1366 px | Não conferido nesta execução; a conferir no navegador (o link novo fica num menu próprio, ao lado do Financeiro) | Pendente |
+| DAST, HTTPS/HSTS, SPF/DKIM e cifragem de disco | Previsto para o M12 | [02-plan](02-plan.md) § 6 |
+
+### 6. Evidências
+
+| Evidência | Onde |
+| --- | --- |
+| Verificação do backend (`2305` testes, cobertura `94,82%`, `lint-imports` `1 kept / 0 broken`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run poe audit` |
+| Verificação do site (`282` testes, cobertura `89,6%` Stmts / `82,69%` Branch / `91,19%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
 | Percurso nos contêineres | `docker compose up -d --build --wait`; 22 passos HTTP conferidos |

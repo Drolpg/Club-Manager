@@ -220,7 +220,7 @@ export interface Suspensao {
 
 export interface Entrada {
   id: string
-  tipo: 'SEM_DEVEDOR' | 'DEVOLUCAO_SAIDA'
+  tipo: 'SEM_DEVEDOR' | 'DEVOLUCAO'
   categoria_id: string
   categoria_nome: string
   saida_id?: string | null
@@ -249,6 +249,40 @@ export interface PaginaEntradas {
 export interface ResumoEntradas {
   quantidade: number
   total: string
+}
+
+export type TipoDeLancamento = 'COBRANCA' | 'ENTRADA' | 'SAIDA' | 'ESTORNO'
+export type EstadoDoLancamento =
+  | 'EM_ABERTO'
+  | 'EM_VALIDACAO'
+  | 'REALIZADO'
+  | 'ENCERRADO_SEM_VALOR'
+  | 'ESTORNADO'
+
+/** Um item da lista de lançamentos (RF-104). Valores em texto; o estorno vem com sinal negativo. */
+export interface Lancamento {
+  tipo: TipoDeLancamento
+  subtipo: string | null
+  id: string
+  data_referencia: string
+  descricao: string
+  categoria: ReferenciaItem
+  contraparte: string
+  valor: string
+  valor_realizado: string | null
+  estado: EstadoDoLancamento
+  situacao: string
+  realizado_em: string | null
+  original: { tipo: TipoDeLancamento; id: string } | null
+}
+
+export interface FiltrosLancamentos {
+  de?: string
+  ate?: string
+  tipo?: TipoDeLancamento
+  estado?: EstadoDoLancamento
+  categoria_id?: string
+  antes?: string
 }
 
 export interface HistoricoFinanceiro {
@@ -674,6 +708,10 @@ export const financeiro = {
   }) => apiPost<Suspensao>(`${base}/suspensoes/`, dados),
   encerrarSuspensao: (id: string) => apiPost<Suspensao>(`${base}/suspensoes/${id}/encerrar/`),
 
+  lancamentos: (filtros: FiltrosLancamentos = {}) =>
+    apiGet<{ itens: Lancamento[]; tem_mais: boolean }>(`${base}/lancamentos/${query({ ...filtros })}`),
+  entrada: (id: string) => apiGet<Entrada>(`${base}/entradas/${id}/`),
+  historicoEntrada: (id: string) => apiGet<HistoricoFinanceiro[]>(`${base}/entradas/${id}/historico/`),
   entradas: (filtros: FiltrosEntradas = {}) =>
     apiGet<PaginaEntradas>(`${base}/entradas/${query({ ...filtros, limite: POR_PAGINA })}`),
   resumoEntradas: (filtros: Omit<FiltrosEntradas, 'situacao' | 'antes'> = {}) =>

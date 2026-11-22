@@ -6,6 +6,7 @@ está retirado ou oculto (P18).
 
 import uuid
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from django.db.models import Count, Q, QuerySet
@@ -445,3 +446,25 @@ def um_comentario(ator_id: uuid.UUID, comentario_id: uuid.UUID) -> dict[str, Any
     if not pode_ver_comentario(SituacaoDoComentario(comentario.situacao), fatos):
         raise erro("NOT_FOUND")
     return _comentario(comentario, comunicado, ator, _Nomes())
+
+
+@dataclass(frozen=True)
+class ComunicadoRecente:
+    id: uuid.UUID
+    tipo: str
+    titulo: str
+    publicado_em: datetime
+    fixado: bool
+
+
+def ultimos_comunicados(limite: int = 5) -> list[ComunicadoRecente]:
+    """Os comunicados publicados mais recentes; o fixado só ganha a marca, sem furar a ordem (H5).
+
+    Só leitura, para o dashboard; quem pode ver é de quem chama.
+    """
+    recentes = Comunicado.objects.filter(situacao=SituacaoDoComunicado.PUBLICADO.value).order_by(
+        "-publicado_em", "-id"
+    )[:limite]
+    return [
+        ComunicadoRecente(c.id, c.tipo, c.titulo, c.publicado_em, c.fixado_em is not None) for c in recentes
+    ]

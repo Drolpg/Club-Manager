@@ -43,11 +43,22 @@ def test_comunicacao_nao_importa_os_contextos_que_nao_sao_de_baixo(
     assert importados == set()
 
 
-@pytest.mark.parametrize("modulo", [*_DE_BAIXO, *_PROIBIDOS, *_OUTROS_DA_FAMILIA])
+# `relatorios`, o módulo de cima, lê `comunicacao` para o dashboard do M10, só pela API pública (ajuste
+# autorizado pelo dono em 2026-11-22); os demais continuam sem conhecê-la.
+_QUE_NAO_CONHECEM = tuple(m for m in (*_DE_BAIXO, *_PROIBIDOS, *_OUTROS_DA_FAMILIA) if m != "relatorios")
+
+
+@pytest.mark.parametrize("modulo", _QUE_NAO_CONHECEM)
 def test_nenhum_outro_modulo_conhece_comunicacao(grafo: grimp.ImportGraph, modulo: str) -> None:
     for interno in grafo.find_descendants(modulo) | {modulo}:
         importados = grafo.find_modules_directly_imported_by(interno)
         assert not any(importado.split(".")[0] == "comunicacao" for importado in importados), interno
+
+
+def test_relatorios_importa_de_comunicacao_so_a_api_publica(grafo: grimp.ImportGraph) -> None:
+    importados = {i for i in _importados_por(grafo, "relatorios") if i.split(".")[0] == "comunicacao"}
+
+    assert importados == {"comunicacao.public"}
 
 
 def test_o_dominio_de_comunicacao_nao_importa_framework(grafo: grimp.ImportGraph) -> None:

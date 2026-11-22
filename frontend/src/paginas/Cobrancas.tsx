@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { acesso, type Usuario } from '../api/acesso'
 import {
   PERM_COBRANCAS_CRIAR,
@@ -188,7 +188,11 @@ function FormularioLote({
 export function Cobrancas() {
   const { usuario } = useSessao()
   const podeCriar = usePodeFinanceiro(PERM_COBRANCAS_CRIAR)
-  const [filtros, definirFiltros] = useState<FiltrosCobrancas>({})
+  // O dashboard abre esta tela já filtrada pelos inadimplentes (`?inadimplentes=1`).
+  const [parametros] = useSearchParams()
+  const [filtros, definirFiltros] = useState<FiltrosCobrancas>(() =>
+    parametros.get('inadimplentes') ? { inadimplentes: true } : {},
+  )
   const [categorias, definirCategorias] = useState<Categoria[]>([])
   const [chaves, definirChaves] = useState<ChavePix[]>([])
   const [usuarios, definirUsuarios] = useState<Usuario[]>([])

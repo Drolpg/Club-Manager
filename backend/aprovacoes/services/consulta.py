@@ -10,10 +10,10 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from django.db.models import F, OuterRef, Q, QuerySet, Subquery
+from django.db.models import Count, F, OuterRef, Q, QuerySet, Subquery
 
 from acesso import public as acesso
-from aprovacoes import tipos
+from aprovacoes import demonstracao, tipos
 from aprovacoes.domain.decisores import acoes_disponiveis
 from aprovacoes.domain.transicoes import Situacao
 from aprovacoes.models import Decisao, Solicitacao, Versao
@@ -120,8 +120,16 @@ def _invalido(campo: str, mensagem: str) -> BusinessError:
 
 
 def _nome_do_tipo(codigo: str) -> str:
+    """O nome legível que o tipo registra no motor.
+
+    O tipo de demonstração só é registrado com a variável de demonstração ligada (`demonstracao.py`), mas as
+    solicitações dele podem continuar no banco de desenvolvimento: ele mantém o nome que registra. Um código
+    que nunca foi registrado aparece como está.
+    """
     definicao = tipos.obter_tipo(codigo)
-    return definicao.nome if definicao else codigo
+    if definicao:
+        return definicao.nome
+    return demonstracao.NOME if codigo == demonstracao.TIPO else codigo
 
 
 def _com_a_versao_atual(consulta: QuerySet[Solicitacao]) -> QuerySet[Solicitacao]:
@@ -189,18 +197,44 @@ def fila(ator_id: uuid.UUID) -> list[ItemDaLista]:
     que é o indicado; o próprio pedido só com a auto-aprovação e a permissão de aprovar o tipo (adendo 1, A2).
     """
     exigir_leitura_de_gestao(ator_id)
+    nomes = _Nomes()
+    ordem = (F("aguardando_desde").asc(), F("id").asc())
+    return [_item(s, nomes) for s in _com_a_versao_atual(_da_fila(ator_id)).order_by(*ordem)]
+
+
+def _da_fila(ator_id: uuid.UUID) -> QuerySet[Solicitacao]:
+    """A regra da fila, sem conferir quem pergunta: a `fila` confere; na contagem do dashboard, quem chama."""
     do_ator = permissoes.permissoes_de(ator_id)
     aprova = [t.codigo for t in tipos.listar_tipos() if t.permissao_de_aprovar in do_ator]
     consulta = Solicitacao.objects.filter(situacao=Situacao.EM_ANALISE).filter(
         Q(tipo__in=aprova) | Q(aprovador_indicado_id=ator_id)
     )
     if tipos.AUTO_APROVAR in do_ator:
-        consulta = consulta.exclude(Q(solicitante_id=ator_id) & ~Q(tipo__in=aprova))
-    else:
-        consulta = consulta.exclude(solicitante_id=ator_id)
-    nomes = _Nomes()
-    ordem = (F("aguardando_desde").asc(), F("id").asc())
-    return [_item(s, nomes) for s in _com_a_versao_atual(consulta).order_by(*ordem)]
+        return consulta.exclude(Q(solicitante_id=ator_id) & ~Q(tipo__in=aprova))
+    return consulta.exclude(solicitante_id=ator_id)
+
+
+def quantidade_na_fila(usuario_id: uuid.UUID) -> int:
+    """Quantas solicitações o usuário pode decidir agora: a mesma consulta da `fila`, só contada (N14, D7)."""
+    return _da_fila(usuario_id).count()
+
+
+@dataclass(frozen=True)
+class EmAnalisePorTipo:
+    tipo: str
+    nome: str
+    quantidade: int
+
+
+def em_analise_por_tipo() -> list[EmAnalisePorTipo]:
+    """As solicitações em análise do clube, por tipo, com o nome do tipo (N14)."""
+    contagens = (
+        Solicitacao.objects.filter(situacao=Situacao.EM_ANALISE)
+        .values("tipo")
+        .annotate(quantidade=Count("id"))
+        .order_by("tipo")
+    )
+    return [EmAnalisePorTipo(c["tipo"], _nome_do_tipo(c["tipo"]), c["quantidade"]) for c in contagens]
 
 
 def _buscar(ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> Solicitacao:

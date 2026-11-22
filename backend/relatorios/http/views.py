@@ -1,4 +1,4 @@
-"""Rotas do perfil (`/api/v1/relatorios/perfil/...`). Só leitura e sem regra de negócio (ADR-004).
+"""Rotas do perfil e do dashboard (`/api/v1/relatorios/...`). Só leitura e sem regra de negócio (ADR-004).
 
 A classe de permissão exige só a sessão ativa; quem pode ver e a auditoria são do serviço. A ordem é sessão
 (401) → quem pode ver (403) → entrada (400) → existência (404).
@@ -8,7 +8,7 @@ import uuid
 from typing import Any
 
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiParameter, PolymorphicProxySerializer, extend_schema
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -16,11 +16,13 @@ from rest_framework.views import APIView
 
 from relatorios.http.permissoes import UsuarioAtivo
 from relatorios.http.serializers import (
+    DashboardBasicoSerializer,
+    DashboardCompletoSerializer,
     PaginaDeCobrancasSerializer,
     PaginaDeEventosSerializer,
     PerfilSerializer,
 )
-from relatorios.services import perfil
+from relatorios.services import dashboard, perfil
 
 _PARAMETROS = [
     OpenApiParameter("antes", OpenApiTypes.UUID, description="ID do último item da página anterior"),
@@ -129,3 +131,47 @@ class EventosDoUsuarioView(APIView):
     def get(self, request: Request, usuario_id: uuid.UUID) -> Response:
         pagina = perfil.eventos(_ator_id(request), usuario_id, **_pagina(request))
         return Response(PaginaDeEventosSerializer(pagina).data)
+
+
+def _mes(dia: Any) -> str:
+    return f"{dia.year:04d}-{dia.month:02d}"
+
+
+def _dashboard(resultado: dashboard.DashboardCompleto | dashboard.DashboardBasico) -> dict[str, Any]:
+    if isinstance(resultado, dashboard.DashboardBasico):
+        basico = {
+            "tipo": "BASICO",
+            "classificacao_pendente": True,
+            "minhas_cobrancas": resultado.minhas_cobrancas,
+            "notificacoes_nao_lidas": resultado.notificacoes_nao_lidas,
+        }
+        return dict(DashboardBasicoSerializer(basico).data)
+    completo = {
+        "tipo": "COMPLETO",
+        "mes": _mes(resultado.mes),
+        "meses": {"de": _mes(resultado.primeiro_mes), "ate": _mes(resultado.ultimo_mes)},
+        "do_mes": resultado.do_mes,
+        "hoje": resultado.hoje,
+        "proximos_eventos": resultado.proximos_eventos,
+        "ultimos_comunicados": resultado.ultimos_comunicados,
+        "minhas_cobrancas": resultado.minhas_cobrancas,
+    }
+    return dict(DashboardCompletoSerializer(completo).data)
+
+
+class DashboardView(APIView):
+    """O completo para quem lê os dados de gestão; o básico para o ativo sem cargo (RF-102, RF-103)."""
+
+    permission_classes = (UsuarioAtivo,)
+
+    @extend_schema(
+        summary="O dashboard: completo ou básico, conforme quem pede",
+        parameters=[OpenApiParameter("mes", OpenApiTypes.STR, description="AAAA-MM; padrão, o corrente")],
+        responses=PolymorphicProxySerializer(
+            component_name="Dashboard",
+            serializers=[DashboardCompletoSerializer, DashboardBasicoSerializer],
+            resource_type_field_name="tipo",
+        ),
+    )
+    def get(self, request: Request) -> Response:
+        return Response(_dashboard(dashboard.dashboard(_ator_id(request), request.query_params.get("mes"))))

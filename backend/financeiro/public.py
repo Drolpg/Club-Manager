@@ -6,6 +6,11 @@
 - `resumo_entradas_validadas`: soma consolidada apenas das entradas com situação `VALIDADA`.
 - `abrir_solicitacao_orcamentaria` e `cancelar_orcamento_de_evento`: o orçamento de evento (adendo 1 do M7).
 - `cobrancas_do_devedor`: as cobranças de um devedor, com os pagamentos e sem comprovante, para o perfil.
+- `totais_do_periodo`, `saldo_acumulado` e `primeira_data_de_realizacao`: o realizado de um período, só
+  leitura (N1 a N8 da spec `relatorios/dashboard-e-lancamentos`), para o dashboard e os relatórios.
+- `a_receber`, `resumo_da_inadimplencia`, `pendencias_de_validacao`, `prestacoes_pendentes` e
+  `resumo_do_devedor`: as pendências e os resumos de hoje (N11 a N13, N15), só leitura.
+- `limites_do_mes`: o primeiro e o último dia de um mês, a mesma conta que os totais usam.
 """
 
 import uuid
@@ -16,6 +21,7 @@ from typing import Any
 from django.db import transaction
 
 from auditoria import public as auditoria
+from financeiro.domain.realizado import limites_do_mes
 from financeiro.erros import erro
 from financeiro.models import CategoriaFinanceira, Entrada, Saida, TipoEntrada
 from financeiro.services import avisos, orcamentos
@@ -28,6 +34,23 @@ from financeiro.services.consulta import (
     cobrancas_do_devedor,
     resumo_entradas_validadas,
     visao_do_caixa,
+)
+from financeiro.services.totais import (
+    PendenciasDeValidacao,
+    PrestacoesPendentes,
+    ProximaCobranca,
+    Resumo,
+    ResumoDaInadimplencia,
+    ResumoDoDevedor,
+    TotaisDoPeriodo,
+    a_receber,
+    pendencias_de_validacao,
+    prestacoes_pendentes,
+    primeira_data_de_realizacao,
+    resumo_da_inadimplencia,
+    resumo_do_devedor,
+    saldo_acumulado,
+    totais_do_periodo,
 )
 from financeiro.tipos import OrcamentoDeEventoMudou
 from kernel.dinheiro import Dinheiro
@@ -174,14 +197,30 @@ __all__ = (
     "OrcamentoDeEventoMudou",
     "PagamentoDoDevedor",
     "PaginaDeCobrancasDoDevedor",
+    "PendenciasDeValidacao",
+    "PrestacoesPendentes",
+    "ProximaCobranca",
+    "Resumo",
+    "ResumoDaInadimplencia",
+    "ResumoDoDevedor",
     "ResumoEntradasValidadas",
+    "TotaisDoPeriodo",
     "VisaoDoCaixa",
+    "a_receber",
     "abrir_solicitacao_orcamentaria",
     "cancelar_orcamento_de_evento",
     "cobrancas_do_devedor",
+    "limites_do_mes",
     "listar_categorias_ativas",
     "obter_categoria_ativa",
+    "pendencias_de_validacao",
+    "prestacoes_pendentes",
+    "primeira_data_de_realizacao",
     "registrar_devolucao_de_saida",
+    "resumo_da_inadimplencia",
+    "resumo_do_devedor",
     "resumo_entradas_validadas",
+    "saldo_acumulado",
+    "totais_do_periodo",
     "visao_do_caixa",
 )

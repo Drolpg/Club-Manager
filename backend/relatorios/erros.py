@@ -20,3 +20,9 @@ def limite_invalido(maximo: int) -> BusinessError:
         status=400,
         details={"limite": [f"Use um número de 1 a {maximo}."]},
     )
+
+
+def mes_invalido(mensagem: str) -> BusinessError:
+    return BusinessError(
+        "VALIDATION_ERROR", "Os dados enviados são inválidos.", status=400, details={"mes": [mensagem]}
+    )

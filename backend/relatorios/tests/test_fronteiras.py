@@ -7,8 +7,19 @@ direções ficam ditas por nome. O domínio puro não importa framework.
 import grimp
 import pytest
 
-_USADOS = ("acesso", "auditoria", "eventos", "financeiro", "notificacoes", "permissoes")
-_NAO_USADOS = ("aprovacoes", "comunicacao", "marca")
+# O dashboard do M10 passou a ler também `aprovacoes` e `comunicacao`, só pela API pública (técnica de
+# `relatorios/dashboard-e-lancamentos`; ajuste autorizado pelo dono em 2026-11-22).
+_USADOS = (
+    "acesso",
+    "aprovacoes",
+    "auditoria",
+    "comunicacao",
+    "eventos",
+    "financeiro",
+    "notificacoes",
+    "permissoes",
+)
+_NAO_USADOS = ("marca",)
 _FRAMEWORKS = ("django", "rest_framework", "celery")
 _TODOS = ("relatorios", *_USADOS, *_NAO_USADOS)
 
