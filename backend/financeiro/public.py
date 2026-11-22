@@ -10,6 +10,7 @@
   leitura (N1 a N8 da spec `relatorios/dashboard-e-lancamentos`), para o dashboard e os relatórios.
 - `a_receber`, `resumo_da_inadimplencia`, `pendencias_de_validacao`, `prestacoes_pendentes` e
   `resumo_do_devedor`: as pendências e os resumos de hoje (N11 a N13, N15), só leitura.
+- `limites_do_mes`: o primeiro e o último dia de um mês, a mesma conta que os totais usam.
 """
 
 import uuid
@@ -20,6 +21,7 @@ from typing import Any
 from django.db import transaction
 
 from auditoria import public as auditoria
+from financeiro.domain.realizado import limites_do_mes
 from financeiro.erros import erro
 from financeiro.models import CategoriaFinanceira, Entrada, Saida, TipoEntrada
 from financeiro.services import avisos, orcamentos
@@ -208,6 +210,7 @@ __all__ = (
     "abrir_solicitacao_orcamentaria",
     "cancelar_orcamento_de_evento",
     "cobrancas_do_devedor",
+    "limites_do_mes",
     "listar_categorias_ativas",
     "obter_categoria_ativa",
     "pendencias_de_validacao",
