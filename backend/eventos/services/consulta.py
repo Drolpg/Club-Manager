@@ -223,3 +223,22 @@ def eventos_do_usuario(
         for e in achados[:limite]
     ]
     return PaginaDeEventosDoUsuario(itens=itens, tem_mais=len(achados) > limite)
+
+
+@dataclass(frozen=True)
+class ProximoEvento:
+    id: uuid.UUID
+    titulo: str
+    inicio: datetime
+    categoria_nome: str
+
+
+def proximos_eventos(a_partir_de: date, limite: int = 5) -> list[ProximoEvento]:
+    """Os próximos eventos publicados, do começo do dia `a_partir_de` em diante, por início (H3).
+
+    Só leitura, para o dashboard; quem pode ver é de quem chama.
+    """
+    eventos = Evento.objects.filter(
+        situacao=S.PUBLICADO.value, inicio__gte=_inicio_do_dia(a_partir_de)
+    ).order_by("inicio", "id")[:limite]
+    return [ProximoEvento(e.id, e.titulo, e.inicio, e.categoria_nome) for e in eventos]
