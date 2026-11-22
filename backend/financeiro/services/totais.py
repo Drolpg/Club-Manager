@@ -87,41 +87,45 @@ _ESTORNO_DE_ENTRADA = Q(alvo_tipo=AlvoEstorno.COBRANCA) | Q(
 _ESTORNO_DE_SAIDA = Q(alvo_tipo=AlvoEstorno.SAIDA)
 
 
-def _saidas_realizadas(de: date | None, ate: date) -> Decimal:
-    """Soma o realizado de cada saída liquidada no período, numa consulta (N2, D4)."""
+def _com_realizado(qs: QuerySet[Saida]) -> QuerySet[Any]:
+    """Anota em cada saída o enviado e o devolvido que contam no realizado (N2, D4).
+
+    As subconsultas aplicam a regra de `realizado_da_saida`: devolução validada, ou estornada depois da
+    liquidação.
+    """
     enviado = Envio.objects.filter(saida=OuterRef("pk")).values("saida").annotate(t=Sum("valor")).values("t")
-    devolvido_ate_hoje = (
-        Entrada.objects.filter(
-            saida=OuterRef("pk"), tipo=TipoEntrada.DEVOLUCAO, situacao=SituacaoEntrada.VALIDADA
+    devolvido = (
+        Entrada.objects.filter(saida=OuterRef("pk"), tipo=TipoEntrada.DEVOLUCAO)
+        .filter(
+            Q(situacao=SituacaoEntrada.VALIDADA)
+            | Q(situacao=SituacaoEntrada.ESTORNADA, estorno__registrado_em__gt=OuterRef("liquidada_em"))
         )
         .values("saida")
         .annotate(t=Sum("valor"))
         .values("t")
     )
-    estornada_depois = (
-        Entrada.objects.filter(
-            saida=OuterRef("pk"),
-            tipo=TipoEntrada.DEVOLUCAO,
-            situacao=SituacaoEntrada.ESTORNADA,
-            estorno__registrado_em__gt=OuterRef("liquidada_em"),
-        )
-        .values("saida")
-        .annotate(t=Sum("valor"))
-        .values("t")
+    return qs.annotate(
+        r_enviado=Coalesce(Subquery(enviado, output_field=_DINHEIRO), Value(_ZERO)),
+        r_devolvido=Coalesce(Subquery(devolvido, output_field=_DINHEIRO), Value(_ZERO)),
     )
-    linhas = (
-        Saida.objects.filter(liquidada_em__isnull=False)
-        .filter(_no_intervalo("liquidada_em", de, ate))
-        .annotate(
-            enviado=Coalesce(Subquery(enviado, output_field=_DINHEIRO), Value(_ZERO)),
-            devolvido=Coalesce(Subquery(devolvido_ate_hoje, output_field=_DINHEIRO), Value(_ZERO)),
-            estornado_depois=Coalesce(Subquery(estornada_depois, output_field=_DINHEIRO), Value(_ZERO)),
-        )
-        .values_list("enviado", "devolvido", "estornado_depois")
+
+
+def _saidas_realizadas(de: date | None, ate: date) -> Decimal:
+    """Soma o realizado de cada saída liquidada no período, numa consulta, com o mínimo zero de N2."""
+    linhas = _com_realizado(
+        Saida.objects.filter(liquidada_em__isnull=False).filter(_no_intervalo("liquidada_em", de, ate))
+    ).values_list("r_enviado", "r_devolvido")
+    return sum((calcular_valor_realizado_saida(env, dev) for env, dev in linhas), _ZERO)
+
+
+def realizado_por_saida(saida_ids: list[uuid.UUID]) -> dict[uuid.UUID, Decimal]:
+    """O realizado de cada saída liquidada pedida, numa consulta (para a lista de lançamentos)."""
+    if not saida_ids:
+        return {}
+    linhas = _com_realizado(Saida.objects.filter(pk__in=saida_ids, liquidada_em__isnull=False)).values_list(
+        "pk", "r_enviado", "r_devolvido"
     )
-    # As subconsultas já aplicam a regra de `realizado_da_saida`: devolução validada, ou estornada depois da
-    # liquidação. Aqui só se soma, com o mínimo zero da mesma função.
-    return sum((calcular_valor_realizado_saida(env, dev + est) for env, dev, est in linhas), _ZERO)
+    return {pk: calcular_valor_realizado_saida(env, dev) for pk, env, dev in linhas}
 
 
 def totais_do_periodo(de: date | None, ate: date) -> TotaisDoPeriodo:
