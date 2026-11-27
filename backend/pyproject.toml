@@ -14,6 +14,7 @@ dependencies = [
     "packaging>=26.3",
     "psycopg[binary]>=3.3.8",
     "redis>=8.1.0",
+    "reportlab>=5.1.2",
     "whitenoise>=6.12.0",
 ]
 
@@ -94,7 +95,7 @@ plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
 exclude = ["\\.venv", "migrations"]
 
 [[tool.mypy.overrides]]
-module = ["celery.*", "grimp.*", "google.*"]
+module = ["celery.*", "grimp.*", "google.*", "reportlab.*"]
 ignore_missing_imports = true
 
 # O Celery não tem tipos: o decorador de tarefa deixa a função sem tipo.
