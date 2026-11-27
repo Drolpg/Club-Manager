@@ -1,6 +1,6 @@
 // Chamadas da API de relatórios (`/api/v1/relatorios/`): o perfil. Só leitura; o site só mostra.
 
-import { apiGet } from './client'
+import { apiGet, apiPost } from './client'
 
 const base = '/relatorios/perfil'
 
@@ -128,4 +128,48 @@ export type Dashboard = DashboardCompleto | DashboardBasico
 /** Sem `mes` (AAAA-MM), o corrente. A API decide entre o completo e o básico. */
 export function dashboard(mes?: string) {
   return apiGet<Dashboard>(`/relatorios/dashboard/${mes ? `?${new URLSearchParams({ mes })}` : ''}`)
+}
+
+// Relatórios em PDF e CSV: pedir, acompanhar e baixar os próprios pedidos.
+
+export type FormaDosParametros = 'PERIODO' | 'PERIODO_E_PENDENTES' | 'MESES' | 'NENHUM'
+
+export interface TipoDeRelatorio {
+  codigo: string
+  nome: string
+  formatos: string[]
+  parametros: FormaDosParametros
+}
+
+export type SituacaoDoPedido = 'NA_FILA' | 'GERANDO' | 'PRONTO' | 'FALHOU' | 'EXPIRADO'
+
+export interface PedidoDeRelatorio {
+  id: string
+  tipo: string
+  tipo_nome: string
+  formato: string
+  parametros: Record<string, unknown>
+  situacao: SituacaoDoPedido
+  pedido_em: string
+  concluido_em: string | null
+  expira_em: string | null
+  disponivel: boolean
+  codigo_da_falha: string
+}
+
+export interface NovoPedido {
+  tipo: string
+  formato: string
+  parametros: Record<string, unknown>
+}
+
+export const pedidosDeRelatorio = {
+  tipos: () => apiGet<TipoDeRelatorio[]>('/relatorios/tipos/'),
+  listar: (antes?: string) =>
+    apiGet<Pagina<PedidoDeRelatorio>>(
+      `/relatorios/pedidos/${antes ? `?${new URLSearchParams({ antes })}` : ''}`,
+    ),
+  pedir: (novo: NovoPedido) => apiPost<PedidoDeRelatorio>('/relatorios/pedidos/', novo),
+  /** O endereço do arquivo: o navegador baixa com a sessão; a API confere que o pedido é de quem pede. */
+  arquivo: (id: string) => `/api/v1/relatorios/pedidos/${id}/arquivo/`,
 }
