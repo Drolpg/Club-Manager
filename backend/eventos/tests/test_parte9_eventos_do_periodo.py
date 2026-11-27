@@ -14,7 +14,8 @@ from django.utils import timezone
 from eventos import public
 from eventos.models import Evento
 from eventos.services import eventos, presencas
-from eventos.tests.conftest import aprovar, proposta, recarregado
+from eventos.tests.conftest import aprovar, decidir, motivo, proposta, recarregado
+from tests import apoio
 from tests.apoio import Usuario
 
 pytestmark = pytest.mark.django_db
@@ -81,3 +82,29 @@ def test_periodo_sem_eventos_e_vazio(papeis: dict[str, Usuario]) -> None:
     _em(_publicado(papeis), _local(2026, 12, 5, 10))
 
     assert public.eventos_do_periodo(*OUT) == []
+
+
+def test_ca19_evento_recusado_traz_o_motivo_do_catalogo_da_recusa(papeis: dict[str, Usuario]) -> None:
+    evento = eventos.propor(papeis["proponente"].id, **proposta(titulo="Torneio"))
+    motivo_id = motivo(papeis["aprovador"], "solicitacao.recusar")
+    resposta = decidir(
+        papeis["aprovador"],
+        evento.id_da_solicitacao_do_evento,
+        "recusar",
+        motivo_id=motivo_id,
+        texto="Segredo",
+    )
+    assert resposta.status_code == 200, resposta.content
+    _em(recarregado(evento), _local(2026, 10, 5, 10))
+    texto_do_motivo = next(
+        m["texto"]
+        for m in apoio.cliente_de(papeis["aprovador"])
+        .get("/api/v1/aprovacoes/motivos/", {"tipo_de_decisao": "solicitacao.recusar"})
+        .json()
+        if m["id"] == motivo_id
+    )
+
+    [item] = public.eventos_do_periodo(*OUT)
+
+    assert (item.situacao, item.motivo) == ("RECUSADO", texto_do_motivo)
+    assert "Segredo" not in item.motivo

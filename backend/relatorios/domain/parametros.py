@@ -65,3 +65,37 @@ def nenhum(parametros: Mapping[str, Any], hoje: date) -> dict[str, str]:
     """Para os relatórios sem parâmetros (inadimplência, meus dados)."""
     _sobras(parametros, set())
     return {}
+
+
+def periodo_com_pendentes(parametros: Mapping[str, Any], hoje: date) -> dict[str, Any]:
+    """O período e a opção "só pendentes" (sim ou não), para a prestação de contas."""
+    resto = {chave: valor for chave, valor in parametros.items() if chave != "so_pendentes"}
+    so_pendentes = parametros.get("so_pendentes", False)
+    if not isinstance(so_pendentes, bool):
+        raise ParametroInvalido("so_pendentes", "Use verdadeiro ou falso.")
+    return {**periodo(resto, hoje), "so_pendentes": so_pendentes}
+
+
+def meses(parametros: Mapping[str, Any], hoje: date) -> dict[str, str]:
+    """Um intervalo de meses, `de` e `ate` em `AAAA-MM`: do primeiro dia de `de` ao último de `ate`.
+
+    O começo não pode ser depois do mês corrente; o fim pode, porque o previsto inclui vencimentos futuros.
+    """
+    _sobras(parametros, {"de", "ate"})
+    if "de" not in parametros or "ate" not in parametros:
+        raise ParametroInvalido("de", "Informe o mês de início e o de fim (AAAA-MM).")
+    inicio = _mes_qualquer("de", parametros["de"])
+    fim_inicio = _mes_qualquer("ate", parametros["ate"])
+    if fim_inicio < inicio:
+        raise ParametroInvalido("ate", "O mês de fim vem antes do de início.")
+    if inicio > hoje.replace(day=1):
+        raise ParametroInvalido("de", "Escolha o mês corrente ou um anterior para começar.")
+    fim = date(fim_inicio.year, fim_inicio.month, calendar.monthrange(fim_inicio.year, fim_inicio.month)[1])
+    return {"de": inicio.isoformat(), "ate": fim.isoformat()}
+
+
+def _mes_qualquer(campo: str, valor: Any) -> date:
+    encontrado = _MES.fullmatch(str(valor))
+    if encontrado is None or not 1 <= int(encontrado.group(2)) <= 12:
+        raise ParametroInvalido(campo, "Use um mês no formato AAAA-MM.")
+    return date(int(encontrado.group(1)), int(encontrado.group(2)), 1)

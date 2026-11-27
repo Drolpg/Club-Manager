@@ -16,6 +16,8 @@
   inexistente, inativo ou de outro tipo de decisão com `VALIDATION_ERROR` em `motivo_id`.
 - `quantidade_na_fila(usuario_id)` e `em_analise_por_tipo()`: contagens para o dashboard, só leitura; quem
   pode ver é de quem chama.
+- `motivos_de_recusa(solicitacao_ids)`: o motivo do catálogo da recusa vigente, para o relatório de eventos.
+  Só leitura, sem quem decidiu nem o texto livre.
 """
 
 import uuid
@@ -23,7 +25,12 @@ from typing import Any
 
 from aprovacoes.domain.transicoes import Situacao
 from aprovacoes.services import execucao, solicitacoes
-from aprovacoes.services.consulta import EmAnalisePorTipo, em_analise_por_tipo, quantidade_na_fila
+from aprovacoes.services.consulta import (
+    EmAnalisePorTipo,
+    em_analise_por_tipo,
+    motivos_de_recusa,
+    quantidade_na_fila,
+)
 from aprovacoes.services.execucao import SolicitacaoInfo, obter_solicitacao, situacao_de
 from aprovacoes.services.motivos import motivo_aplicado
 from aprovacoes.tipos import (
@@ -111,6 +118,7 @@ __all__ = (
     "enviar",
     "iniciar_execucao",
     "motivo_aplicado",
+    "motivos_de_recusa",
     "nova_versao_pelo_dono",
     "obter_solicitacao",
     "quantidade_na_fila",

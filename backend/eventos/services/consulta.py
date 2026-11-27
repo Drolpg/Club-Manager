@@ -268,9 +268,20 @@ def _presencas_do_ciclo(resposta: str) -> Count:
     )
 
 
+def _motivo_do_evento(evento: Evento, recusas: dict[uuid.UUID, str]) -> str:
+    """O do cancelamento, ou o da recusa (do pedido do evento ou do orçamento), que o histórico já mostra."""
+    if evento.situacao == S.CANCELADO.value:
+        return evento.cancelamento_motivo
+    if evento.situacao == S.RECUSADO.value:
+        for solicitacao_id in (evento.solicitacao_do_evento_id, evento.solicitacao_orcamentaria_id):
+            if solicitacao_id in recusas:
+                return recusas[solicitacao_id]
+    return ""
+
+
 def eventos_do_periodo(de: date, ate: date) -> list[EventoDoPeriodo]:
-    """Os eventos com data em `[de, ate]`, de qualquer situação, por início. Só leitura; quem pode ver é de
-    quem chama.
+    """Os eventos com data em `[de, ate]`, de qualquer situação, por início, com o motivo do cancelamento
+    ou da recusa. Só leitura; quem pode ver é de quem chama.
     """
     eventos = (
         Evento.objects.filter(
@@ -281,6 +292,15 @@ def eventos_do_periodo(de: date, ate: date) -> list[EventoDoPeriodo]:
             nao_vou=_presencas_do_ciclo(RespostaDePresenca.NAO_VOU),
         )
         .order_by("inicio", "id")
+    )
+    recusas = aprovacoes.motivos_de_recusa(
+        [
+            solicitacao_id
+            for evento in eventos
+            if evento.situacao == S.RECUSADO.value
+            for solicitacao_id in (evento.solicitacao_do_evento_id, evento.solicitacao_orcamentaria_id)
+            if solicitacao_id is not None
+        ]
     )
     nomes: dict[uuid.UUID, str] = {}
     itens = []
@@ -298,7 +318,7 @@ def eventos_do_periodo(de: date, ate: date) -> list[EventoDoPeriodo]:
                 situacao=evento.situacao,
                 proponente=nomes[evento.proponente_id],
                 envolve_custo=evento.envolve_custo,
-                motivo=evento.cancelamento_motivo if evento.situacao == S.CANCELADO.value else "",
+                motivo=_motivo_do_evento(evento, recusas),
                 vou=evento.vou,
                 nao_vou=evento.nao_vou,
             )

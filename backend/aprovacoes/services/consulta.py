@@ -16,7 +16,7 @@ from acesso import public as acesso
 from aprovacoes import demonstracao, tipos
 from aprovacoes.domain.decisores import acoes_disponiveis
 from aprovacoes.domain.transicoes import Situacao
-from aprovacoes.models import Decisao, Solicitacao, Versao
+from aprovacoes.models import Decisao, Solicitacao, TipoDaDecisao, Versao
 from aprovacoes.services.autorizacao import exigir_leitura_de_gestao, fatos_de
 from kernel.errors import BusinessError
 from permissoes import public as permissoes
@@ -304,3 +304,20 @@ def historico(ator_id: uuid.UUID, solicitacao_id: uuid.UUID) -> list[acesso.Regi
     """O histórico da auditoria, do mais recente para o mais antigo, com o nome de quem agiu."""
     solicitacao = _buscar(ator_id, solicitacao_id)
     return acesso.historico_com_nomes("solicitacao", solicitacao.id)
+
+
+def motivos_de_recusa(solicitacao_ids: list[uuid.UUID]) -> dict[uuid.UUID, str]:
+    """O motivo do catálogo aplicado na recusa da versão vigente, das solicitações recusadas (P27).
+
+    Só leitura, para o relatório de eventos; quem pode ver é de quem chama. Sem quem decidiu e sem o texto
+    livre da decisão. Solicitação que não está recusada não aparece.
+    """
+    if not solicitacao_ids:
+        return {}
+    decisoes = Decisao.objects.filter(
+        tipo=TipoDaDecisao.RECUSAR,
+        versao__solicitacao_id__in=solicitacao_ids,
+        versao__solicitacao__situacao=Situacao.RECUSADA.value,
+        versao__numero=F("versao__solicitacao__numero_da_versao_atual"),
+    ).values_list("versao__solicitacao_id", "motivo_texto")
+    return dict(decisoes)
