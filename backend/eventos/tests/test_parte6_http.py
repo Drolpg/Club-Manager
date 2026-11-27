@@ -132,9 +132,12 @@ def test_ca11_calendario_do_mes_so_com_publicados_e_realizados_pela_data_local(
     publicado = _em(
         _publicado(papeis, titulo="Réveillon"), timezone.make_aware(datetime(2026, 12, 31, 23, 30))
     )
-    realizado = _publicado(papeis, titulo="Jogo realizado")
-    hoje = timezone.localdate()
-    eventos.realizar(papeis["proponente"].id, realizado.id, data=hoje, motivo="Antecipado")
+    # Datas fixas, fora de dezembro de 2026 e de janeiro de 2027: com "daqui a 7 dias", o evento caía em
+    # dezembro a partir de 24/11/2026 e entrava no calendário que o teste espera só com o Réveillon.
+    realizado = _em(
+        _publicado(papeis, titulo="Jogo realizado"), timezone.make_aware(datetime(2026, 11, 12, 15, 0))
+    )
+    eventos.realizar(papeis["proponente"].id, realizado.id, data=date(2026, 11, 10), motivo="Antecipado")
     em_aprovacao = _em(_propor(papeis, titulo="Em aprovação"), timezone.make_aware(datetime(2026, 12, 5, 10)))
     cancelado = _propor(papeis, titulo="Cancelado")
     eventos.cancelar(papeis["proponente"].id, cancelado.id, motivo="Chuva")
