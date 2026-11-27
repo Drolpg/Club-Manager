@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from acesso import public as acesso
@@ -28,7 +29,13 @@ from relatorios.domain.pedido import (
     pode_pedir_mais,
     proxima_situacao,
 )
-from relatorios.erros import campo_invalido, erro, pedidos_em_andamento
+from relatorios.erros import (
+    campo_invalido,
+    erro,
+    limite_invalido,
+    pedido_nao_encontrado,
+    pedidos_em_andamento,
+)
 from relatorios.models import PedidoDeRelatorio
 
 ITEM_TIPO = "pedido_de_relatorio"
@@ -130,3 +137,64 @@ def falhar(pedido_id: uuid.UUID, codigo_da_falha: str) -> PedidoDeRelatorio | No
 
 def expirar(pedido_id: uuid.UUID) -> PedidoDeRelatorio | None:
     return _transicionar(pedido_id, ComandoDoPedido.EXPIRAR, expirado_em=timezone.now())
+
+
+# Consultas de quem pediu --------------------------------------------------------------------------------
+
+LIMITE_PADRAO = 20
+LIMITE_MAXIMO = 50
+
+
+@dataclass(frozen=True)
+class PaginaDePedidos:
+    itens: list[PedidoDeRelatorio]
+    tem_mais: bool
+
+
+def _exigir_ativo(ator_id: uuid.UUID) -> None:
+    ator = acesso.usuario_por_id(ator_id)
+    if ator is None or not ator.ativo:
+        raise erro("PERMISSION_DENIED")
+
+
+def listar(
+    ator_id: uuid.UUID, *, antes: uuid.UUID | None = None, limite: int = LIMITE_PADRAO
+) -> PaginaDePedidos:
+    """Os próprios pedidos, mais novos primeiro. O cursor é o ID do último da página anterior, e só vale um
+    pedido do próprio ator; outro ou inexistente: 404 (CA-12).
+    """
+    _exigir_ativo(ator_id)
+    if not 1 <= limite <= LIMITE_MAXIMO:
+        raise limite_invalido(LIMITE_MAXIMO)
+    meus = PedidoDeRelatorio.objects.filter(pedido_por_id=ator_id)
+    if antes is not None:
+        ancora = meus.filter(id=antes).values("pedido_em", "id").first()
+        if ancora is None:
+            raise pedido_nao_encontrado()
+        meus = meus.filter(
+            Q(pedido_em__lt=ancora["pedido_em"]) | Q(pedido_em=ancora["pedido_em"], id__lt=ancora["id"])
+        )
+    pedidos = list(meus.order_by("-pedido_em", "-id")[: limite + 1])
+    return PaginaDePedidos(itens=pedidos[:limite], tem_mais=len(pedidos) > limite)
+
+
+def obter(ator_id: uuid.UUID, pedido_id: uuid.UUID) -> PedidoDeRelatorio:
+    """O próprio pedido. De outro ou inexistente: 403 nos dois casos, para não revelar o que existe (D4)."""
+    _exigir_ativo(ator_id)
+    pedido = PedidoDeRelatorio.objects.filter(id=pedido_id, pedido_por_id=ator_id).first()
+    if pedido is None:
+        raise erro("PERMISSION_DENIED")
+    return pedido
+
+
+def disponivel(pedido: PedidoDeRelatorio) -> bool:
+    return (
+        pedido.situacao == SituacaoDoPedido.PRONTO
+        and pedido.expira_em is not None
+        and pedido.expira_em > timezone.now()
+    )
+
+
+def nome_do_tipo(codigo: str) -> str:
+    tipo = tipos.obter(codigo)
+    return tipo.nome if tipo is not None else codigo

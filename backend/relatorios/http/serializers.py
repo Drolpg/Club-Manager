@@ -179,3 +179,40 @@ class DashboardBasicoSerializer(serializers.Serializer[Any]):
     classificacao_pendente = serializers.BooleanField()
     minhas_cobrancas = MinhasCobrancasSerializer()
     notificacoes_nao_lidas = serializers.IntegerField()
+
+
+# Relatórios em PDF e CSV ---------------------------------------------------------------------------------
+
+
+class TipoDeRelatorioSerializer(serializers.Serializer[Any]):
+    codigo = serializers.CharField()
+    nome = serializers.CharField()
+    formatos = serializers.ListField(child=serializers.CharField())
+    parametros = serializers.CharField(help_text="PERIODO, PERIODO_E_PENDENTES, MESES ou NENHUM")
+
+
+class PedirRelatorioSerializer(serializers.Serializer[Any]):
+    tipo = serializers.CharField(max_length=40)
+    formato = serializers.CharField(max_length=3)
+    parametros = serializers.DictField(required=False, default=dict)
+
+
+class PedidoDeRelatorioSerializer(serializers.Serializer[Any]):
+    """Os campos do pedido; nunca a chave do arquivo (CA-28)."""
+
+    id = serializers.UUIDField()
+    tipo = serializers.CharField()
+    tipo_nome = serializers.CharField()
+    formato = serializers.CharField()
+    parametros = serializers.DictField()
+    situacao = serializers.CharField()
+    pedido_em = serializers.DateTimeField()
+    concluido_em = serializers.DateTimeField(allow_null=True)
+    expira_em = serializers.DateTimeField(allow_null=True)
+    disponivel = serializers.BooleanField()
+    codigo_da_falha = serializers.CharField()
+
+
+class PaginaDePedidosSerializer(serializers.Serializer[Any]):
+    itens = PedidoDeRelatorioSerializer(many=True)
+    tem_mais = serializers.BooleanField()

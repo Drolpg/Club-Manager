@@ -40,3 +40,16 @@ def pedidos_em_andamento(maximo: int) -> BusinessError:
         f"Você já tem {maximo} relatórios na fila ou sendo gerados. Espere um terminar para pedir outro.",
         status=409,
     )
+
+
+def relatorio_nao_disponivel(situacao: str) -> BusinessError:
+    return BusinessError(
+        "RELATORIO_NAO_DISPONIVEL",
+        "O arquivo deste relatório não está disponível.",
+        status=409,
+        details={"situacao": situacao},
+    )
+
+
+def pedido_nao_encontrado() -> BusinessError:
+    return BusinessError("NOT_FOUND", "Pedido não encontrado.", status=404)
