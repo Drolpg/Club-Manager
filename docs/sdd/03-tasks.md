@@ -26,7 +26,8 @@ do board quando ele existir; até lá fica `—`.
 | M12 Produção | Deploy, backup, rollback, segurança, ponta a ponta, limpeza do legado | RNF-02, RNF-05, RNF-07, RNF-14 | Pendente | | — |
 
 Marcos concluídos foram aprovados pelo dono do projeto na data indicada. O M10 está em andamento: a feature
-`relatorios/dashboard-e-lancamentos` está feita, e os relatórios em PDF e CSV faltam.
+`relatorios/dashboard-e-lancamentos` está na `dev`, e a `relatorios/relatorios-pdf-e-csv` está feita, em PR
+para a `dev`.
 
 ## Dependências
 
@@ -166,8 +167,9 @@ notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 
 - [x] Dashboard financeiro e básico (RF-102, RF-103), com a visão do caixa corrigida (RF-127, D-23)
 - [x] Lista de lançamentos com filtros (RF-104)
-- [ ] Relatórios em PDF e CSV (RF-105 a RF-110)
-- [ ] Geração em segundo plano (RF-111); escolher a biblioteca de PDF (risco 6)
+- [x] Relatórios em PDF e CSV (RF-105 a RF-110) e "Meus dados" (RF-144)
+- [x] Geração em segundo plano, aviso, download e expiração em 7 dias (RF-111, RF-145 a RF-147); biblioteca de
+  PDF escolhida e medida (ADR-019, ADR-020, risco 6)
 - [ ] Revisão de segurança e auditoria de coerência do marco
 
 ### M11 — Personalização

@@ -57,8 +57,9 @@ flowchart TB
 pública de `notificacoes`, `permissoes`, `acesso` e `auditoria`, e só delas; o contrato `layers` já permite
 isso. `kernel` (erros, saúde, logs, despachante de eventos) não conhece nenhum módulo. `relatorios` é o módulo
 de cima e só lê, pela API pública, `acesso`, `permissoes`, `aprovacoes`, `financeiro`, `eventos`,
-`comunicacao`, `notificacoes` e `auditoria`; o perfil do usuário (M9) e o dashboard (M10) são as suas
-features, sem modelo, tabela nem migração. Os números do dashboard são calculados pelo módulo dono e expostos
+`comunicacao`, `notificacoes` e `auditoria`; o perfil do usuário (M9) e o dashboard (M10) são features
+sem tabela, e os relatórios em PDF e CSV (M10) trazem a primeira tabela do módulo, o pedido de relatório,
+gerado pelo worker. Os números do dashboard são calculados pelo módulo dono e expostos
 por consultas públicas só de leitura; a lista de lançamentos é do `financeiro`.
 
 | Regra | Como é verificada |
@@ -138,6 +139,7 @@ dependência (as fronteiras trocam por configuração do Django).
 | Contrato | drf-spectacular, em `/api/v1/schema/` e `/api/v1/docs/`, só para admin, sem CDN |
 | Senhas e sessão | Argon2; sessão do Django no banco, com CSRF |
 | Google | `google-auth`, atrás da port `VerificadorGoogle` (fake nos testes) |
+| PDF | ReportLab 5.1.2 (com Pillow 13), geração direta, sem pacote do sistema na imagem (ADR-019) |
 | E-mail | SMTP por `EMAIL_URL`; sem ela, sai no log; em desenvolvimento, Mailpit |
 | Qualidade do backend | Ruff (com regras `S`), mypy estrito, pytest, pytest-django, pytest-cov, import-linter, pip-audit |
 | Site | React 19, React Router 8, Vite 8, TypeScript 7, Vitest, Testing Library, oxlint, Caddy 2 |
@@ -215,7 +217,7 @@ são acessados por `127.0.0.1`, porque `localhost` tenta IPv6 primeiro.
 | 3 | O Pix copia e cola gerado sem integração bancária não é aceito por algum aplicativo de banco | Parcialmente mitigado: BR Code EMV + CRC16 validados em testes e nos contêineres; teste em aplicativos reais pendente do dono |
 | 4 | Um tratador de evento em processo com erro desfaz a operação de quem publicou | Mitigado: tratadores curtos e testados |
 | 5 | A tarefa de geração de cobranças roda duas vezes e duplica cobranças | Mitigado: unicidade por recorrência, devedor e competência |
-| 6 | Geração de PDF pesa na instância pequena | Pendente; escolher a biblioteca no M10 |
+| 6 | Geração de PDF pesa na instância pequena | Mitigado (M10): ReportLab (ADR-019); medido nos contêineres com ~800 lançamentos num mês: extrato de 20 páginas em até 1,1 s e o worker até ~41 MiB acima do repouso (limites: 10 s e 150 MB) |
 | 7 | E-mails caem em spam ou o provedor gratuito limita o envio | Pendente |
 | 8 | "Nada é apagado" entra em conflito com direitos do titular na LGPD | Pendente; ver [04-seguranca](04-seguranca.md) |
 | 9 | O escopo do M6 cresceu com inadimplência, renegociação, suspensão e Pix | Mitigado: o M6 é dividido em seis features |
@@ -253,3 +255,4 @@ retomar. Uma decisão em aberto que bloqueia trabalho fica na tabela da seção 
 | D-21 | O cabeçalho do admin fica mais largo que a tela a 375 px e a página rola na horizontal (o `innerWidth` medido foi 470); o menu de comunicação e o link "Meu perfil" do M9 o agravam | Débito | Achado na auditoria do M9; anterior ao marco | M11 (Design System e responsividade da `Moldura`) | Aberto |
 | D-22 | Testes do site que estouram os 5 s com a máquina ocupada: `saidas.test.tsx` ("executa envio, prestação, devolução, complemento, liquidação e estorno") e `App.test.tsx` ("entra com a credencial devolvida pelo Google"); passam sozinhos | Débito | Achado no PR do perfil (M9); fora do escopo do marco | Próxima mudança em `frontend/src/saidas.test.tsx` | Aberto |
 | D-23 | A visão do caixa (RF-127) somava só as entradas sem devedor e deixava de fora as cobranças pagas | Débito | Achado no M10: o código diverge do glossário ("uma cobrança paga é uma entrada") e do CA-32 do M7, cujo teste só usava entrada sem devedor | M10, feature `relatorios/dashboard-e-lancamentos` | Resolvido no M10: a visão do caixa usa o cálculo único do realizado e conta as cobranças pagas |
+| D-24 | O log JSON do kernel (`JsonFormatter`) grava só a mensagem e descarta os campos de `extra`: os IDs dos erros das rotinas e as medidas da geração de relatório (`duracao_ms`, `linhas`, `memoria_max_kb`) não chegam ao log | Débito | Achado no M10, ao medir a memória nos contêineres; a correção muda o log do projeto inteiro | Decisão do dono: incluir os campos de `extra` no JSON, só com IDs e medidas | Aberto |

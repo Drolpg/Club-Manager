@@ -296,6 +296,32 @@ correção da visão do caixa (D-23) e as telas do dashboard, da lista e do deta
 | Vazar contato ou comprovante no dashboard ou na lista | Campos declarados; teste procura e-mail, telefone e comprovante | Implementada (M10) | `test_parte4_dashboard_http.py`, `test_parte14_lancamentos.py` |
 | Dependência entre módulos fora da ordem | Contrato `layers`; testes de fronteira exigem só `.public` | Implementada (M10) | `relatorios/tests/test_fronteiras.py`, `comunicacao/tests/test_fronteiras.py`; `lint-imports` |
 
+### M10: relatórios em PDF e CSV
+
+Elementos novos: o pedido de relatório (tabela em `relatorios`), a geração no worker, os escritores de PDF
+(ReportLab) e de CSV, o armazenamento dos arquivos em `relatorios/` com expiração em 7 dias, as rotas de
+tipos, pedidos e download, as consultas públicas só de leitura em `financeiro`, `eventos` e `aprovacoes`, e a
+tela "Relatórios".
+
+| Elemento | Spoofing | Tampering | Repudiation | Information disclosure | Denial of service | Elevation of privilege |
+| --- | --- | --- | --- | --- | --- | --- |
+| Pedir | O ator vem da sessão ativa | Parâmetros validados e normalizados antes da fila; chave desconhecida é `400` | Pedido auditado (`RELATORIO_PEDIDO`) com tipo, formato e parâmetros, sem conteúdo | — | Até três pedidos em andamento por usuário; geração só no worker | Quem gera cada tipo é do catálogo: `le_gestao` nos seis do clube, todo ativo em "Meus dados" |
+| Download | O ator vem da sessão | Só `GET` | Download não auditado (P20) | **Arquivo alheio:** só quem pediu; outro ou inexistente é `403`, até para o admin; a permissão do tipo é conferida de novo; chave opaca, nunca na resposta | — | Quem perdeu o cargo não baixa mais o do clube |
+| Conteúdo | — | **Injeção no CSV:** texto que começa com `=`, `+`, `-`, `@`, tabulação ou retorno ganha apóstrofo; números nunca. **Marcação no PDF:** texto de pessoa entra escapado, ou como texto simples na célula | — | **Exfiltração:** nenhum e-mail, telefone, comprovante ou texto livre de pessoa, exceto em "Meus dados", que é da própria pessoa; a inadimplência sai sem justificativa nem questionamento | — | — |
+| Worker | — | Tarefa recebe só o ID do pedido | Log com o ID e a classe do erro, nunca a mensagem | — | **Esgotamento:** sem `retry` automático; o pedido parado há mais de uma hora vira falha; medido: até 1,1 s e ~41 MiB por geração | A tarefa só chama o serviço de `relatorios` |
+| Expiração | — | **Apagar o que não é derivado:** só chaves `relatorios/<uuid>.<ext>` saem; anexos e registros nunca | Expiração auditada (`RELATORIO_EXPIRADO`, ator nulo) | — | Idempotente | — |
+| Site | — | XSS nos nomes e parâmetros → React renderiza como texto | — | O link de baixar só aparece para o pedido disponível; a API confere de novo | Consulta a cada 3 s só com pedido em andamento | O sem cargo só vê "Meus dados", pela lista que a API devolve |
+
+| Ameaça | Mitigação | Status | Registro |
+| --- | --- | --- | --- |
+| Baixar o relatório de outra pessoa | `403` para outro e inexistente, até para o admin | Implementada (M10) | `relatorios/tests/test_parte9_relatorios_http.py` |
+| Gerar relatório do clube sem cargo | Catálogo por tipo; `403` | Implementada (M10) | `test_parte5_pedidos.py`, `test_parte9_relatorios_http.py`; percurso |
+| Injeção de fórmula no CSV | `escapar_celula` nas colunas de texto | Implementada (M10) | `test_dominio_relatorios.py`, `test_escritores.py` |
+| Marcação no PDF (`<img src=...>`, `<font>`) | Texto escapado; números como texto simples | Implementada (M10) | `test_escritores.py`, `test_parte8_conteudo.py` |
+| Contato ou texto livre no arquivo | Consultas com campos fixos; teste procura e-mail, telefone, justificativa e questionamento | Implementada (M10) | `test_parte8_conteudo.py`, `financeiro/tests/test_parte15_relatorios.py` |
+| Esgotar o worker | Três por usuário, sem `retry`, parado vira falha; medição dentro do limite | Implementada (M10) | `test_parte7_rotina_diaria.py`; medição nos contêineres |
+| A expiração apagar anexo ou registro | Só chaves de relatório | Implementada (M10) | `test_parte7_rotina_diaria.py`; percurso |
+
 ## 2. Avaliação de LGPD
 
 | Campo | Valor |
@@ -352,7 +378,7 @@ outro fim (divulgação, por exemplo), isso muda.
 | Acesso aos próprios dados | Perfil do usuário (atendido no M9) | M9 |
 | Correção | O usuário corrige o próprio telefone pelo perfil; nome, nome de usuário e e-mail seguem pelo pedido ao admin (atendido no M9) | M9 |
 | Eliminação | Ver a tensão abaixo | M12 |
-| Portabilidade | Exportação dos próprios dados em CSV, pelos relatórios | M10 |
+| Portabilidade | "Meus dados": os dados do perfil, as cobranças com os pagamentos e os eventos, em CSV, só da própria pessoa (atendido no M10) | M10 |
 | Resposta a incidente | Procedimento de comunicação | M12 |
 
 ### Tensão: "nada é apagado" e o direito de eliminação
@@ -1078,3 +1104,76 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/financeiro/l
 | Verificação do backend (`2305` testes, cobertura `94,82%`, `lint-imports` `1 kept / 0 broken`) | `uv run poe verify`, `uv run ruff check --select S .`, `uv run poe audit` |
 | Verificação do site (`282` testes, cobertura `89,6%` Stmts / `82,69%` Branch / `91,19%` Lines) | `npm run verify`, `npm audit --audit-level=high` |
 | Percurso nos contêineres | `docker compose up -d --build --wait`; 22 passos HTTP conferidos |
+
+## 11. Relatório de vulnerabilidades — M10 (relatórios em PDF e CSV)
+
+| Campo | Valor |
+| --- | --- |
+| Projeto | Club Manager |
+| Escopo | Feature `relatorios/relatorios-pdf-e-csv`: pedido, geração no worker, escritores de PDF e CSV, download, expiração, consultas públicas novas e a tela "Relatórios" |
+| Data da execução | 2026-11-27 |
+| Responsável | o dono do projeto |
+| Ferramentas | SCA: `pip-audit` e `npm audit --audit-level=high`. SAST: `ruff check --select S .`, `mypy .`, `oxlint --deny-warnings`, `tsc -b`, `lint-imports`. DAST: não executado (M12). Revisão por ameaça, percurso HTTP e medição nos contêineres |
+| Especificação | RNF-07; [01-spec](01-spec.md) § 1 (M10); modelo de ameaças § 1 (M10, relatórios em PDF e CSV) |
+| Achados aceitos sem correção | Nenhum de vulnerabilidade; o log sem os campos de `extra` fica como D-24 |
+
+### 1. Contexto e escopo
+
+Os relatórios juntam os números financeiros do clube e, em "Meus dados", os dados da própria pessoa. A geração
+é no worker, e o arquivo fica 7 dias no armazenamento, só para quem pediu. A dependência nova é a ReportLab
+(com a Pillow), escolhida na ADR-019.
+
+### 2. Frentes
+
+| Frente | Ferramenta | O que cobre | Mapeamento OWASP |
+| --- | --- | --- | --- |
+| SCA | `pip-audit`; `npm audit --audit-level=high` | Dependências, com a ReportLab 5.1.2 e a Pillow 13.0.0 | A06 |
+| SAST e arquitetura | `ruff --select S`, `mypy`, `lint-imports`, `oxlint`, `tsc -b`, testes de fronteira | Padrões inseguros, tipagem, a ReportLab só nos escritores, a tarefa só chama serviço | A03, A05 |
+| Revisão por ameaça e contêineres | Testes de backend e site; percurso HTTP; medição de memória e tempo | Download alheio, permissão do tipo, injeção no CSV e no PDF, contato no arquivo, expiração só do derivado, esgotamento | A01, A03, A04 |
+| DAST | Não executado | — | — |
+
+### 3. Como reproduzir
+
+```text
+# em backend/
+uv run poe audit
+uv run ruff check --select S .
+uv run poe verify
+
+# em frontend/
+npm audit --audit-level=high
+npm run verify
+
+# com o sistema no ar (na raiz)
+docker compose up -d --build --wait
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/relatorios/pedidos/   # 401
+```
+
+### 4. Resultado: inicial → correções → final
+
+| Frente | Severidade | Inicial | Final | Variação |
+| --- | --- | --- | --- | --- |
+| SCA backend (`pip-audit`) | Qualquer | 0 | 0 | — |
+| SCA site (`npm audit --audit-level=high`) | Crítica, alta | 0 | 0 | — |
+| SAST (`ruff --select S`, `mypy`, `oxlint`) | Qualquer | 0 | 0 | — |
+| Revisão por ameaça e percurso HTTP | Média, baixa | 0 | 0 abertos | — |
+
+### 5. Controles verificados e lacunas
+
+| Controle ou lacuna | Resultado / Situação | Evidência |
+| --- | --- | --- |
+| Download só de quem pediu | Outro usuário e o sem cargo recebem `403`; o expirado `409` com a situação | Testes; percurso |
+| Cabeçalhos do download | `attachment`, `nosniff`, `private, no-store`, tipo do conteúdo do formato | Testes; percurso |
+| E-mail de pronto | Sem anexo, sem link do arquivo nem ID; só o link para `/relatorios` | Percurso no Mailpit |
+| Expiração | Só a pasta `relatorios/` esvaziou; anexos continuaram; segunda execução sem mudança | Testes; percurso |
+| Memória e tempo (risco 6) | Extrato de 20 páginas em até 1,1 s; pico do worker ~41 MiB acima do repouso | Medição nos contêineres |
+| Cabeçalho e caixa de notificações a 1366 px | Cabeçalho em duas linhas, "Relatórios" na segunda, sem sobreposição; painel à direita | Navegador |
+| Log da geração | Os campos `duracao_ms`, `linhas` e `memoria_max_kb` não chegam ao log JSON | D-24 |
+| DAST, HTTPS/HSTS, SPF/DKIM e cifragem de disco | Previsto para o M12 | [02-plan](02-plan.md) § 6 |
+
+### 6. Evidências
+
+| Evidência | Onde |
+| --- | --- |
+| Verificação do backend e do site | `uv run poe verify`, `npm run verify`, `uv run poe audit`, `npm audit --audit-level=high` |
+| Percurso e medição nos contêineres | `docker compose up -d --build`; pedido, aviso, e-mail, download, `403` alheio, "Meus dados", expiração |

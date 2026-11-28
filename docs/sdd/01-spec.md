@@ -207,13 +207,17 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | RF-102 | O diretor com cargo vê o dashboard financeiro: totais do período, saldo, pendências de aprovação e de validação, inadimplência, próximos eventos e últimos comunicados | Implementado |
 | RF-103 | O diretor sem cargo vê o dashboard básico | Implementado |
 | RF-104 | O diretor lista as transações com filtros por período, categoria, tipo e estado, e abre o detalhe de cada uma | Implementado |
-| RF-105 | O usuário gera o extrato do mês ou de um período, em PDF e em CSV | Aprovado |
-| RF-106 | O usuário gera o balancete, em PDF e em CSV | Aprovado |
-| RF-107 | O usuário gera o relatório de inadimplência, em PDF e em CSV | Aprovado |
-| RF-108 | O usuário gera o relatório de eventos, em PDF e em CSV | Aprovado |
-| RF-109 | O usuário gera o relatório de prestação de contas, em PDF e em CSV | Aprovado |
-| RF-110 | O usuário gera o fluxo de caixa com o previsto, o realizado e a inadimplência, em PDF e em CSV | Aprovado |
-| RF-111 | O sistema gera em segundo plano os relatórios pesados e avisa o usuário quando ficam prontos | Aprovado |
+| RF-105 | O usuário gera o extrato do mês ou de um período, em PDF e em CSV | Implementado |
+| RF-106 | O usuário gera o balancete, em PDF e em CSV | Implementado |
+| RF-107 | O usuário gera o relatório de inadimplência, em PDF e em CSV | Implementado |
+| RF-108 | O usuário gera o relatório de eventos, em PDF e em CSV | Implementado |
+| RF-109 | O usuário gera o relatório de prestação de contas, em PDF e em CSV | Implementado |
+| RF-110 | O usuário gera o fluxo de caixa com o previsto, o realizado e a inadimplência, em PDF e em CSV | Implementado |
+| RF-111 | O sistema gera em segundo plano os relatórios pesados e avisa o usuário quando ficam prontos | Implementado |
+| RF-144 | O usuário exporta os próprios dados em CSV: dados do perfil, cobranças e pagamentos, eventos propostos e presenças | Implementado |
+| RF-145 | O sistema registra na auditoria cada pedido de relatório, com tipo, formato e parâmetros, e cada expiração de arquivo, sem o conteúdo | Implementado |
+| RF-146 | O arquivo gerado fica disponível só para quem pediu, por 7 dias, e depois expira; o pedido continua no histórico como expirado | Implementado |
+| RF-147 | O usuário acompanha os próprios pedidos de relatório e baixa os prontos | Implementado |
 
 ##### Marca (M11)
 
@@ -381,6 +385,8 @@ Em `VALIDATION_ERROR`, `details` traz os motivos por campo.
 | `COMUNICADO_NAO_PUBLICADO`, `COMUNICADO_JA_PUBLICADO`, `COMUNICADO_JA_DESPUBLICADO`, `JA_ESTA_FIXADO`, `NAO_ESTA_FIXADO` | 422 | Editar, fixar, reagir ou comentar em comunicado despublicado; despublicar, republicar, fixar ou desafixar fora da situação |
 | `SEM_REACAO`, `COMENTARIO_JA_OCULTO`, `COMENTARIO_NAO_ESTA_OCULTO` | 422 | Retirar a reação que não existe; ocultar o oculto ou reexibir o que não está oculto |
 | `DOCUMENTO_ARQUIVADO`, `DOCUMENTO_JA_ARQUIVADO`, `DOCUMENTO_NAO_ESTA_ARQUIVADO` | 422 | Nova versão ou vínculo com documento arquivado; arquivar o arquivado ou desarquivar o vigente |
+| `PEDIDOS_EM_ANDAMENTO` | 409 | Pedir um relatório com três pedidos próprios na fila ou gerando |
+| `RELATORIO_NAO_DISPONIVEL` | 409 | Baixar o arquivo de um pedido que não está pronto; `details` traz a situação |
 | `INTERNAL_ERROR` | 500 | Erro inesperado; o detalhe fica só no log, com o `X-Request-ID` da resposta |
 
 Login, recuperação de senha, reenvio de verificação e convite inválido respondem do mesmo jeito exista a conta (ou o
@@ -428,6 +434,7 @@ convite) ou não.
 | Documentos e atas | `GET comunicacao/documentos/` (`?categoria_id=`, `?tipo=`, `?titulo=`, `?arquivados=1`, `?antes=`, `?limite=`); `GET …/{id}/` (versões e comunicados que o indexam); `GET …/{id}/arquivo/` e `…/{id}/versoes/{numero}/arquivo/` (download pela rota autenticada, `nosniff` e `no-store`, sem URL pública); `POST …/` (`comunicacao.enviar_documentos`), `POST …/atas/` (`comunicacao.registrar_atas`), ambos em multipart; `POST …/{id}/versoes/` (multipart), `…/arquivar/`, `…/desarquivar/` (quem enviou, ou `comunicacao.gerenciar`) | Leitura e download: diretor com cargo |
 | Perfil | `GET relatorios/perfil/` (o próprio) e `GET relatorios/perfil/{usuario_id}/` (dados, primeira página de cobranças e de eventos, e a contagem de notificações só no próprio); `GET …/cobrancas/` e `…/eventos/` (`?antes=`, `?limite=` até 50), também por usuário. Só leitura: sem rota de escrita em `relatorios` | Dono ou admin, conferido no serviço antes de qualquer consulta; outro diretor recebe `403`, até para ID inexistente; só o admin recebe `404`; a consulta do admin ao perfil de outro é auditada (`PERFIL_CONSULTADO`) |
 | Dashboard | `GET relatorios/dashboard/` (`?mes=AAAA-MM`, padrão o corrente; mês futuro ou inválido é `400`): o completo (`tipo: COMPLETO`) com os números do mês e de hoje, próximos eventos, últimos comunicados e as próprias cobranças, ou o básico (`tipo: BASICO`) com as próprias cobranças e as notificações não lidas. Só leitura | Usuário ativo; o completo para quem lê gestão, o básico para o ativo sem cargo, escolhido no serviço |
+| Relatórios em PDF e CSV | `GET relatorios/tipos/` (os tipos que o usuário pode gerar: código, nome, formatos e a forma dos parâmetros, `PERIODO`, `PERIODO_E_PENDENTES`, `MESES` ou `NENHUM`); `POST relatorios/pedidos/` (`tipo`, `formato`, `parametros`; `202` com o pedido na fila); `GET relatorios/pedidos/` (`?antes=`, `?limite=` de 1 a 50, padrão 20: os próprios, mais novos primeiro); `GET …/{id}/`; `GET …/{id}/arquivo/` (`attachment`, `nosniff`, `private, no-store`). O pedido sai com `id`, `tipo`, `tipo_nome`, `formato`, `parametros`, `situacao`, `pedido_em`, `concluido_em`, `expira_em`, `disponivel` e `codigo_da_falha`, nunca a chave do arquivo | Usuário ativo; os seis do clube para quem lê gestão, "Meus dados" para todo ativo; pedido de outro ou inexistente é `403`, até para o admin; a permissão do tipo é conferida de novo no download; o pedido é auditado (`RELATORIO_PEDIDO`), o download não |
 | Lançamentos | `GET financeiro/lancamentos/` (`?de=`, `?ate=`, `?categoria_id=`, `?tipo=COBRANCA\|ENTRADA\|SAIDA\|ESTORNO`, `?estado=EM_ABERTO\|EM_VALIDACAO\|REALIZADO\|ENCERRADO_SEM_VALOR\|ESTORNADO`, `?antes=<tipo>:<id>`, `?limite=` de 1 a 50): cobranças, entradas, saídas e estornos, do mais novo para o mais antigo pela data de referência; o estorno sai negativo e aponta o `original` | Admin ou diretor ativo com cargo |
 | Telefone próprio | `POST acesso/telefone/` só com o campo `telefone` (outra chave é `400`); troca e audita `TELEFONE_ALTERADO` sem o número | Usuário ativo, só o próprio |
 | Categorias de documento | `GET comunicacao/categorias/` (`?todas=1` só para o admin); `POST comunicacao/categorias/`, `POST …/{id}/editar/`, `…/desativar/`, `…/reativar/` | Leitura: diretor com cargo; escrita: admin |
@@ -465,6 +472,8 @@ fuso é lida no fuso do clube (`America/Sao_Paulo`).
   despublicam, retiram, ocultam, arquivam ou desativam, e as versões de comunicado, comentário e documento
   são imutáveis, também por gatilho no banco. A trilha de auditoria é só de inserção, recusada também por
   gatilho no banco.
+- O arquivo gerado de um relatório é derivado: expira em 7 dias e sai do armazenamento, e o pedido fica,
+  como expirado (ADR-020). Anexos originais e registros do negócio nunca expiram.
 - Migrações do Django, versionadas e reversíveis, em `<modulo>/migrations/`.
 
 ### Aggregates e estados
@@ -477,10 +486,11 @@ fuso é lida no fuso do clube (`America/Sao_Paulo`).
 | `financeiro` | Entrada, Recorrência, Suspensão, Renegociação | `Entrada`: `EM_VALIDACAO`, `VALIDADA`, `REJEITADA`, `ESTORNADA`; `Recorrência`: ativa/inativa; `Suspensão`: `VIGENTE`, `ENCERRADA`; `Renegociação`: imutável após criação |
 | `eventos` | Evento | `EM_APROVACAO`, `PUBLICADO`, `RECUSADO`, `REALIZADO`, `CANCELADO` (derivado das duas solicitações por uma função só, `situacao_do_evento`) |
 
-Os módulos de apoio (`acesso`, `permissoes`, `notificacoes`, `auditoria`, `comunicacao`, `marca`, `relatorios`) usam
-camadas, sem modelo tático. Dados pessoais tratados: nome, nome de usuário, telefone, e-mail e senha (em hash
-Argon2); convites, verificações e recuperações guardam só o hash do token. Detalhes e pendências de LGPD em
-[04-seguranca](04-seguranca.md).
+Os módulos de apoio (`acesso`, `permissoes`, `notificacoes`, `auditoria`, `comunicacao`, `marca`,
+`relatorios`) usam camadas, sem modelo tático. `relatorios` tem uma tabela, o pedido de relatório (`NA_FILA`,
+`GERANDO`, `PRONTO`, `FALHOU`, `EXPIRADO`), com quem pediu por ID e os parâmetros sem dado pessoal. Dados
+pessoais tratados: nome, nome de usuário, telefone, e-mail e senha (em hash Argon2); convites, verificações e
+recuperações guardam só o hash do token. Detalhes e pendências de LGPD em [04-seguranca](04-seguranca.md).
 
 ## 6. Critérios de aceite por marco
 
