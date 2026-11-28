@@ -206,7 +206,7 @@ Status: `Proposto`, `Aprovado`, `Em implementação`, `Implementado`, `Removido 
 | --- | --- | --- |
 | RF-102 | O diretor com cargo vê o dashboard financeiro: totais do período, saldo, pendências de aprovação e de validação, inadimplência, próximos eventos e últimos comunicados | Implementado |
 | RF-103 | O diretor sem cargo vê o dashboard básico | Implementado |
-| RF-104 | O diretor lista as transações com filtros por período, categoria, tipo e estado, e abre o detalhe de cada uma | Implementado |
+| RF-104 | O diretor lista os lançamentos (cobranças, entradas, saídas e estornos) com filtros por período, categoria, tipo e estado, e abre o detalhe de cada um | Implementado |
 | RF-105 | O usuário gera o extrato do mês ou de um período, em PDF e em CSV | Implementado |
 | RF-106 | O usuário gera o balancete, em PDF e em CSV | Implementado |
 | RF-107 | O usuário gera o relatório de inadimplência, em PDF e em CSV | Implementado |

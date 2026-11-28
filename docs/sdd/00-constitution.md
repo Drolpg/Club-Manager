@@ -14,7 +14,8 @@ Restrições que não mudam sem decisão registrada no [plano](02-plan.md):
 - custo mínimo: uma única instância AWS, só os ambientes local e produção;
 - uma API única serve o site e, depois, o aplicativo; regras de negócio, permissões e auditoria ficam sempre nela;
 - os valores são escriturais: o sistema registra e o dinheiro se move por fora, na conta do clube;
-- nada é apagado: desativa-se, cancela-se ou estorna-se;
+- nada é apagado: desativa-se, cancela-se ou estorna-se (a exceção é o arquivo derivado de um relatório, que
+  expira com o pedido registrado, ADR-020);
 - o sistema não coleta CPF.
 
 Etapas futuras (aplicativo, torcedor e jogador, gestão do time, multi-cliente) não são implementadas, mas nada pode
