@@ -18,4 +18,12 @@ urlpatterns = [
         views.EventosDoUsuarioView.as_view(),
         name="relatorios-perfil-eventos",
     ),
+    path("tipos/", views.TiposDeRelatorioView.as_view(), name="relatorios-tipos"),
+    path("pedidos/", views.PedidosDeRelatorioView.as_view(), name="relatorios-pedidos"),
+    path("pedidos/<uuid:pedido_id>/", views.PedidoDeRelatorioView.as_view(), name="relatorios-pedido"),
+    path(
+        "pedidos/<uuid:pedido_id>/arquivo/",
+        views.ArquivoDoRelatorioView.as_view(),
+        name="relatorios-pedido-arquivo",
+    ),
 ]

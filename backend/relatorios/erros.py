@@ -26,3 +26,30 @@ def mes_invalido(mensagem: str) -> BusinessError:
     return BusinessError(
         "VALIDATION_ERROR", "Os dados enviados são inválidos.", status=400, details={"mes": [mensagem]}
     )
+
+
+def campo_invalido(campo: str, mensagem: str) -> BusinessError:
+    return BusinessError(
+        "VALIDATION_ERROR", "Os dados enviados são inválidos.", status=400, details={campo: [mensagem]}
+    )
+
+
+def pedidos_em_andamento(maximo: int) -> BusinessError:
+    return BusinessError(
+        "PEDIDOS_EM_ANDAMENTO",
+        f"Você já tem {maximo} relatórios na fila ou sendo gerados. Espere um terminar para pedir outro.",
+        status=409,
+    )
+
+
+def relatorio_nao_disponivel(situacao: str) -> BusinessError:
+    return BusinessError(
+        "RELATORIO_NAO_DISPONIVEL",
+        "O arquivo deste relatório não está disponível.",
+        status=409,
+        details={"situacao": situacao},
+    )
+
+
+def pedido_nao_encontrado() -> BusinessError:
+    return BusinessError("NOT_FOUND", "Pedido não encontrado.", status=404)

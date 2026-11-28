@@ -29,6 +29,7 @@ import { HistoricoDeEventos } from './paginas/HistoricoDeEventos'
 import { MinhasCobrancas } from './paginas/MinhasCobrancas'
 import { NovaSolicitacaoDeGasto } from './paginas/NovaSolicitacaoDeGasto'
 import { Perfil } from './paginas/Perfil'
+import { Relatorios } from './paginas/Relatorios'
 import { Preferencias } from './paginas/Preferencias'
 import { RecorrenciasESuspensoes } from './paginas/RecorrenciasESuspensoes'
 import { Saidas } from './paginas/Saidas'
@@ -166,6 +167,14 @@ function App() {
             element={
               <Protegida>
                 <Perfil />
+              </Protegida>
+            }
+          />
+          <Route
+            path="/relatorios"
+            element={
+              <Protegida>
+                <Relatorios />
               </Protegida>
             }
           />

@@ -85,6 +85,7 @@ export function Moldura() {
             {usuario.admin && <Link to="/admin/categorias-de-documento">Categorias de documento</Link>}
           </nav>
         )}
+        <Link to="/relatorios">Relatórios</Link>
         <Link to="/perfil">Meu perfil</Link>
         <Link to="/preferencias">Preferências</Link>
         <Sino />

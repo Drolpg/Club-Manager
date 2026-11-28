@@ -11,6 +11,8 @@
 - `a_receber`, `resumo_da_inadimplencia`, `pendencias_de_validacao`, `prestacoes_pendentes` e
   `resumo_do_devedor`: as pendências e os resumos de hoje (N11 a N13, N15), só leitura.
 - `limites_do_mes`: o primeiro e o último dia de um mês, a mesma conta que os totais usam.
+- `lancamentos_realizados`, `balancete`, `inadimplencia_detalhada`, `prestacoes_de_contas`, `fluxo_previsto`
+  e `orcamentos_de_eventos`: o conteúdo dos relatórios, só leitura, com as regras dos totais.
 """
 
 import uuid
@@ -34,6 +36,21 @@ from financeiro.services.consulta import (
     cobrancas_do_devedor,
     resumo_entradas_validadas,
     visao_do_caixa,
+)
+from financeiro.services.relatorios import (
+    Balancete,
+    CobrancaInadimplente,
+    LancamentoRealizado,
+    LinhaDoBalancete,
+    OrcamentoDoEvento,
+    PrestacaoDaSaida,
+    PrevistoDoMes,
+    balancete,
+    fluxo_previsto,
+    inadimplencia_detalhada,
+    lancamentos_realizados,
+    orcamentos_de_eventos,
+    prestacoes_de_contas,
 )
 from financeiro.services.totais import (
     PendenciasDeValidacao,
@@ -192,13 +209,20 @@ def cancelar_orcamento_de_evento(
 
 
 __all__ = (
+    "Balancete",
     "CategoriaFinanceiraInfo",
     "CobrancaDoDevedor",
+    "CobrancaInadimplente",
+    "LancamentoRealizado",
+    "LinhaDoBalancete",
     "OrcamentoDeEventoMudou",
+    "OrcamentoDoEvento",
     "PagamentoDoDevedor",
     "PaginaDeCobrancasDoDevedor",
     "PendenciasDeValidacao",
+    "PrestacaoDaSaida",
     "PrestacoesPendentes",
+    "PrevistoDoMes",
     "ProximaCobranca",
     "Resumo",
     "ResumoDaInadimplencia",
@@ -208,12 +232,18 @@ __all__ = (
     "VisaoDoCaixa",
     "a_receber",
     "abrir_solicitacao_orcamentaria",
+    "balancete",
     "cancelar_orcamento_de_evento",
     "cobrancas_do_devedor",
+    "fluxo_previsto",
+    "inadimplencia_detalhada",
+    "lancamentos_realizados",
     "limites_do_mes",
     "listar_categorias_ativas",
     "obter_categoria_ativa",
+    "orcamentos_de_eventos",
     "pendencias_de_validacao",
+    "prestacoes_de_contas",
     "prestacoes_pendentes",
     "primeira_data_de_realizacao",
     "registrar_devolucao_de_saida",

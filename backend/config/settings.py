@@ -253,6 +253,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "eventos.processar_rotina_diaria",
         "schedule": crontab(minute=30, hour=6),
     },
+    # De madrugada, fora das rotinas das 06h: expira os arquivos de relatório (D8 da spec de relatórios).
+    "relatorios.processar_rotina_diaria": {
+        "task": "relatorios.processar_rotina_diaria",
+        "schedule": crontab(minute=0, hour=3),
+    },
 }
 
 LOGGING = {

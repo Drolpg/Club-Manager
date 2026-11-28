@@ -25,6 +25,9 @@ const TEXTO: Record<string, string> = {
   CONCESSAO_JA_REVOGADA: 'Esta concessão já foi revogada.',
   PERMISSION_DENIED: 'Você não tem permissão para fazer isso.',
   NOT_FOUND: 'Não encontrado.',
+  PEDIDOS_EM_ANDAMENTO:
+    'Você já tem três relatórios na fila ou sendo gerados. Espere um terminar para pedir outro.',
+  RELATORIO_NAO_DISPONIVEL: 'O arquivo deste relatório não está disponível. Peça de novo.',
   NETWORK_ERROR: 'Não foi possível falar com o servidor. Confira a sua conexão.',
   CATEGORIA_JA_EXISTE: 'Já existe uma categoria com este nome e natureza.',
   CHAVE_PIX_PADRAO_NAO_CONFIGURADA: 'Configure uma chave Pix padrão antes de gerar cobranças.',
@@ -379,4 +382,12 @@ export const ESTADO_DO_LANCAMENTO: Record<string, string> = {
   REALIZADO: 'Realizado',
   ENCERRADO_SEM_VALOR: 'Encerrado sem valor',
   ESTORNADO: 'Estornado',
+}
+
+export const SITUACAO_DO_PEDIDO_DE_RELATORIO: Record<string, string> = {
+  NA_FILA: 'Na fila',
+  GERANDO: 'Gerando',
+  PRONTO: 'Pronto',
+  FALHOU: 'Falhou',
+  EXPIRADO: 'Expirado',
 }

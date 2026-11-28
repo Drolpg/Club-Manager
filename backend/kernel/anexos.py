@@ -124,8 +124,19 @@ def validar_e_salvar_anexo(
     return AnexoSalvo(chave=chave_salva, nome=nome_sanitizado, mime=mime_real, tamanho=len(conteudo))
 
 
-def resposta_anexo(*, chave: str, nome: str, mime: str, rotulo: str = "comprovante") -> HttpResponse:
-    """Lê o anexo pela chave interna e devolve HTTP segura sem execução no navegador."""
+_DISPOSICOES = frozenset({"inline", "attachment"})
+
+
+def resposta_anexo(
+    *, chave: str, nome: str, mime: str, rotulo: str = "comprovante", disposicao: str = "inline"
+) -> HttpResponse:
+    """Lê o anexo pela chave interna e devolve HTTP segura sem execução no navegador.
+
+    `disposicao` é `inline` (o padrão, para ver no navegador) ou `attachment` (para baixar, como os
+    relatórios).
+    """
+    if disposicao not in _DISPOSICOES:
+        raise ValueError(f"disposicao inválida: {disposicao!r}")
     if not chave or not default_storage.exists(chave):
         raise BusinessError("NOT_FOUND", f"{rotulo.capitalize()} não encontrado.", status=404)
     with default_storage.open(chave, "rb") as stream:
@@ -134,5 +145,5 @@ def resposta_anexo(*, chave: str, nome: str, mime: str, rotulo: str = "comprovan
     resposta = HttpResponse(dados, content_type=mime)
     resposta["X-Content-Type-Options"] = "nosniff"
     resposta["Cache-Control"] = "private, no-store"
-    resposta["Content-Disposition"] = f'inline; filename="{nome_seguro}"'
+    resposta["Content-Disposition"] = f'{disposicao}; filename="{nome_seguro}"'
     return resposta

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
-from django.db.models import OuterRef, Q, Subquery
+from django.db.models import Count, F, OuterRef, Q, Subquery
 from django.utils import timezone
 
 from acesso import public as acesso
@@ -17,7 +17,7 @@ from aprovacoes import public as aprovacoes
 from eventos.domain.autorizacao import PERM_APROVAR, acoes_disponiveis
 from eventos.domain.situacao import SituacaoDoEvento
 from eventos.erros import erro
-from eventos.models import CategoriaDeEvento, Evento, Presenca
+from eventos.models import CategoriaDeEvento, Evento, Presenca, RespostaDePresenca
 from eventos.services.autorizacao import exigir_leitura_de_gestao, fatos
 from eventos.services.presencas import quadro_do_evento
 from permissoes import public as permissoes
@@ -242,3 +242,85 @@ def proximos_eventos(a_partir_de: date, limite: int = 5) -> list[ProximoEvento]:
         situacao=S.PUBLICADO.value, inicio__gte=_inicio_do_dia(a_partir_de)
     ).order_by("inicio", "id")[:limite]
     return [ProximoEvento(e.id, e.titulo, e.inicio, e.categoria_nome) for e in eventos]
+
+
+@dataclass(frozen=True)
+class EventoDoPeriodo:
+    """Um evento do relatório de eventos: dados, situação, motivo e as presenças do ciclo atual (CA-19)."""
+
+    id: uuid.UUID
+    titulo: str
+    categoria: str
+    inicio: datetime
+    local: str
+    situacao: str
+    proponente: str
+    envolve_custo: bool
+    motivo: str
+    vou: int
+    nao_vou: int
+
+
+def _presencas_do_ciclo(resposta: str) -> Count:
+    return Count(
+        "presencas",
+        filter=Q(presencas__ciclo=F("ciclo_de_presenca"), presencas__resposta=resposta),
+    )
+
+
+def _motivo_do_evento(evento: Evento, recusas: dict[uuid.UUID, str]) -> str:
+    """O do cancelamento, ou o da recusa (do pedido do evento ou do orçamento), que o histórico já mostra."""
+    if evento.situacao == S.CANCELADO.value:
+        return evento.cancelamento_motivo
+    if evento.situacao == S.RECUSADO.value:
+        for solicitacao_id in (evento.solicitacao_do_evento_id, evento.solicitacao_orcamentaria_id):
+            if solicitacao_id in recusas:
+                return recusas[solicitacao_id]
+    return ""
+
+
+def eventos_do_periodo(de: date, ate: date) -> list[EventoDoPeriodo]:
+    """Os eventos com data em `[de, ate]`, de qualquer situação, por início, com o motivo do cancelamento
+    ou da recusa. Só leitura; quem pode ver é de quem chama.
+    """
+    eventos = (
+        Evento.objects.filter(
+            inicio__gte=_inicio_do_dia(de), inicio__lt=_inicio_do_dia(ate + timedelta(days=1))
+        )
+        .annotate(
+            vou=_presencas_do_ciclo(RespostaDePresenca.VOU),
+            nao_vou=_presencas_do_ciclo(RespostaDePresenca.NAO_VOU),
+        )
+        .order_by("inicio", "id")
+    )
+    recusas = aprovacoes.motivos_de_recusa(
+        [
+            solicitacao_id
+            for evento in eventos
+            if evento.situacao == S.RECUSADO.value
+            for solicitacao_id in (evento.solicitacao_do_evento_id, evento.solicitacao_orcamentaria_id)
+            if solicitacao_id is not None
+        ]
+    )
+    nomes: dict[uuid.UUID, str] = {}
+    itens = []
+    for evento in eventos:
+        if evento.proponente_id not in nomes:
+            proponente = acesso.usuario_por_id(evento.proponente_id)
+            nomes[evento.proponente_id] = proponente.nome if proponente is not None else ""
+        itens.append(
+            EventoDoPeriodo(
+                id=evento.id,
+                titulo=evento.titulo,
+                categoria=evento.categoria_nome,
+                inicio=evento.inicio,
+                local=evento.local,
+                situacao=evento.situacao,
+                proponente=nomes[evento.proponente_id],
+                envolve_custo=evento.envolve_custo,
+                motivo=_motivo_do_evento(evento, recusas),
+                vou=evento.vou,
+                nao_vou=evento.nao_vou,
+            )
+        )
+    return itens
