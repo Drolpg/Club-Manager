@@ -21,13 +21,11 @@ do board quando ele existir; até lá fica `—`.
 | M7 Financeiro: saídas | Solicitação de gasto, envio, prestação, liquidação, estorno | RF-073 a RF-083, RF-126 a RF-128 | Concluído | 2026-11-15 | — |
 | M8 Eventos | Proposta, orçamento, calendário, realização, cancelamento | RF-084 a RF-093, RF-129 a RF-131 | Concluído | 2026-11-20 | — |
 | M9 Feed, documentos e perfil | Comunicados, comentários, reações, documentos, atas, perfil | RF-094 a RF-101, RF-132 a RF-143 | Concluído | 2026-11-21 | — |
-| M10 Dashboard e relatórios | Dashboards, lista de transações, relatórios em PDF e CSV | RF-102 a RF-111 | Em andamento | | — |
+| M10 Dashboard e relatórios | Dashboards, lista de lançamentos, relatórios em PDF e CSV | RF-102 a RF-111, RF-127, RF-144 a RF-147 | Concluído | 2026-11-27 | — |
 | M11 Personalização | Escudo, cores, temas, ícones | RF-112 a RF-115 | Pendente | | — |
 | M12 Produção | Deploy, backup, rollback, segurança, ponta a ponta, limpeza do legado | RNF-02, RNF-05, RNF-07, RNF-14 | Pendente | | — |
 
-Marcos concluídos foram aprovados pelo dono do projeto na data indicada. O M10 está em andamento: a feature
-`relatorios/dashboard-e-lancamentos` está na `dev`, e a `relatorios/relatorios-pdf-e-csv` está feita, em PR
-para a `dev`.
+Marcos concluídos foram aprovados pelo dono do projeto na data indicada. O próximo é o M11.
 
 ## Dependências
 
@@ -170,7 +168,9 @@ notificada, paga, validada e encerrada) é atendido ao fim da terceira.
 - [x] Relatórios em PDF e CSV (RF-105 a RF-110) e "Meus dados" (RF-144)
 - [x] Geração em segundo plano, aviso, download e expiração em 7 dias (RF-111, RF-145 a RF-147); biblioteca de
   PDF escolhida e medida (ADR-019, ADR-020, risco 6)
-- [ ] Revisão de segurança e auditoria de coerência do marco
+- [x] Revisão de segurança das duas features
+- [x] Auditoria de coerência do marco
+- [x] Aprovação do marco pelo dono
 
 ### M11 — Personalização
 

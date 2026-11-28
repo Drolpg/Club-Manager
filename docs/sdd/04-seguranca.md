@@ -1094,7 +1094,7 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/financeiro/l
 | Números | Dashboard, visão do caixa e lista com os mesmos valores para o mesmo conjunto | `test_parte13_*`; percurso (entradas `1475.50`, saídas `250.00`, comprometido `1050.00` nos dois) |
 | Campos de saída | Sem e-mail, telefone nem comprovante | Testes; percurso |
 | Fronteiras | `relatorios` importa só `.public`, agora também de `aprovacoes` e `comunicacao`; `comunicacao` não importa `relatorios` | `test_fronteiras.py`; `lint-imports` `1 kept / 0 broken` |
-| Cabeçalho e caixa de notificações a 1366 px | Não conferido nesta execução; a conferir no navegador (o link novo fica num menu próprio, ao lado do Financeiro) | Pendente |
+| Cabeçalho e caixa de notificações a 1366 px | Conferido no CP8 de `relatorios-pdf-e-csv` (ver § 11) | Navegador |
 | DAST, HTTPS/HSTS, SPF/DKIM e cifragem de disco | Previsto para o M12 | [02-plan](02-plan.md) § 6 |
 
 ### 6. Evidências
